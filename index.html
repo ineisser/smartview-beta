@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bento Column Interface</title>
+    <title>Smartview Beta</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -161,7 +161,7 @@
             opacity: 0;
             pointer-events: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             z-index: 100;
         }
 
@@ -1574,7 +1574,8 @@
         <div class="mobile-handle" onclick="toggleMobileModal()"></div>
         <div class="mobile-modal-header">
             <div class="flex items-center gap-3">
-                <i id="mobile-modal-icon" data-lucide="history" class="text-accent-green opacity-80" style="width: 24px; height: 24px;"></i>
+                <i id="mobile-modal-icon" data-lucide="history" class="text-accent-green opacity-80"
+                    style="width: 24px; height: 24px;"></i>
                 <h3 class="mobile-modal-title">Historial de Paros</h3>
             </div>
             <button onclick="toggleMobileModal()" class="opacity-40 hover:opacity-100 transition-opacity">
@@ -1959,13 +1960,13 @@
 
                 setTimeout(() => {
                     if (titleEl) titleEl.textContent = config.title;
-                    
+
                     // Actualizar Icono usando contenedor para evitar elementos "muertos"
                     const iconContainer = document.getElementById('main-view-icon-container');
                     if (iconContainer) {
                         iconContainer.innerHTML = `<i data-lucide="${config.icon}" class="text-accent-green"></i>`;
                     }
-                    
+
                     if (window.lucide) lucide.createIcons();
 
                     container.style.opacity = '1';
@@ -1976,7 +1977,7 @@
             // Update Tab UI and Indicator
             const tabs = document.querySelectorAll('.maquinas-container-tab-view .tab-item');
             const indicator = document.getElementById('tab-indicator');
-            
+
             tabs.forEach(tab => {
                 const span = tab.querySelector('span');
                 if (span && (
@@ -1986,7 +1987,7 @@
                     (view === 'mapa' && span.textContent === 'Mapa')
                 )) {
                     tab.classList.add('active');
-                    
+
                     // Update Indicator Position
                     if (indicator) {
                         indicator.style.width = `${tab.offsetWidth}px`;
@@ -2042,7 +2043,7 @@
             };
 
             if (titleEl && titles[view]) titleEl.textContent = titles[view];
-            
+
             const iconEl = document.getElementById('mobile-modal-icon');
             if (iconEl && icons[view]) {
                 iconEl.setAttribute('data-lucide', icons[view]);
