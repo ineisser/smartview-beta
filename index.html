@@ -1,0 +1,2576 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bento Column Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* Colores Base */
+            --primary-white: rgba(255, 255, 255, 0.9);
+            --accent-green: #10b981;
+
+            /* Paleta de Alerta (Rojo a Granate) */
+            --color-alert-1: #ff0000;
+            --color-alert-2: #cc0000;
+            --color-alert-3: #990000;
+            --color-alert-4: #800000;
+            /* Granate / Maroon */
+
+            /* Green Palette */
+            --color-green-300: #86efac;
+            --color-green-400: #4ade80;
+            --color-green-500: #22c55e;
+            --color-green-600: #16a34a;
+            --color-green-700: #15803d;
+            --color-green-800: #166534;
+            --color-green-900: #14532d;
+
+            --color-alert: var(--color-alert-1);
+            --glow-alert: 0 0 20px var(--color-alert), 0 0 40px rgba(255, 0, 0, 0.4);
+
+            /* Color Reiniciar */
+            --color-restart: var(--color-green-600);
+            --glow-restart: 0 0 20px var(--color-restart), 0 0 40px rgba(22, 163, 74, 0.4);
+
+            /* Fondos */
+            --bg-dark: #050505;
+            --bg-light: #f8fafc;
+
+            /* Colores de Texto Estandarizados */
+            --text-blanco-azulado: rgba(230, 245, 255, 0.9);
+            /* 90% para modo Dark */
+            --text-negro-azulado: rgba(15, 25, 40, 0.8);
+            /* 80% para modo Light */
+
+            /* Variable Unificada con light-dark() */
+            --color-text-primary: light-dark(var(--text-negro-azulado), var(--text-blanco-azulado));
+
+            /* Variables de Componente */
+            --tab-view-bg: light-dark(#ffffff, rgba(15, 15, 15, 0.6));
+            --tab-view-border: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+            --tab-item-active-bg: light-dark(#0f172a, rgba(255, 255, 255, 0.12));
+            --tab-item-active-text: light-dark(#ffffff, #ffffff);
+            --tab-item-hover-bg: light-dark(#f1f5f9, rgba(255, 255, 255, 0.05));
+
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Tab View Selector - Premium Design */
+        .maquinas-container-tab-view {
+            display: inline-flex;
+            align-items: center;
+            background: var(--tab-view-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--tab-view-border);
+            border-radius: 999px;
+            padding: 4px;
+            gap: 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 10;
+        }
+
+        .tab-indicator {
+            position: absolute;
+            height: calc(100% - 8px);
+            background: var(--tab-item-active-bg);
+            border-radius: 999px;
+            transition: all 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+            z-index: -1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .maquinas-container-tab-view .tab-item {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 16px 4px 12px;
+            border-radius: 999px;
+            transition: all 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.35);
+            min-width: 48px;
+            position: relative;
+            border: none;
+            background: none;
+            gap: 0.25rem;
+        }
+
+        .maquinas-container-tab-view .tab-item i,
+        .maquinas-container-tab-view .tab-item svg {
+            width: 16px !important;
+            height: 16px !important;
+            min-width: 16px !important;
+            min-height: 16px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            stroke-width: 2.5px;
+            transition: transform 0.3s ease;
+        }
+
+        .maquinas-container-tab-view .tab-item:hover i {
+            transform: scale(1.1);
+        }
+
+        .maquinas-container-tab-view .tab-item span {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            transition: color 0.3s ease;
+        }
+
+        .light .maquinas-container-tab-view .tab-item {
+            color: #64748b;
+        }
+
+        .maquinas-container-tab-view .tab-item.active {
+            color: var(--tab-item-active-text);
+        }
+
+        .maquinas-container-tab-view .tab-item.active i {
+            stroke-width: 3px;
+        }
+
+        .maquinas-container-tab-view .tab-item:hover:not(.active) {
+            color: var(--color-text-primary);
+        }
+
+        /* Generic Tooltip System */
+        .has-tooltip {
+            position: relative;
+        }
+
+        .tooltip-content {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(5px);
+            background: #111111;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            z-index: 100;
+        }
+
+        .has-tooltip:hover .tooltip-content {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+
+
+        /* Estilos del Título Principal Dinámico */
+        .main-view-title-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #main-view-icon-container i,
+        #main-view-icon-container svg {
+            width: 36px !important;
+            height: 36px !important;
+            opacity: 0.8;
+            stroke-width: 1.5px;
+            display: block;
+        }
+
+        #main-view-title {
+            font-size: 1.75rem;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-rows: 80px 1fr 10rem;
+            min-height: 100vh;
+            transition: background-color 0.6s ease, color 0.6s ease;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            position: relative;
+        }
+
+        /* Estándar Caption: 0.75rem, peso 400, sin mayúsculas forzadas */
+        .text-caption {
+            font-size: 0.75rem;
+            text-transform: none;
+            font-weight: 400;
+            opacity: 0.6;
+            line-height: 1.2;
+            position: relative;
+            z-index: 30;
+        }
+
+        /* Estilo de Valor Destacado (Basado en el diseño de la máquina) */
+        .text-value-display {
+            font-size: 2.2rem;
+            font-weight: 500;
+            line-height: 0.9;
+            letter-spacing: -0.05em;
+            margin: 0;
+        }
+
+        /* Scrollbar personalizado suave */
+        .col-main::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .col-main::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .col-main::-webkit-scrollbar-thumb {
+            background: transparent;
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+
+        .col-main:hover::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        /* Barra de carga - Siempre Roja Brillante */
+        .loading-bar-container {
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            z-index: 100;
+            overflow: hidden;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .loading-bar-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--color-alert);
+            box-shadow: var(--glow-alert);
+            width: 0%;
+            animation: load-progress-loop 3s linear infinite;
+        }
+
+        @keyframes load-progress-loop {
+            0% {
+                width: 0%;
+                left: 0;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                width: 100%;
+                left: 0;
+                opacity: 1;
+            }
+
+            100% {
+                width: 100%;
+                left: 0;
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse-glow-red {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px var(--color-alert), inset 0 0 10px var(--color-alert);
+                transform: scale(1.02);
+            }
+
+            50% {
+                box-shadow: 0 0 45px var(--color-alert), 0 0 90px rgba(255, 0, 0, 0.3);
+                transform: scale(1.06);
+            }
+        }
+
+        @keyframes bg-transition-green {
+            0% {
+                background: var(--res-start);
+                border-color: var(--res-start);
+            }
+
+            33% {
+                background: var(--res-mid1);
+                border-color: var(--res-mid1);
+            }
+
+            66% {
+                background: var(--res-mid2);
+                border-color: var(--res-mid2);
+            }
+
+            100% {
+                background: var(--res-end);
+                border-color: var(--res-end);
+            }
+        }
+
+        @keyframes pulse-glow-green-fast {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px var(--color-restart), inset 0 0 10px var(--color-restart);
+                transform: scale(1.02);
+            }
+
+            50% {
+                box-shadow: 0 0 50px var(--color-restart), 0 0 100px rgba(22, 163, 74, 0.4);
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes pulse-glow-green {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px var(--color-restart), inset 0 0 10px var(--color-restart);
+                transform: scale(1.02);
+            }
+
+            50% {
+                box-shadow: 0 0 45px var(--color-restart), 0 0 90px rgba(22, 163, 74, 0.3);
+                transform: scale(1.06);
+            }
+        }
+
+        @keyframes spin-slow {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinning-icon {
+            animation: spin-slow 1.5s linear infinite;
+        }
+
+        @keyframes item-entrance {
+            from {
+                opacity: 0;
+                transform: translateX(-15px) scale(0.98);
+                backdrop-filter: blur(0px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+                backdrop-filter: blur(10px);
+            }
+        }
+
+        .animate-log-item {
+            animation: item-entrance 1s cubic-bezier(0.1, 0.9, 0.24, 1) forwards;
+        }
+
+        @keyframes stroke-glow-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                border-color: var(--modal-border);
+                transform: scale(1);
+            }
+
+            30% {
+                box-shadow: 0 0 25px 3px rgba(16, 185, 129, 0.4);
+                border-color: #10b981;
+                transform: scale(1.02);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                border-color: var(--modal-border);
+                transform: scale(1);
+            }
+        }
+
+        .resolved-glow {
+            animation: stroke-glow-green 1.5s cubic-bezier(0.1, 0.9, 0.24, 1) forwards;
+            background: rgba(16, 185, 129, 0.05) !important;
+        }
+
+        @keyframes log-slide-down {
+            0% {
+                max-height: 0;
+                margin-bottom: 0;
+                opacity: 0;
+                filter: blur(10px);
+            }
+
+            100% {
+                max-height: 120px;
+                margin-bottom: 0.65rem;
+                opacity: 1;
+                filter: blur(0px);
+            }
+        }
+
+        @keyframes log-scale-up {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .item-insert-wrapper {
+            overflow: hidden;
+            animation: log-slide-down 0.8s cubic-bezier(0.2, 1, 0.24, 1) forwards;
+        }
+
+        .item-insert-content {
+            opacity: 0;
+            transform: scale(0.5);
+            animation: log-scale-up 0.4s cubic-bezier(0.2, 1, 0.24, 1) 0.4s forwards;
+        }
+
+        @keyframes view-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(0.97);
+                filter: blur(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+
+        .view-animate {
+            animation: view-fade-in 0.6s cubic-bezier(0.2, 1, 0.24, 1) forwards;
+        }
+
+        @keyframes log-slide-out {
+            0% {
+                max-height: 120px;
+                opacity: 1;
+                transform: translateX(0);
+                margin-bottom: 0.75rem;
+            }
+
+            100% {
+                max-height: 0;
+                opacity: 0;
+                transform: translateX(-30px);
+                margin-bottom: 0;
+                padding: 0;
+                border: none;
+            }
+        }
+
+        @keyframes mini-exit {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .item-exit-active {
+            animation: log-slide-out 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            pointer-events: none;
+        }
+
+        .mini-exit-active {
+            animation: mini-exit 0.4s ease forwards;
+            pointer-events: none;
+        }
+
+        .dark {
+            color-scheme: dark;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 50%, #111111 0%, #050505 100%);
+            color: var(--color-text-primary);
+            --machine-bg-op: var(--color-green-900);
+            --res-start: var(--color-green-600);
+            --res-mid1: var(--color-green-700);
+            --res-mid2: var(--color-green-800);
+            --res-end: var(--color-green-900);
+            --footer-text: var(--text-blanco-azulado);
+            --clock-face-stroke: rgba(255, 255, 255, 0.03);
+            --hour-mark-stroke: rgba(255, 255, 255, 0.1);
+            --shift-track-stroke: rgba(135, 206, 250, 0.15);
+            --divider-color: rgba(255, 255, 255, 0.2);
+            --eff-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+            --navbar-icon-opacity: 0.8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --modal-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+            --modal-text: #ffffff;
+            --modal-subtext: rgba(255, 255, 255, 0.6);
+            --modal-border: rgba(255, 255, 255, 0.2);
+            --chevron-color: rgba(255, 255, 255, 0.6);
+            --options-bg: #111111;
+            --options-border: rgba(255, 255, 255, 0.2);
+        }
+
+        .light {
+            color-scheme: light;
+            background-color: #ffffff;
+            background-image: none;
+            color: var(--color-text-primary);
+            --machine-bg-op: #86efac;
+            /* Green 300 exacto de la imagen */
+            --res-start: var(--color-green-600);
+            --res-mid1: var(--color-green-500);
+            --res-mid2: var(--color-green-400);
+            --res-end: var(--color-green-300);
+            --footer-text: var(--color-text-primary);
+            --clock-face-stroke: rgba(0, 0, 0, 0.05);
+            --hour-mark-stroke: rgba(0, 0, 0, 0.1);
+            --shift-track-stroke: rgba(148, 163, 184, 0.3);
+            --divider-color: rgba(0, 0, 0, 0.15);
+            --eff-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+            --navbar-icon-opacity: 0.6;
+            /* Variables para el reloj (único cambio conservado) */
+            --clock-bg: #ffffff;
+            --clock-outer-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --border-color: rgba(0, 0, 0, 0.05);
+            --modal-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%);
+            --modal-text: #0f172a;
+            --modal-subtext: #475569;
+            --modal-border: rgba(255, 255, 255, 0.8);
+            --chevron-color: #0f172a;
+            --options-bg: rgba(255, 255, 255, 0.95);
+            --options-border: rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            position: sticky;
+            top: 1rem;
+            right: 1.5rem;
+            justify-self: end;
+            width: auto;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 0 1.5rem;
+            margin-top: 1rem;
+            margin-right: 1.5rem;
+            z-index: 150;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 220px;
+            grid-template-rows: auto 1fr;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .status-header-wrapper {
+            grid-column: 1 / -1;
+            grid-row: 1;
+            position: relative;
+            background: transparent;
+            z-index: 50;
+        }
+
+        .top-status-bar {
+            background: var(--color-alert);
+            position: relative;
+            overflow: hidden;
+            height: 0px;
+            transition: height 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .top-status-bar.is-expanded {
+            height: 140px;
+        }
+
+        .machine-card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s, background 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .machine-card:active {
+            transform: scale(0.9);
+        }
+
+        .card-alert {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 4rem;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-alert.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        @keyframes text-glow-entrance {
+            0% {
+                opacity: 0;
+                filter: brightness(1) blur(5px);
+                transform: translateY(10px);
+            }
+
+            30% {
+                opacity: 1;
+                filter: brightness(2.5) blur(0px);
+                text-shadow: 0 0 20px white;
+                transform: translateY(0);
+            }
+
+            100% {
+                opacity: 1;
+                filter: brightness(1);
+                text-shadow: 0 0 0px transparent;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-entrance {
+            animation: text-glow-entrance 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .card-alert-left {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 2.5rem;
+            color: white;
+        }
+
+        .card-alert-left h2 {
+            font-size: 4.5rem;
+            font-weight: 500;
+            line-height: 0.85;
+            letter-spacing: -0.05em;
+            margin: 0;
+        }
+
+        #reason-name-text {
+            font-size: 2.2rem;
+            font-weight: 500;
+            line-height: 0.85;
+            white-space: nowrap;
+            margin-bottom: 0;
+            padding-bottom: 0.2rem;
+        }
+
+        #stop-time-display {
+            font-size: 2.2rem;
+            font-weight: 500;
+            color: white;
+            align-self: flex-end;
+            line-height: 0.85;
+            opacity: 0;
+            padding-bottom: 0.2rem;
+        }
+
+        #modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease, visibility 0.6s ease, backdrop-filter 0.6s ease;
+        }
+
+        #modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .modal-glass {
+            background: var(--modal-bg);
+            border: 1px solid var(--modal-border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.15);
+            transform: translateY(30px) scale(0.98);
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            color: var(--modal-text);
+            position: relative;
+        }
+
+        .modal-glass::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.4), transparent 70%);
+            pointer-events: none;
+            opacity: 0.5;
+            border-radius: 24px;
+        }
+
+        .modal-glass h3 {
+            color: var(--modal-text);
+        }
+
+        .modal-glass p {
+            color: var(--modal-subtext);
+        }
+
+        .light #modal-machine-id {
+            color: #ef4444;
+            /* Rojo para destacar en light */
+        }
+
+        #modal-overlay.active .modal-glass {
+            transform: translateY(0) scale(1);
+        }
+
+        #reasons-select-trigger {
+            width: 100%;
+            padding: 0.85rem;
+            padding-right: 2.5rem;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            text-align: left;
+            position: relative;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        #reasons-select-trigger.theme-select-trigger {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #0f172a;
+        }
+
+        .dark #reasons-select-trigger.theme-select-trigger {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .theme-cancel-btn {
+            color: var(--modal-text);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .theme-cancel-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        /* MOBILE MODAL STYLES */
+        .mobile-modal-panel {
+            position: fixed;
+            bottom: 0;
+            left: auto;
+            right: 0;
+            width: 100%;
+            max-width: 420px;
+            height: calc(100vh - 74px);
+            background: var(--modal-bg);
+            backdrop-filter: blur(30px) saturate(150%);
+            border: 1px solid var(--modal-border);
+            border-bottom: none;
+            border-radius: 32px 32px 0 0;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.3);
+            padding: 1.5rem 1rem 0 1rem;
+            color: var(--modal-text);
+            overflow: hidden;
+        }
+
+        .mobile-modal-navbar {
+            display: flex;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 58px;
+            margin: 0.5rem 0.75rem 1.5rem 0.75rem;
+            border-radius: 99px;
+            padding: 5px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+
+        .light .mobile-modal-navbar {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-indicator {
+            position: absolute;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 99px;
+            transition: all 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+            z-index: 0;
+        }
+
+        .light .nav-indicator {
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        .mobile-nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            opacity: 0.4;
+            transition: all 0.3s ease;
+            color: #ffffff;
+            background: none;
+            border: none;
+            cursor: pointer;
+            height: 48px;
+            flex: 1;
+            border-radius: 99px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .light .mobile-nav-btn {
+            color: #000000;
+            opacity: 0.5;
+        }
+
+        .mobile-nav-btn.active {
+            opacity: 1;
+        }
+
+        .light .mobile-nav-btn.active {
+            opacity: 1;
+        }
+
+        .light .mobile-nav-btn.active {
+            background: rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .mobile-nav-btn i {
+            width: 20px;
+            height: 20px;
+        }
+
+        #btn-nav-priority.active,
+        #btn-nav-activity.active {
+            opacity: 1;
+        }
+
+        .mobile-nav-btn span {
+            font-size: 0.6rem;
+            font-weight: 300;
+            text-transform: none;
+            letter-spacing: 0.02em;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+            line-height: 1;
+        }
+
+        .mobile-nav-btn.active span {
+            opacity: 1;
+            font-weight: 400;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.3;
+            margin: 1.5rem 0 0.75rem 0.5rem;
+            display: block;
+        }
+
+        .mini-machine-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 1rem;
+        }
+
+        .mini-machine-box {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.1s ease;
+            cursor: pointer;
+        }
+
+        .mini-machine-box:active {
+            transform: scale(0.9);
+        }
+
+        .mini-machine-box.stopped {
+            background: #ff0000;
+            color: white;
+        }
+
+        .mini-machine-box.active {
+            background: #10b981;
+            color: white;
+        }
+
+        .light .mini-machine-box.active {
+            background: #86efac;
+            color: #064e3b;
+            border: none;
+            font-weight: 700;
+        }
+
+        .mobile-modal-panel.active {
+            transform: translateY(0);
+        }
+
+        .mobile-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .mobile-modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .mobile-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--modal-subtext);
+            opacity: 0.3;
+            border-radius: 99px;
+            margin: -1rem auto 1.5rem auto;
+            cursor: pointer;
+        }
+
+        .log-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+            padding-bottom: 90px;
+            /* Space for the floating navbar */
+            position: relative;
+        }
+
+        .log-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 0 1.25rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--modal-border);
+            display: grid;
+            grid-template-columns: 35px 1fr;
+            gap: 1.25rem;
+            align-items: center;
+            transition: transform 0.15s ease, border-color 0.3s, background 0.3s;
+            height: 72px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .log-item:active {
+            transform: scale(0.9);
+        }
+
+        .light .log-item {
+            background: rgba(0, 0, 0, 0.025);
+        }
+
+        .log-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .light .log-item:hover {
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .log-col-1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--modal-text);
+            opacity: 0.7;
+            text-align: center;
+            border-right: 1px solid var(--modal-border);
+            padding-right: 0.75rem;
+            line-height: 72px;
+        }
+
+        .log-col-2 {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .log-item-reason {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--modal-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .log-item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--modal-subtext);
+        }
+
+        .log-time-data {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .log-capsule {
+            /* background: rgb(5 5 5 / 51%); */
+            padding: 2px 12px 2px 6px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            /* color: var(--primary-white); */
+            /* text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); */
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .log-capsule i {
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.9));
+            opacity: 0.9;
+        }
+
+        .status-icon-log {
+            width: 1.2rem;
+            height: 1.2rem;
+            stroke-width: 2.5px;
+            transform: scale(1.2) translateY(-10px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* GRID STYLES FOR MINI ITEMS */
+        .log-grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 0 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .log-item.mini {
+            height: 48px;
+            padding: 0 0.75rem;
+            grid-template-columns: 1fr auto;
+            gap: 4px;
+            margin-bottom: 0;
+            border-radius: 12px;
+        }
+
+        .log-item.mini .log-col-1 {
+            border-right: none;
+            padding-right: 0;
+            font-size: 0.95rem;
+            line-height: 48px;
+            text-align: left;
+        }
+
+        .log-item.mini .status-icon-log {
+            width: 0.9rem;
+            height: 0.9rem;
+            transform: translateY(0);
+        }
+
+        .status-icon-log.atendido {
+            color: #10b981;
+            fill: rgba(16, 185, 129, 0.2);
+            filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+        }
+
+        .status-icon-log.detenido {
+            color: #ff0000;
+            fill: rgba(255, 0, 0, 0.2);
+            filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.4));
+        }
+
+        .log-list-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .log-list-container::-webkit-scrollbar-thumb {
+            background: var(--modal-border);
+            border-radius: 10px;
+        }
+
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        #reasons-options-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: var(--options-bg);
+            border: 1px solid var(--options-border);
+            border-radius: 12px;
+            margin-top: 0.5rem;
+            z-index: 250;
+            max-height: 200px;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+        }
+
+        .select-wrapper.is-open #reasons-options-list {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .option-item {
+            padding: 0.85rem;
+            color: var(--modal-text);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .light .option-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .option-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .select-chevron {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            pointer-events: none;
+            transition: transform 0.3s ease;
+            color: var(--chevron-color);
+        }
+
+        .select-wrapper.is-open .select-chevron {
+            transform: rotate(180deg);
+        }
+
+        .maquinas-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-auto-rows: 3.5rem;
+            gap: 0.85rem;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card-maquina {
+            background: var(--machine-bg-op);
+            border: 1px solid rgba(20, 83, 45, 0.3);
+            border-radius: 12px;
+            padding: 0.5rem;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+        }
+
+        .light .card-maquina {
+            background: var(--machine-bg-op);
+            border: none;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-maquina:hover {
+            transform: scale(1.1) !important;
+            z-index: 50 !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-maquina.is-stopped {
+            background: var(--color-alert-1) !important;
+            border-color: var(--color-alert-1) !important;
+            transform: scale(1.02);
+        }
+
+        .card-maquina.is-restarting {
+            animation: bg-transition-green 5s linear forwards;
+            transform: scale(1.02);
+        }
+
+        .card-maquina.is-stopped .maquina-id,
+        .card-maquina.is-restarting .maquina-id {
+            color: white !important;
+            opacity: 1 !important;
+        }
+
+        .maquina-id {
+            position: absolute;
+            top: 6px;
+            left: 10px;
+            font-size: 1.05rem;
+            line-height: 1;
+            font-weight: 700;
+            opacity: 0.6;
+            transition: all 0.5s;
+        }
+
+        .stop-timer {
+            position: absolute;
+            bottom: 6px;
+            right: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .card-maquina.is-stopped .stop-timer {
+            opacity: 1;
+        }
+
+        .eficiencia-container {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+            margin-top: 1rem;
+        }
+
+        #eficiencia-numero {
+            font-size: 5.5rem;
+            font-weight: 300;
+            line-height: 1;
+            letter-spacing: -0.05em;
+            transition: color 0.5s ease;
+            text-shadow: var(--eff-shadow);
+        }
+
+        .efficiency-bar-container {
+            width: 50%;
+            height: 1rem;
+            background: var(--shift-track-stroke);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 1.5rem;
+        }
+
+        .incident-main {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .incident-sub {
+            font-size: 1.2rem;
+            opacity: 0.6;
+            font-weight: 400;
+        }
+
+        .shift-clock-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        .clock-svg-wrapper {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clock-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+            overflow: visible;
+        }
+
+        .clock-face {
+            fill: none;
+            stroke: var(--clock-face-stroke);
+            stroke-width: 2;
+        }
+
+        .light .clock-face {
+            fill: var(--clock-bg);
+            filter: drop-shadow(var(--clock-outer-shadow));
+            stroke: rgba(0, 0, 0, 0.02);
+        }
+
+        .hour-mark {
+            stroke: var(--hour-mark-stroke);
+            stroke-width: 1.5;
+            stroke-linecap: round;
+        }
+
+        .light .hour-mark {
+            stroke-width: 2;
+            stroke: rgba(0, 0, 0, 0.08);
+        }
+
+        .shift-track {
+            fill: none;
+            stroke: var(--shift-track-stroke);
+            stroke-width: 7;
+            stroke-linecap: round;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .light .shift-track {
+            stroke-width: 10;
+        }
+
+        .shift-progress {
+            fill: none;
+            stroke-width: 7;
+            stroke-linecap: round;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .light .shift-progress {
+            stroke-width: 10;
+        }
+
+        .efficiency-good {
+            stroke: #10b981;
+        }
+
+        .efficiency-bad {
+            stroke: #ff0000;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.4));
+        }
+
+        .light .efficiency-bad {
+            stroke: #ff0000;
+            filter: none;
+        }
+
+        .clock-center-info {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+        }
+
+        .light .clock-center-info .text-caption {
+            font-size: 0.65rem;
+            color: #64748b;
+            opacity: 1;
+            font-weight: 500;
+        }
+
+        .remaining-val {
+            font-size: 2.2rem;
+            font-weight: 500;
+            line-height: 1;
+            margin-top: 0.2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .light .remaining-val {
+            font-weight: 600;
+            letter-spacing: -0.05em;
+        }
+
+        .footer-divider {
+            width: 3px;
+            height: 3.5rem;
+            background: var(--divider-color);
+            margin: 0 1.2rem 0.5rem 1.2rem;
+            align-self: flex-end;
+            border-radius: 99px;
+        }
+
+        footer {
+            border-top: 1px solid var(--border-color);
+        }
+
+        .col-main {
+            grid-row: 2;
+            padding: 3rem;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .col-sidebar {
+            grid-row: 2;
+            padding: 3rem;
+        }
+    </style>
+</head>
+
+<body class="dark" id="body-context">
+
+    <!-- Modal de Selección -->
+    <div id="modal-overlay">
+        <div class="modal-glass">
+            <h3 class="text-2xl font-bold mb-2">Detener máquina <span id="modal-machine-id">00</span></h3>
+            <p class="text-caption mb-8">seleccione el motivo de detención para procesar</p>
+
+            <div class="select-wrapper" id="reasons-select-container">
+                <button id="reasons-select-trigger" class="theme-select-trigger">
+                    <span id="selected-reason-text">Seleccione motivo...</span>
+                </button>
+                <i data-lucide="chevron-down" class="select-chevron w-5 h-5"></i>
+                <div id="reasons-options-list">
+                    <!-- Inyectado via JS -->
+                </div>
+            </div>
+
+            <div class="flex gap-4" id="modal-buttons-container">
+                <button onclick="closeModal()"
+                    class="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium theme-cancel-btn">cancelar</button>
+                <button id="modal-primary-button" onclick="confirmStop()"
+                    class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 font-bold transition-all text-white shadow-lg">confirmar
+                    paro</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="absolute top-4 left-12 flex flex-col items-start z-50">
+        <span class="text-caption mb-1">sala</span>
+        <div class="flex items-center gap-3">
+            <i data-lucide="cast" class="w-7 h-7 opacity-80"></i>
+            <div class="text-value-display"
+                style="font-size: 2rem; font-weight: 600; opacity: 0.8; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Cardas
+            </div>
+        </div>
+    </div>
+
+    <nav>
+        <div class="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-white/5 transition-all"
+            onclick="toggleMobileModal()">
+            <i data-lucide="smartphone" class="w-5 h-5 opacity-80"></i>
+        </div>
+        <div class="h-4 w-[1px] bg-white/10"></div>
+        <button id="theme-toggle" class="p-1 rounded-full hover:bg-white/10 transition-colors">
+            <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+    </nav>
+
+    <!-- Panel Móvil de Historial -->
+    <div id="mobile-modal" class="mobile-modal-panel">
+        <div class="mobile-handle" onclick="toggleMobileModal()"></div>
+        <div class="mobile-modal-header">
+            <div class="flex items-center gap-3">
+                <i id="mobile-modal-icon" data-lucide="history" class="text-accent-green opacity-80" style="width: 24px; height: 24px;"></i>
+                <h3 class="mobile-modal-title">Historial de Paros</h3>
+            </div>
+            <button onclick="toggleMobileModal()" class="opacity-40 hover:opacity-100 transition-opacity">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div id="log-list-container" class="log-list-container">
+            <!-- Inyectado via JS -->
+        </div>
+        <div class="mobile-modal-navbar" id="mobile-navbar">
+            <div class="nav-indicator" id="nav-indicator"></div>
+            <button onclick="changeModalView('history')" class="mobile-nav-btn" id="btn-nav-history">
+                <i data-lucide="history"></i>
+                <span>Historial</span>
+            </button>
+            <button onclick="changeModalView('priority')" class="mobile-nav-btn active" id="btn-nav-priority">
+                <i data-lucide="square"></i>
+                <span>Paros</span>
+            </button>
+            <button onclick="changeModalView('activity')" class="mobile-nav-btn" id="btn-nav-activity">
+                <i data-lucide="circle"></i>
+                <span>Activas</span>
+            </button>
+            <button onclick="changeModalView('summary')" class="mobile-nav-btn" id="btn-nav-summary">
+                <i data-lucide="layout"></i>
+                <span>Resumen</span>
+            </button>
+        </div>
+    </div>
+
+    <main>
+        <div class="status-header-wrapper">
+            <div class="top-status-bar" id="status-bar-container">
+                <div id="card-alert" class="card-alert">
+                    <div id="card-alert-left" class="card-alert-left">
+                        <div class="flex flex-col">
+                            <span class="text-caption text-white/90 mb-1">maquina</span>
+                            <h2 id="maquina-number-display">--</h2>
+                        </div>
+                        <span id="reason-name-text">--</span>
+                    </div>
+                    <div id="stop-time-display">--:--</div>
+                </div>
+            </div>
+            <div class="loading-bar-container">
+                <div class="loading-bar-panel" id="main-loading-bar"></div>
+            </div>
+        </div>
+
+        <section class="col-main">
+            <header id="maquinas-container-header" class="flex justify-between items-end mb-10">
+                <div class="main-view-title-container">
+                    <div id="main-view-icon-container">
+                        <i data-lucide="grip" class="text-accent-green"></i>
+                    </div>
+                    <div class="flex flex-col items-start">
+                        <div id="main-view-title" class="text-value-display">Mapa de sección</div>
+                    </div>
+                </div>
+                <div class="maquinas-container-tab-view">
+                    <div class="tab-indicator" id="tab-indicator"></div>
+                    <button class="tab-item has-tooltip active" onclick="changeView('mapa')">
+                        <i data-lucide="grip"></i>
+                        <span>Mapa</span>
+                        <div class="tooltip-content">Ver mapa de planta</div>
+                    </button>
+                    <button class="tab-item has-tooltip" onclick="changeView('history')">
+                        <i data-lucide="history"></i>
+                        <span>Historial</span>
+                        <div class="tooltip-content">Historial de registros</div>
+                    </button>
+                    <button class="tab-item has-tooltip" onclick="changeView('priority')">
+                        <i data-lucide="square"></i>
+                        <span>Paros</span>
+                        <div class="tooltip-content">Máquinas detenidas</div>
+                    </button>
+                    <button class="tab-item has-tooltip" onclick="changeView('activity')">
+                        <i data-lucide="circle"></i>
+                        <span>Activas</span>
+                        <div class="tooltip-content">Máquinas en producción</div>
+                    </button>
+                </div>
+            </header>
+            <div class="maquinas-grid" id="maquinas-container">
+                <script>
+                    const container = document.currentScript.parentElement;
+                    for (let i = 1; i <= 19; i++) {
+                        const card = document.createElement('div');
+                        card.className = 'card-maquina';
+                        card.id = `machine-${i}`;
+                        card.innerHTML = `
+                            <span class="maquina-id">${i.toString().padStart(2, '0')}</span>
+                            <span id="timer-${i}" class="stop-timer">0 min</span>
+                        `;
+                        card.onclick = () => window.openStopModal(i);
+                        container.appendChild(card);
+                    }
+                </script>
+            </div>
+        </section>
+
+        <aside class="col-sidebar">
+            <!-- Shift Clock first -->
+            <div class="shift-clock-card" style="margin-top: 0; margin-bottom: 2rem;">
+                <div class="clock-svg-wrapper">
+                    <svg class="clock-svg" viewBox="0 0 100 100">
+                        <!-- Hour markings -->
+                        <g id="clock-marks-group"></g>
+
+                        <!-- Tracks -->
+                        <circle cx="50" cy="50" r="42" class="clock-face" />
+                        <circle id="shift-track-arc" cx="50" cy="50" r="42" class="shift-track" />
+                        <circle id="shift-progress-arc" cx="50" cy="50" r="42" class="shift-progress" />
+                    </svg>
+                    <div class="clock-center-info">
+                        <span class="text-caption font-normal opacity-60">tiempo restante</span>
+                        <div id="remaining-time-val" class="remaining-val">-3:30</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Efficiency second -->
+            <div class="text-caption font-bold tracking-widest">Eficiencia</div>
+            <div class="eficiencia-container">
+                <span id="eficiencia-numero">100</span><span class="ml-3 text-2xl">%</span>
+            </div>
+            <div class="efficiency-bar-container">
+                <div id="efficiency-bar-fill"
+                    style="width: 100%; background-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);"
+                    class="h-full transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) opacity-80">
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="flex items-center px-16 h-40">
+        <div class="w-full flex justify-end items-end gap-12">
+            <!-- Incidencias -->
+            <div class="flex items-center gap-4 h-full pb-2">
+                <i data-lucide="smartphone" class="w-12 h-12 opacity-40"></i>
+                <div class="flex flex-col justify-center">
+                    <span id="incident-main" class="incident-main">0 paros en 0 máquinas</span>
+                    <span id="incident-sub" class="incident-sub">0 min tiempo sin producción</span>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <!-- Paros -->
+            <div class="flex flex-col items-start">
+                <span class="text-caption mb-2">paros</span>
+                <div id="paros-count-display" class="text-value-display"
+                    style="font-size: 4.5rem; color: var(--color-alert-1); font-weight: 700; line-height: 1; letter-spacing: -0.03em;">
+                    0</div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <!-- Turno -->
+            <div class="flex flex-col items-start">
+                <span class="text-caption mb-2">turno</span>
+                <div id="shift-display" class="text-value-display"
+                    style="font-size: 4.5rem; color: var(--footer-text); font-weight: 700; line-height: 1; letter-spacing: -0.03em;">
+                    A</div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <!-- Hora Actual -->
+            <div class="flex flex-col items-start">
+                <span class="text-caption mb-2">hora actual</span>
+                <div class="flex items-baseline gap-1" style="text-shadow: 0 2px 15px rgba(0,0,0,0.3);">
+                    <span id="clock-hm"
+                        style="font-size: 4.5rem; font-weight: 500; letter-spacing: -0.03em; line-height: 1;">00:00</span>
+                    <span id="clock-s" class="text-value-display"
+                        style="opacity: 0.4; font-size: 2.2rem; line-height: 1;min-width: 3rem;">:00</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Iniciar vacío como se solicitó
+        localStorage.removeItem('machine_stop_logs');
+
+        const motivosParo = [
+            { id: "MP000", name: "Paro automático" },
+            { id: "MP101", name: "Atasco en cilindro" },
+            { id: "MP102", name: "Rotura de correas" },
+            { id: "MP103", name: "Falla de motor" },
+            { id: "MP201", name: "Falta de alimentación" },
+            { id: "MP202", name: "Cambio de botes" },
+            { id: "MP301", name: "Rotura de velo" }
+        ];
+
+        let selectedMachine = null;
+        const stoppedMachines = {}; // id -> { reason, time }
+        const recentlyRestarted = {}; // id -> timestamp
+        let lastPendingParo = null;
+        let autoCloseTimer = null;
+
+        const modal = document.getElementById('modal-overlay');
+        const statusBar = document.getElementById('status-bar-container');
+        const cardAlert = document.getElementById('card-alert');
+        const maquinaDisplay = document.getElementById('maquina-number-display');
+        const reasonNameText = document.getElementById('reason-name-text');
+        const stopTimeDisplay = document.getElementById('stop-time-display');
+        const efficiencyNumber = document.getElementById('eficiencia-numero');
+        const efficiencyBar = document.getElementById('efficiency-bar-fill');
+        const loadingBar = document.getElementById('main-loading-bar');
+
+        const selectWrapper = document.getElementById('reasons-select-container');
+        const selectTrigger = document.getElementById('reasons-select-trigger');
+        const optionsList = document.getElementById('reasons-options-list');
+        const selectedReasonText = document.getElementById('selected-reason-text');
+
+        let initialReason = null;
+        let currentSelectedReason = "";
+
+        motivosParo.forEach(m => {
+            const item = document.createElement('div');
+            item.className = 'option-item';
+            item.textContent = `${m.id} - ${m.name}`;
+            item.onclick = () => selectReason(m.name, item.textContent);
+            optionsList.appendChild(item);
+        });
+
+        selectTrigger.onclick = (e) => {
+            e.stopPropagation();
+            selectWrapper.classList.toggle('is-open');
+        };
+
+        document.addEventListener('click', () => {
+            selectWrapper.classList.remove('is-open');
+        });
+
+        function selectReason(name, displayText) {
+            currentSelectedReason = name;
+            selectedReasonText.textContent = displayText;
+            selectWrapper.classList.remove('is-open');
+
+            if (selectedMachine && stoppedMachines[selectedMachine]) {
+                const primaryBtn = document.getElementById('modal-primary-button');
+                if (currentSelectedReason !== initialReason) {
+                    primaryBtn.textContent = 'cambiar motivo';
+                    primaryBtn.onclick = confirmUpdateReason;
+                    primaryBtn.className = 'flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold transition-all text-white shadow-lg';
+                } else {
+                    primaryBtn.textContent = 'reiniciar';
+                    primaryBtn.onclick = confirmRestart;
+                    primaryBtn.className = 'flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-500 font-bold transition-all text-white shadow-lg';
+                }
+            }
+        }
+
+
+
+        const confirmUpdateReason = () => {
+            if (selectedMachine && stoppedMachines[selectedMachine]) {
+                stoppedMachines[selectedMachine].reason = currentSelectedReason;
+                // Opcional: Podríamos disparar el alert de nuevo con el nuevo motivo
+                lastPendingParo = {
+                    machine: selectedMachine,
+                    reason: currentSelectedReason,
+                    time: stoppedMachines[selectedMachine].time
+                };
+                triggerAlertContent();
+            }
+            closeModal();
+        };
+
+        window.openStopModal = (id) => {
+            selectedMachine = id;
+            const modalTitle = document.querySelector('#modal-overlay h3');
+            const modalMachineId = document.getElementById('modal-machine-id');
+            const primaryBtn = document.getElementById('modal-primary-button');
+            const isAlreadyStopped = stoppedMachines[id];
+
+            modalMachineId.textContent = id.toString().padStart(2, '0');
+
+            if (isAlreadyStopped) {
+                initialReason = isAlreadyStopped.reason;
+                currentSelectedReason = isAlreadyStopped.reason;
+                modalTitle.firstChild.textContent = 'Gestionar máquina ';
+                selectedReasonText.textContent = isAlreadyStopped.reason;
+                primaryBtn.textContent = 'reiniciar';
+                primaryBtn.onclick = confirmRestart;
+                primaryBtn.className = 'flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-500 font-bold transition-all text-white shadow-lg';
+            } else {
+                initialReason = null;
+                currentSelectedReason = "";
+                modalTitle.firstChild.textContent = 'Detener máquina ';
+                selectedReasonText.textContent = "Seleccione motivo...";
+                primaryBtn.textContent = 'confirmar paro';
+                primaryBtn.onclick = confirmStop;
+                primaryBtn.className = 'flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 font-bold transition-all text-white shadow-lg';
+            }
+
+            modal.classList.add('active');
+        };
+
+        const confirmRestart = () => {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            const stopData = stoppedMachines[selectedMachine];
+
+            if (stopData) {
+                const elapsedMs = Date.now() - stopData.startTime;
+                const durationMin = Math.floor(elapsedMs / 60000);
+
+                // ACTUALIZAR REGISTRO EXISTENTE
+                const logs = JSON.parse(localStorage.getItem('machine_stop_logs') || '[]');
+                // Buscar el último registro 'detenido' para esta máquina
+                const lastStopIndex = [...logs].reverse().findIndex(l => l.machine === selectedMachine && l.status === 'detenido');
+
+                if (lastStopIndex !== -1) {
+                    const actualIndex = (logs.length - 1) - lastStopIndex;
+                    logs[actualIndex].status = 'atendido';
+                    logs[actualIndex].duration = durationMin;
+                    logs[actualIndex].resolvedAt = Date.now();
+                }
+                localStorage.setItem('machine_stop_logs', JSON.stringify(logs));
+
+                delete stoppedMachines[selectedMachine];
+                recentlyRestarted[selectedMachine] = Date.now();
+                const machineCard = document.getElementById(`machine-${selectedMachine}`);
+                if (machineCard) {
+                    machineCard.classList.remove('is-stopped');
+                    machineCard.classList.add('is-restarting');
+                    startMachinePulse(machineCard, 'green');
+                }
+                updateEfficiencyDisplay();
+
+                // Actualizar lista si el panel está abierto con efecto de salida
+                const mobileModal = document.getElementById('mobile-modal');
+                if (mobileModal.classList.contains('active')) {
+                    const itemToExit = document.querySelector(`#log-list-container [data-machine-id="${selectedMachine}"]`);
+                    if (itemToExit) {
+                        const wrapper = itemToExit.closest('.item-insert-wrapper') || itemToExit;
+                        wrapper.classList.add(itemToExit.classList.contains('mini') ? 'mini-exit-active' : 'item-exit-active');
+                        setTimeout(() => populateLogList(), 500);
+                    } else {
+                        populateLogList();
+                    }
+                }
+            }
+
+            closeModal();
+        };
+
+        const closeModal = () => modal.classList.remove('active');
+
+        window.toggleMobileModal = () => {
+            const mobileModal = document.getElementById('mobile-modal');
+            const isActive = mobileModal.classList.toggle('active');
+            if (isActive) {
+                // Forzar vista de Paros al abrir
+                changeModalView('priority');
+            }
+        };
+
+        let currentView = 'priority';
+
+        window.changeView = (view) => {
+            // Configuración de vistas
+            const viewConfigs = {
+                'mapa': { title: 'Mapa de sección', icon: 'grip' },
+                'history': { title: 'Historial de paros', icon: 'history' },
+                'priority': { title: 'Paros actuales', icon: 'square' },
+                'activity': { title: 'Actividad', icon: 'circle' }
+            };
+
+            const config = viewConfigs[view] || viewConfigs['mapa'];
+
+            // Actualizar Título e Icono principal con animación
+            const container = document.querySelector('.main-view-title-container');
+            const titleEl = document.getElementById('main-view-title');
+
+            if (container) {
+                container.style.opacity = '0';
+                container.style.transform = 'translateX(-10px)';
+
+                setTimeout(() => {
+                    if (titleEl) titleEl.textContent = config.title;
+                    
+                    // Actualizar Icono usando contenedor para evitar elementos "muertos"
+                    const iconContainer = document.getElementById('main-view-icon-container');
+                    if (iconContainer) {
+                        iconContainer.innerHTML = `<i data-lucide="${config.icon}" class="text-accent-green"></i>`;
+                    }
+                    
+                    if (window.lucide) lucide.createIcons();
+
+                    container.style.opacity = '1';
+                    container.style.transform = 'translateX(0)';
+                }, 150);
+            }
+
+            // Update Tab UI and Indicator
+            const tabs = document.querySelectorAll('.maquinas-container-tab-view .tab-item');
+            const indicator = document.getElementById('tab-indicator');
+            
+            tabs.forEach(tab => {
+                const span = tab.querySelector('span');
+                if (span && (
+                    span.textContent.toLowerCase().includes(view.toLowerCase()) ||
+                    (view === 'priority' && span.textContent === 'Paros') ||
+                    (view === 'activity' && span.textContent === 'Activas') ||
+                    (view === 'mapa' && span.textContent === 'Mapa')
+                )) {
+                    tab.classList.add('active');
+                    
+                    // Update Indicator Position
+                    if (indicator) {
+                        indicator.style.width = `${tab.offsetWidth}px`;
+                        indicator.style.left = `${tab.offsetLeft}px`;
+                    }
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            console.log(`Changing main view to: ${view}`);
+
+            // Re-initialize icons con tamaño forzado
+            if (window.lucide) {
+                lucide.createIcons();
+                // Forzamos tamaño extra por JS para asegurar el override total en tabs
+                document.querySelectorAll('.maquinas-container-tab-view .tab-item svg').forEach(svg => {
+                    svg.setAttribute('width', '16');
+                    svg.setAttribute('height', '16');
+                });
+            }
+        };
+
+        // Initialize Indicator position on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const activeTab = document.querySelector('.tab-item.active');
+                const indicator = document.getElementById('tab-indicator');
+                if (activeTab && indicator) {
+                    indicator.style.width = `${activeTab.offsetWidth}px`;
+                    indicator.style.left = `${activeTab.offsetLeft}px`;
+                }
+            }, 500);
+        });
+
+        window.changeModalView = (view) => {
+            currentView = view;
+
+            // Dynamic Title
+            const titleEl = document.querySelector('.mobile-modal-panel h3');
+            const titles = {
+                'history': 'Historial de Paros',
+                'priority': 'Prioridad de Atención',
+                'activity': 'Estado de Máquinas',
+                'summary': 'Resumen de Turno'
+            };
+
+            const icons = {
+                'history': 'history',
+                'priority': 'square',
+                'activity': 'circle',
+                'summary': 'layout'
+            };
+
+            if (titleEl && titles[view]) titleEl.textContent = titles[view];
+            
+            const iconEl = document.getElementById('mobile-modal-icon');
+            if (iconEl && icons[view]) {
+                iconEl.setAttribute('data-lucide', icons[view]);
+                if (window.lucide) lucide.createIcons();
+            }
+
+            // UI Update
+            const btns = document.querySelectorAll('.mobile-nav-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-nav-${view}`);
+            activeBtn.classList.add('active');
+
+            // Move Indicator Pill
+            const indicator = document.getElementById('nav-indicator');
+
+            if (activeBtn && indicator) {
+                // Posicionar relativo al padre con padding 5px
+                indicator.style.left = `${activeBtn.offsetLeft}px`;
+                indicator.style.width = `${activeBtn.offsetWidth}px`;
+            }
+
+            // Animation Trigger
+            const container = document.getElementById('log-list-container');
+            container.classList.remove('view-animate');
+            void container.offsetWidth; // Force reflow
+            container.classList.add('view-animate');
+
+            populateLogList();
+        };
+
+        function populateLogList() {
+            const container = document.getElementById('log-list-container');
+            const logs = JSON.parse(localStorage.getItem('machine_stop_logs') || '[]');
+
+            const formatDuration = (min) => {
+                if (min < 60) return `${min} min`;
+                const h = Math.floor(min / 60);
+                const m = min % 60;
+                return `${h}h ${m}m`;
+            };
+
+            const renderItem = (item, isRecent = false, isRes = false, isMini = false) => {
+                const isAtendido = item.status === 'atendido';
+                const animationClass = isRes ? 'resolved-glow' : '';
+                const insertWrapperClass = isRecent ? 'item-insert-wrapper' : '';
+                const insertContentClass = isRecent ? 'item-insert-content' : '';
+
+                let durationVal = item.duration || 0;
+                if (!isAtendido && item.startTime) {
+                    durationVal = Math.floor((Date.now() - item.startTime) / 60000);
+                } else if (!isAtendido) {
+                    durationVal = Math.floor((Date.now() - item.id) / 60000);
+                }
+
+                const durationText = formatDuration(durationVal);
+                const durationIcon = isAtendido ? 'check' : 'circle-gauge';
+                const iconClass = isAtendido ? 'text-[#10b981]' : 'spinning-icon';
+
+                if (isMini) {
+                    return `
+                        <div class="log-item mini ${animationClass} ${insertContentClass}" data-machine-id="${item.machine}">
+                            <div class="log-col-1">${item.machine.toString().padStart(2, '0')}</div>
+                            <i data-lucide="circle" class="status-icon-log atendido"></i>
+                        </div>
+                    `;
+                }
+
+                const itemHtml = `
+                    <div class="log-item ${animationClass} ${insertContentClass}" data-machine-id="${item.machine}">
+                        <div class="log-col-1">${item.machine.toString().padStart(2, '0')}</div>
+                        <div class="log-col-2">
+                            <div class="log-item-reason">${item.reason || 'Paro manual'}</div>
+                            <div class="log-item-footer">
+                                <div class="log-time-data" style="gap: 1rem">
+                                    <div class="log-capsule">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                        <span>${item.stopTime}</span>
+                                    </div>
+                                    <div class="log-capsule">
+                                        <i data-lucide="${durationIcon}" class="w-4 h-4 ${iconClass}"></i>
+                                        <span class="${isAtendido ? 'font-bold opacity-100' : ''}">${durationText}</span>
+                                    </div>
+                                </div>
+                                <i data-lucide="${isAtendido ? 'circle' : 'square'}" class="status-icon-log ${item.status}"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return isRecent ? `<div class="${insertWrapperClass}">${itemHtml}</div>` : itemHtml;
+            };
+
+            if (currentView === 'history') {
+                const sortedItems = [...logs].reverse();
+                if (sortedItems.length === 0) {
+                    container.innerHTML = `<div class="opacity-40 text-center py-20"><i data-lucide="clipboard" class="w-10 h-10 mx-auto mb-2"></i><p>Sin historial</p></div>`;
+                } else {
+                    container.innerHTML = sortedItems.map((item, index) => renderItem(item, index === 0 && (Date.now() - item.id) < 1500, item.status === 'atendido' && (Date.now() - (item.resolvedAt || 0)) < 1500)).join('');
+                }
+            }
+            else if (currentView === 'priority') {
+                const machines = Array.from({ length: 19 }, (_, i) => (i + 1));
+                const stopped = [];
+                const active = [];
+
+                machines.forEach(id => {
+                    const stopData = stoppedMachines[id];
+                    if (stopData) stopped.push({ id, ...stopData });
+                    else active.push({ id });
+                });
+
+                stopped.sort((a, b) => (b.startTime || 0) - (a.startTime || 0));
+
+                let html = '<span class="section-label">En espera (Prioridad)</span>';
+                html += stopped.map(m => renderItem(
+                    { machine: m.id, reason: m.reason, stopTime: m.time, status: 'detenido', startTime: m.startTime },
+                    (Date.now() - (m.startTime || 0)) < 1500
+                )).join('');
+
+                html += '<span class="section-label">Funcionando</span>';
+                html += '<div class="log-grid-container">';
+                html += active.map(m => renderItem(
+                    { machine: m.id },
+                    (Date.now() - (recentlyRestarted[m.id] || 0)) < 1500,
+                    false,
+                    true
+                )).join('');
+                html += '</div>';
+                container.innerHTML = html;
+            }
+            else if (currentView === 'activity') {
+                const machines = Array.from({ length: 19 }, (_, i) => (i + 1));
+                const stopped = [];
+                const active = [];
+
+                machines.forEach(id => {
+                    const stopData = stoppedMachines[id];
+                    if (stopData) stopped.push({ id, ...stopData });
+                    else active.push({ id });
+                });
+
+                let html = '<span class="section-label">Activas</span>';
+                html += '<div class="log-grid-container">';
+                html += active.reverse().map(m => renderItem(
+                    { machine: m.id },
+                    (Date.now() - (recentlyRestarted[m.id] || 0)) < 1500,
+                    false,
+                    true
+                )).join('');
+                html += '</div>';
+                html += '<span class="section-label" style="margin-top: 2rem">Detenidas</span>';
+                html += stopped.map(m => renderItem(
+                    { machine: m.id, reason: m.reason, stopTime: m.time, status: 'detenido', startTime: m.startTime },
+                    (Date.now() - (m.startTime || 0)) < 1500
+                )).join('');
+                container.innerHTML = html;
+            }
+            else if (currentView === 'summary') {
+                const stoppedCount = Object.keys(stoppedMachines).length;
+                const eff = document.getElementById('eficiencia-numero').textContent;
+                const timeRemaining = document.getElementById('time-remaining-val').textContent;
+
+                container.innerHTML = `
+                    <div class="flex flex-col items-center gap-6 py-6">
+                        <div class="text-center">
+                            <span class="text-xs opacity-50 uppercase tracking-widest">Estado Turno</span>
+                            <div class="text-4xl font-bold mt-1">${timeRemaining}</div>
+                            <span class="text-[0.6rem] opacity-30">TIEMPO RESTANTE</span>
+                        </div>
+                        
+                        <div class="w-full bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold">Eficiencia Global</span>
+                                <span class="text-xl font-bold text-green-500">${eff}%</span>
+                            </div>
+                            <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div class="h-full bg-green-500" style="width: ${eff}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="w-full">
+                            <span class="section-label" style="margin: 0 0 10px 0">Mapa de Planta</span>
+                            <div class="mini-machine-grid">
+                                ${Array.from({ length: 19 }, (_, i) => {
+                    const id = i + 1;
+                    const isStopped = stoppedMachines[id];
+                    return `<div class="mini-machine-box ${isStopped ? 'stopped' : 'active'}">${id}</div>`;
+                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            lucide.createIcons();
+        }
+
+        const confirmStop = () => {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            const reason = currentSelectedReason || "Paro automático";
+
+            lastPendingParo = {
+                machine: selectedMachine,
+                reason: reason,
+                time: timeStr
+            };
+
+            const machineCard = document.getElementById(`machine-${selectedMachine}`);
+            if (machineCard) {
+                machineCard.classList.add('is-stopped');
+                stoppedMachines[selectedMachine] = {
+                    reason: reason,
+                    time: timeStr,
+                    startTime: Date.now()
+                };
+
+                // CREAR REGISTRO INICIAL (DETENIDO)
+                const logs = JSON.parse(localStorage.getItem('machine_stop_logs') || '[]');
+                logs.push({
+                    id: Date.now(),
+                    machine: selectedMachine,
+                    reason: reason,
+                    stopTime: timeStr,
+                    status: 'detenido',
+                    duration: 0
+                });
+                localStorage.setItem('machine_stop_logs', JSON.stringify(logs));
+            }
+
+            closeModal();
+
+            // Si el panel móvil está abierto, animar salida
+            const mobileModal = document.getElementById('mobile-modal');
+            if (mobileModal.classList.contains('active')) {
+                const itemToExit = document.querySelector(`#log-list-container [data-machine-id="${selectedMachine}"]`);
+                if (itemToExit) {
+                    const wrapper = itemToExit.closest('.item-insert-wrapper') || itemToExit;
+                    wrapper.classList.add(itemToExit.classList.contains('mini') ? 'mini-exit-active' : 'item-exit-active');
+                    setTimeout(() => populateLogList(), 500);
+                } else {
+                    populateLogList();
+                }
+            }
+
+            // Secuencia: Esperar 1s -> Carga 2s -> Alerta
+            setTimeout(() => {
+                loadingBar.style.animation = 'none';
+                void loadingBar.offsetWidth;
+                loadingBar.style.animation = 'load-progress-loop 2s linear forwards';
+
+                setTimeout(() => {
+                    triggerAlertContent();
+                    startMachinePulse(machineCard, 'red');
+                }, 2000);
+            }, 1000);
+        };
+
+        function updateAllStopTimers() {
+            for (const id in stoppedMachines) {
+                const data = stoppedMachines[id];
+                if (!data.startTime) continue;
+
+                const timerEl = document.getElementById(`timer-${id}`);
+                if (timerEl) {
+                    const elapsedMs = Date.now() - data.startTime;
+                    const totalMinutes = Math.floor(elapsedMs / 60000);
+
+                    if (totalMinutes < 60) {
+                        timerEl.textContent = `${totalMinutes} min`;
+                    } else {
+                        const hours = Math.floor(totalMinutes / 60);
+                        const mins = totalMinutes % 60;
+                        timerEl.textContent = `${hours}:${mins.toString().padStart(2, '0')}`;
+                    }
+                }
+            }
+        }
+        setInterval(updateAllStopTimers, 1000);
+
+        function startMachinePulse(card, type) {
+            if (!card) return;
+
+            if (type === 'red') {
+                // Rojo: Suave 5 segundos
+                card.style.animation = `pulse-glow-red 2.5s ease-in-out 2`;
+                setTimeout(() => {
+                    card.style.animation = 'none';
+                }, 5000);
+            } else {
+                // Verde: Oscilación suave 5s + Transición de color 600->900
+                card.style.animation = `pulse-glow-green 2.5s ease-in-out 2, bg-transition-green 5s linear forwards`;
+                setTimeout(() => {
+                    card.style.animation = 'none';
+                    card.classList.remove('is-restarting');
+                }, 5000);
+            }
+        }
+
+        // Ya no dependemos solo de animationiteration para el disparo inicial
+        loadingBar.addEventListener('animationiteration', () => {
+            if (!lastPendingParo) {
+                updateEfficiencyDisplay();
+            }
+        });
+
+        function triggerAlertContent() {
+            if (autoCloseTimer) clearTimeout(autoCloseTimer);
+
+            statusBar.classList.add('is-expanded');
+            cardAlert.classList.add('visible');
+
+            maquinaDisplay.textContent = lastPendingParo.machine.toString().padStart(2, '0');
+            reasonNameText.textContent = lastPendingParo.reason;
+            stopTimeDisplay.textContent = lastPendingParo.time;
+
+            [maquinaDisplay, reasonNameText, stopTimeDisplay].forEach(el => {
+                el.classList.remove('animate-entrance');
+                void el.offsetWidth;
+                el.classList.add('animate-entrance');
+            });
+
+            updateEfficiencyDisplay();
+            lastPendingParo = null;
+
+            autoCloseTimer = setTimeout(() => {
+                statusBar.classList.remove('is-expanded');
+                cardAlert.classList.remove('visible');
+            }, 5000);
+        }
+
+        const updateEfficiencyDisplay = () => {
+            const totalMachines = 19;
+            const stoppedCount = Object.keys(stoppedMachines).length;
+            const activeCount = totalMachines - stoppedCount;
+            const targetEff = Math.round((activeCount / totalMachines) * 100);
+
+            // Actualizar Incidencias (Dinámico)
+            const logs = JSON.parse(localStorage.getItem('machine_stop_logs') || '[]');
+            const uniqueMachinesInLogs = new Set(logs.map(l => l.machine));
+            const currentStoppedMachines = Object.keys(stoppedMachines);
+
+            // Total paros = Historial + Paros actuales activos
+            const totalParosCount = logs.length + stoppedCount;
+
+            // Máquinas únicas que han parado
+            currentStoppedMachines.forEach(id => uniqueMachinesInLogs.add(id));
+            const totalUniqueMachines = uniqueMachinesInLogs.size;
+
+            // Calcular tiempo sin producción (Logs + Tiempo transcurrido de paros actuales)
+            let totalDowntimeMin = 0;
+            // Aquí se necesitaría lógica de parsear tiempos de logs para ser exactos, 
+            // pero sumaremos los minutos transcurridos de los paros actuales.
+            for (const id in stoppedMachines) {
+                const elapsedMs = Date.now() - stoppedMachines[id].startTime;
+                totalDowntimeMin += Math.floor(elapsedMs / 60000);
+            }
+
+            const incMainEl = document.getElementById('incident-main');
+            const incSubEl = document.getElementById('incident-sub');
+            if (incMainEl) incMainEl.textContent = `${totalParosCount} paros en ${totalUniqueMachines} máquinas`;
+            if (incSubEl) incSubEl.textContent = `${totalDowntimeMin} min tiempo sin producción`;
+
+            // Actualizar contador de paros con animación suave
+            const parosDisplay = document.getElementById('paros-count-display');
+            let currentParos = parseInt(parosDisplay.textContent);
+            if (currentParos !== stoppedCount) {
+                const step = stoppedCount > currentParos ? 1 : -1;
+                const interval = setInterval(() => {
+                    currentParos += step;
+                    parosDisplay.textContent = currentParos;
+                    if (currentParos === stoppedCount) clearInterval(interval);
+                }, 100);
+            }
+
+            let current = parseInt(efficiencyNumber.textContent);
+
+            const applyBarStyles = (val) => {
+                efficiencyBar.style.width = val + '%';
+                if (val >= 90) {
+                    efficiencyBar.style.backgroundColor = '#10b981';
+                    efficiencyBar.style.boxShadow = '0 0 15px rgba(16, 185, 129, 0.4)';
+                } else {
+                    efficiencyBar.style.backgroundColor = '#ff0000';
+                    efficiencyBar.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.6)';
+                }
+            };
+
+            if (current !== targetEff) {
+                const step = targetEff > current ? 1 : -1;
+                const interval = setInterval(() => {
+                    current += step;
+                    efficiencyNumber.textContent = current;
+                    applyBarStyles(current);
+                    if (current === targetEff) clearInterval(interval);
+                }, 30);
+            } else {
+                applyBarStyles(targetEff);
+            }
+        };
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark');
+            document.body.classList.toggle('light');
+
+            // Actualizar icono de Lucide
+            const iconEl = document.getElementById('theme-icon');
+            iconEl.setAttribute('data-lucide', isDark ? 'moon' : 'sun');
+            lucide.createIcons();
+        });
+
+        function updateShiftClock() {
+            const now = new Date();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const currentTimeInMinutes = hour * 60 + minute;
+
+            let shiftStartMin, shiftEndMin;
+            if (hour >= 7 && hour < 15) {
+                shiftStartMin = 7 * 60; shiftEndMin = 15 * 60;
+            } else if (hour >= 15 && hour < 23) {
+                shiftStartMin = 15 * 60; shiftEndMin = 23 * 60;
+            } else {
+                shiftStartMin = 23 * 60; shiftEndMin = 7 * 60;
+            }
+
+            const totalShiftMinutes = 8 * 60;
+            let elapsedMinutes;
+
+            if (shiftEndMin < shiftStartMin) { // Turno C
+                if (currentTimeInMinutes >= shiftStartMin) {
+                    elapsedMinutes = currentTimeInMinutes - shiftStartMin;
+                } else {
+                    elapsedMinutes = (1440 - shiftStartMin) + currentTimeInMinutes;
+                }
+            } else {
+                elapsedMinutes = currentTimeInMinutes - shiftStartMin;
+            }
+
+            const remainingMinutes = totalShiftMinutes - elapsedMinutes;
+            const hRem = Math.floor(remainingMinutes / 60);
+            const mRem = remainingMinutes % 60;
+            const remainingDisplay = document.getElementById('remaining-time-val');
+            if (remainingDisplay) {
+                remainingDisplay.textContent = `-${hRem}:${mRem.toString().padStart(2, '0')}`;
+            }
+
+            // SVG Math
+            const r = 42;
+            const circumference = 2 * Math.PI * r;
+            const shiftTotalLength = (8 / 12) * circumference;
+            const progressLength = (elapsedMinutes / (12 * 60)) * circumference;
+
+            const shiftTrackArc = document.getElementById('shift-track-arc');
+            const shiftProgressArc = document.getElementById('shift-progress-arc');
+
+            const startHour = (shiftStartMin / 60) % 12;
+            const startRotation = (startHour * 30);
+
+            if (shiftTrackArc) {
+                shiftTrackArc.style.strokeDasharray = `${shiftTotalLength} ${circumference}`;
+                shiftTrackArc.style.transform = `rotate(${startRotation}deg)`;
+                shiftTrackArc.style.transformOrigin = "50% 50%";
+            }
+
+            if (shiftProgressArc) {
+                shiftProgressArc.style.strokeDasharray = `${progressLength} ${circumference}`;
+                shiftProgressArc.style.transform = `rotate(${startRotation}deg)`;
+                shiftProgressArc.style.transformOrigin = "50% 50%";
+
+                const currentEff = parseFloat(document.getElementById('eficiencia-numero').textContent);
+                if (currentEff >= 90) {
+                    shiftProgressArc.classList.add('efficiency-good');
+                    shiftProgressArc.classList.remove('efficiency-bad');
+                    if (remainingDisplay) remainingDisplay.style.color = '#10b981';
+                } else {
+                    shiftProgressArc.classList.add('efficiency-bad');
+                    shiftProgressArc.classList.remove('efficiency-good');
+                    if (remainingDisplay) remainingDisplay.style.color = '#ff0000';
+                }
+            }
+        }
+
+        // Marcas del reloj
+        const marksGroup = document.getElementById('clock-marks-group');
+        if (marksGroup) {
+            for (let i = 0; i < 12; i++) {
+                const angle = (i * 30) * (Math.PI / 180);
+                const x1 = 50 + 38 * Math.cos(angle);
+                const y1 = 50 + 38 * Math.sin(angle);
+                const x2 = 50 + 44 * Math.cos(angle);
+                const y2 = 50 + 44 * Math.sin(angle);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", x1);
+                line.setAttribute("y1", y1);
+                line.setAttribute("x2", x2);
+                line.setAttribute("y2", y2);
+                line.setAttribute("class", "hour-mark");
+                marksGroup.appendChild(line);
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hm = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            const s = now.getSeconds().toString().padStart(2, '0');
+
+            const hmEl = document.getElementById('clock-hm');
+            const sEl = document.getElementById('clock-s');
+
+            if (hmEl) hmEl.textContent = hm;
+            if (sEl) sEl.textContent = ':' + s;
+
+            // Actualizar Turno
+            const hour = now.getHours();
+            let shift = 'C';
+            if (hour >= 7 && hour < 15) shift = 'A';
+            else if (hour >= 15 && hour < 23) shift = 'B';
+            const shiftEl = document.getElementById('shift-display');
+            if (shiftEl) shiftEl.textContent = shift;
+
+            updateShiftClock();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Inicializar Lucide al cargar
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
