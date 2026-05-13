@@ -13,3 +13,8 @@
 3. **Restricciones de Altura:**
    - La altura máxima de cada bloque de registro en el escritorio es de `40px` para mantener densidad de información. 
    - El espacio interno (padding vertical) es de `6px` y el `line-height` de `28px` garantizando el centrado perfecto del contenido.
+
+4. **Tarjeta de Incidencias (Footer):**
+   - **Total de Paros**: Debe corresponder a la longitud total del historial de registros (`logs.length`). No se debe sumar dos veces la cantidad de paros actuales, ya que el historial ya los incluye.
+   - **Máquinas Únicas**: Es el conteo de máquinas distintas (IDs únicos) que se encuentren dentro del historial de paros.
+   - **Tiempo Sin Producción**: Debe ser la suma total del tiempo acumulado de los paros resueltos (`log.duration` cuando `status === 'atendido'`) más los minutos transcurridos en tiempo real de los paros actualmente activos (`Date.now() - log.id` cuando `status === 'detenido'`).
