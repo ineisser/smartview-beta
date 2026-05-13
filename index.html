@@ -1146,6 +1146,10 @@
             transform: scale(1.2) translateY(-10px);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        
+        .status-icon-log.activo {
+            stroke: #10b981;
+        }
 
         /* GRID STYLES FOR MINI ITEMS */
         .log-grid-container {
@@ -1268,6 +1272,56 @@
             margin-top: 2rem;
             position: relative;
             z-index: 10;
+        }
+
+        #main-log-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+            gap: 1rem;
+            align-content: start;
+            margin-top: 2rem;
+            padding-right: 10px;
+        }
+
+        #main-log-container .log-item {
+            margin-bottom: 0;
+            height: 40px;
+            padding: 6px 1.25rem;
+        }
+
+        #main-log-container .log-col-1 {
+            line-height: 28px;
+        }
+
+        #main-log-container .log-item-reason {
+            line-height: 28px;
+        }
+
+        #main-log-container .log-col-2 {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        #main-log-container .log-item-reason {
+            width: auto;
+            flex: 1;
+        }
+
+        #main-log-container .log-item-footer {
+            flex: 0 0 auto;
+            justify-content: flex-end;
+            gap: 1.5rem;
+        }
+
+        #main-log-container .status-icon-log {
+            transform: scale(1.2) translateY(0);
+        }
+
+        #main-log-container .section-label,
+        #main-log-container .log-grid-container {
+            grid-column: 1 / -1;
         }
 
         .card-maquina {
@@ -1675,6 +1729,7 @@
                     }
                 </script>
             </div>
+            <div id="main-log-container" class="log-list-container" style="display: none;"></div>
         </section>
 
         <aside class="col-sidebar">
@@ -1923,6 +1978,10 @@
                 }
             }
 
+            if (mainCurrentView !== 'mapa') {
+                populateMainLogList();
+            }
+
             closeModal();
         };
 
@@ -1938,8 +1997,28 @@
         };
 
         let currentView = 'priority';
+        let mainCurrentView = 'mapa';
 
         window.changeView = (view) => {
+            mainCurrentView = view;
+            
+            // Toggle containers
+            const mapContainer = document.getElementById('maquinas-container');
+            const listContainer = document.getElementById('main-log-container');
+            
+            if (view === 'mapa') {
+                mapContainer.style.display = 'grid';
+                listContainer.style.display = 'none';
+            } else {
+                mapContainer.style.display = 'none';
+                listContainer.style.display = 'grid';
+                // Animation
+                listContainer.classList.remove('view-animate');
+                void listContainer.offsetWidth;
+                listContainer.classList.add('view-animate');
+                populateMainLogList();
+            }
+
             // Configuración de vistas
             const viewConfigs = {
                 'mapa': { title: 'Mapa de sección', icon: 'grip' },
@@ -2075,8 +2154,23 @@
         };
 
         function populateLogList() {
-            const container = document.getElementById('log-list-container');
+            renderLogListFor('log-list-container', currentView);
+        }
+
+        function populateMainLogList() {
+            renderLogListFor('main-log-container', mainCurrentView);
+        }
+
+        function renderLogListFor(containerId, viewToRender) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
             const logs = JSON.parse(localStorage.getItem('machine_stop_logs') || '[]');
+
+            const shiftStart = new Date();
+            shiftStart.setHours(6, 0, 0, 0);
+            if (shiftStart.getTime() > Date.now()) {
+                shiftStart.setDate(shiftStart.getDate() - 1);
+            }
 
             const formatDuration = (min) => {
                 if (min < 60) return `${min} min`;
@@ -2085,49 +2179,43 @@
                 return `${h}h ${m}m`;
             };
 
-            const renderItem = (item, isRecent = false, isRes = false, isMini = false) => {
+            const renderItem = (item, isRecent = false, isRes = false) => {
                 const isAtendido = item.status === 'atendido';
+                const isActivo = item.status === 'activo';
                 const animationClass = isRes ? 'resolved-glow' : '';
                 const insertWrapperClass = isRecent ? 'item-insert-wrapper' : '';
                 const insertContentClass = isRecent ? 'item-insert-content' : '';
 
                 let durationVal = item.duration || 0;
-                if (!isAtendido && item.startTime) {
+                if (isActivo || (!isAtendido && item.startTime)) {
                     durationVal = Math.floor((Date.now() - item.startTime) / 60000);
                 } else if (!isAtendido) {
                     durationVal = Math.floor((Date.now() - item.id) / 60000);
                 }
 
                 const durationText = formatDuration(durationVal);
-                const durationIcon = isAtendido ? 'check' : 'circle-gauge';
-                const iconClass = isAtendido ? 'text-[#10b981]' : 'spinning-icon';
-
-                if (isMini) {
-                    return `
-                        <div class="log-item mini ${animationClass} ${insertContentClass}" data-machine-id="${item.machine}">
-                            <div class="log-col-1">${item.machine.toString().padStart(2, '0')}</div>
-                            <i data-lucide="circle" class="status-icon-log atendido"></i>
-                        </div>
-                    `;
-                }
+                const durationIcon = isAtendido ? 'check' : (isActivo ? 'clock' : 'circle-gauge');
+                const iconClass = isAtendido || isActivo ? 'text-[#10b981]' : 'spinning-icon';
+                const statusIconName = isAtendido || isActivo ? 'circle' : 'square';
+                const reasonOpacity = isActivo ? 'opacity: 0.6;' : '';
 
                 const itemHtml = `
                     <div class="log-item ${animationClass} ${insertContentClass}" data-machine-id="${item.machine}">
                         <div class="log-col-1">${item.machine.toString().padStart(2, '0')}</div>
                         <div class="log-col-2">
-                            <div class="log-item-reason">${item.reason || 'Paro manual'}</div>
+                            <div class="log-item-reason" style="${reasonOpacity}">${item.reason || 'Paro manual'}</div>
                             <div class="log-item-footer">
                                 <div class="log-time-data" style="gap: 1rem">
                                     <div class="log-capsule">
-                                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                        <i data-lucide="${isActivo ? 'play' : 'clock'}" class="w-3.5 h-3.5 ${isActivo ? 'text-[#10b981]' : ''}"></i>
                                         <span>${item.stopTime}</span>
                                     </div>
                                     <div class="log-capsule">
                                         <i data-lucide="${durationIcon}" class="w-4 h-4 ${iconClass}"></i>
-                                        <span class="${isAtendido ? 'font-bold opacity-100' : ''}">${durationText}</span>
+                                        <span class="${isAtendido || isActivo ? 'font-bold opacity-100' : ''}">${durationText}</span>
                                     </div>
                                 </div>
-                                <i data-lucide="${isAtendido ? 'circle' : 'square'}" class="status-icon-log ${item.status}"></i>
+                                <i data-lucide="${statusIconName}" class="status-icon-log ${item.status}"></i>
                             </div>
                         </div>
                     </div>
@@ -2135,7 +2223,7 @@
                 return isRecent ? `<div class="${insertWrapperClass}">${itemHtml}</div>` : itemHtml;
             };
 
-            if (currentView === 'history') {
+            if (viewToRender === 'history') {
                 const sortedItems = [...logs].reverse();
                 if (sortedItems.length === 0) {
                     container.innerHTML = `<div class="opacity-40 text-center py-20"><i data-lucide="clipboard" class="w-10 h-10 mx-auto mb-2"></i><p>Sin historial</p></div>`;
@@ -2143,7 +2231,7 @@
                     container.innerHTML = sortedItems.map((item, index) => renderItem(item, index === 0 && (Date.now() - item.id) < 1500, item.status === 'atendido' && (Date.now() - (item.resolvedAt || 0)) < 1500)).join('');
                 }
             }
-            else if (currentView === 'priority') {
+            else if (viewToRender === 'priority') {
                 const machines = Array.from({ length: 19 }, (_, i) => (i + 1));
                 const stopped = [];
                 const active = [];
@@ -2163,17 +2251,18 @@
                 )).join('');
 
                 html += '<span class="section-label">Funcionando</span>';
-                html += '<div class="log-grid-container">';
-                html += active.map(m => renderItem(
-                    { machine: m.id },
-                    (Date.now() - (recentlyRestarted[m.id] || 0)) < 1500,
-                    false,
-                    true
-                )).join('');
-                html += '</div>';
+                html += active.map(m => {
+                    const startT = recentlyRestarted[m.id] || shiftStart.getTime();
+                    const startTimeStr = new Date(startT).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                    return renderItem(
+                        { machine: m.id, reason: 'Operando', stopTime: startTimeStr, status: 'activo', startTime: startT },
+                        (Date.now() - (recentlyRestarted[m.id] || 0)) < 1500,
+                        false
+                    );
+                }).join('');
                 container.innerHTML = html;
             }
-            else if (currentView === 'activity') {
+            else if (viewToRender === 'activity') {
                 const machines = Array.from({ length: 19 }, (_, i) => (i + 1));
                 const stopped = [];
                 const active = [];
@@ -2185,14 +2274,15 @@
                 });
 
                 let html = '<span class="section-label">Activas</span>';
-                html += '<div class="log-grid-container">';
-                html += active.reverse().map(m => renderItem(
-                    { machine: m.id },
-                    (Date.now() - (recentlyRestarted[m.id] || 0)) < 1500,
-                    false,
-                    true
-                )).join('');
-                html += '</div>';
+                html += active.reverse().map(m => {
+                    const startT = recentlyRestarted[m.id] || shiftStart.getTime();
+                    const startTimeStr = new Date(startT).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                    return renderItem(
+                        { machine: m.id, reason: 'Operando', stopTime: startTimeStr, status: 'activo', startTime: startT },
+                        (Date.now() - (recentlyRestarted[m.id] || 0)) < 1500,
+                        false
+                    );
+                }).join('');
                 html += '<span class="section-label" style="margin-top: 2rem">Detenidas</span>';
                 html += stopped.map(m => renderItem(
                     { machine: m.id, reason: m.reason, stopTime: m.time, status: 'detenido', startTime: m.startTime },
@@ -2200,7 +2290,7 @@
                 )).join('');
                 container.innerHTML = html;
             }
-            else if (currentView === 'summary') {
+            else if (viewToRender === 'summary') {
                 const stoppedCount = Object.keys(stoppedMachines).length;
                 const eff = document.getElementById('eficiencia-numero').textContent;
                 const timeRemaining = document.getElementById('time-remaining-val').textContent;
@@ -2286,6 +2376,10 @@
                 } else {
                     populateLogList();
                 }
+            }
+
+            if (mainCurrentView !== 'mapa') {
+                populateMainLogList();
             }
 
             // Secuencia: Esperar 1s -> Carga 2s -> Alerta
