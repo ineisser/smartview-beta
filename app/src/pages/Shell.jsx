@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRightFromLine, Bell, Cast, Check, ChevronRight, Circle, CircleGauge, CircleUser, Clock, EllipsisVertical, FlaskConical, Grip, History, List, LogOut, Maximize2, MessageCircle, Minimize2, Monitor, Moon, Percent, RefreshCw, RotateCcw, Server, Settings, Square, Sun, X } from "lucide-react";
+import { ArrowLeft, ArrowRightFromLine, Bell, Cast, Check, ChevronRight, Circle, CircleGauge, CircleUser, Clock, EllipsisVertical, FlaskConical, Grip, History, List, LogOut, Maximize2, MessageCircle, Minimize2, Monitor, Moon, Percent, RefreshCw, RotateCcw, Server, Settings, Square, Sun, Volume2, VolumeOff, X } from "lucide-react";
 import "../styles/components/modal.css";
 import { push, ref, update } from "firebase/database";
 import { rtdb } from "../firebase";
@@ -29,8 +29,9 @@ import ParoModal from "../components/ParoModal";
 import EficienciaPanel from "../components/EficienciaPanel";
 import AvanceTurno from "../components/AvanceTurno";
 import AvisoActualizacion from "../components/AvisoActualizacion";
+import TurnosConfig from "../components/TurnosConfig";
 import { UMBRAL_OEE, alertaValida, avanceDeTurno, umbralDe } from "../turno";
-import { REPETICIONES_VOZ, etiquetaMaquina, fraseParo, fijarVolumen, parosVozDe, repeticionesValidas, tocarLlegada, volumenPorcentaje, VOLUMEN } from "../sonido";
+import { ALTAVOZ, REPETICIONES_VOZ, altavozActivo, etiquetaMaquina, fijarAltavoz, fijarVolumen, fraseParo, parosVozDe, repeticionesValidas, tocarLlegada, volumenPorcentaje, VOLUMEN } from "../sonido";
 import useAppVersion from "../hooks/useAppVersion";
 import { Campana, CentroAvisos, PaginaAvisos, notasDeSala } from "../components/Notificaciones";
 import useSalaControl from "../hooks/useSalaControl";
@@ -446,6 +447,11 @@ export default function Shell() {
   const [modos, setModos] = useState(false);
   const [tema, setTema] = useState(leerTema);
   const [completa, setCompleta] = useState(estaCompleta);
+  const [altavoz, setAltavoz] = useState(altavozActivo);
+  const [volumen, setVolumen] = useState(volumenPorcentaje);
+  const [volMenu, setVolMenu] = useState(null);
+  const [volOn, setVolOn] = useState(false);
+  const volTimer = useRef(0);
   const [organizacion, setOrganizacion] = useState(profile?.organizacion || "");
   const [simulador, setSimulador] = useState(profile?.planta?.simuladorFallos === true);
   const [alertaSala, setAlertaSala] = useState("");
@@ -577,7 +583,8 @@ export default function Shell() {
     document.addEventListener("fullscreenchange", sync);
     document.addEventListener("webkitfullscreenchange", sync);
     if (restaurarPantalla.current && !estaCompleta()) {
-      const intentar = () => {
+      const intentar = (event) => {
+        if (event.target.closest?.(".pantalla-hit")) return;
         if (restaurarPantalla.current && !estaCompleta()) entrarPantalla();
         restaurarPantalla.current = false;
         document.removeEventListener("pointerdown", intentar);
@@ -612,7 +619,20 @@ export default function Shell() {
     };
   }, []);
 
-  useEffect(() => { setOrganizacion(profile?.organizacion || ""); }, [profile?.organizacion]);
+  useEffect(() => {
+    const sync = () => {
+      setAltavoz(altavozActivo());
+      setVolumen(volumenPorcentaje());
+    };
+    window.addEventListener(ALTAVOZ, sync);
+    window.addEventListener(VOLUMEN, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(ALTAVOZ, sync);
+      window.removeEventListener(VOLUMEN, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
   useEffect(() => { setSimulador(profile?.planta?.simuladorFallos === true); }, [profile?.planta?.simuladorFallos]);
   const anaLista = useRef(false);
   useEffect(() => {
@@ -707,6 +727,7 @@ export default function Shell() {
 
   const mostrarMenu = (nodo) => {
     window.clearTimeout(menuTimer.current);
+    ocultarVolumen();
     setModos(false);
     setMenu(puestoMenu(nodo));
     setMenuOn(false);
@@ -722,6 +743,22 @@ export default function Shell() {
     menuTimer.current = window.setTimeout(() => setMenu(null), 800);
   };
 
+  const ocultarVolumen = () => {
+    setVolOn(false);
+    window.clearTimeout(volTimer.current);
+    volTimer.current = window.setTimeout(() => setVolMenu(null), 800);
+  };
+
+  const mostrarVolumen = (nodo) => {
+    ocultarMenu();
+    window.clearTimeout(volTimer.current);
+    setVolMenu(puestoMenu(nodo));
+    setVolOn(false);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => setVolOn(true));
+    });
+  };
+
   useEffect(() => {
     if (!menu || !menuOn) return undefined;
     const cerrar = (event) => {
@@ -731,6 +768,16 @@ export default function Shell() {
     document.addEventListener("pointerdown", cerrar);
     return () => document.removeEventListener("pointerdown", cerrar);
   }, [menu, menuOn]);
+
+  useEffect(() => {
+    if (!volMenu || !volOn) return undefined;
+    const cerrar = (event) => {
+      if (event.target.closest?.(".volumen-menu, .volumen-hit")) return;
+      ocultarVolumen();
+    };
+    document.addEventListener("pointerdown", cerrar);
+    return () => document.removeEventListener("pointerdown", cerrar);
+  }, [volMenu, volOn]);
 
   const elegirTema = (id) => {
     setTema(aplicarTema(id));
@@ -769,6 +816,15 @@ export default function Shell() {
     ));
     await saveProfile(user.uid, { planta: { ...profile.planta, salas: siguientes } });
     setToast("Se guardó la configuración de la sala.");
+  };
+
+  const guardarTurnosSala = async (turnos) => {
+    if (!user || !sala) return;
+    const siguientes = salas.map((item, index) => (
+      index === activa ? { ...item, turnos, cantidadTurnos: turnos.length } : item
+    ));
+    await saveProfile(user.uid, { planta: { ...profile.planta, salas: siguientes } });
+    setToast("Se guardaron los turnos.");
   };
 
   const aplicarCentral = async ({ avance, umbral, notificacionesAltavoz, repeticionesVoz }) => {
@@ -813,7 +869,7 @@ export default function Shell() {
     setToast("Se guardó correctamente.");
   };
 
-  const cerrarCajon = () => { if (vertical) { ocultarMenu(); setOpen(false); } };
+  const cerrarCajon = () => { if (vertical) { ocultarMenu(); ocultarVolumen(); setOpen(false); } };
 
   return (
     <div className={`shell${open ? "" : " is-collapsed"}${vertical ? " is-portrait" : ""}${vertical && open ? " is-drawer" : ""}`}>
@@ -885,11 +941,27 @@ export default function Shell() {
           </Tooltip>
         </div>
         <div className="sidebar-foot">
+          <Tooltip label={open ? "" : (altavoz && volumen > 0 ? "Volumen" : "Sonido apagado")}>
+            <button
+              className="pantalla-hit volumen-hit"
+              type="button"
+              aria-label={altavoz && volumen > 0 ? "Volumen" : "Sonido apagado"}
+              aria-expanded={Boolean(volMenu && volOn)}
+              onClick={(event) => {
+                if (volMenu && volOn) ocultarVolumen();
+                else mostrarVolumen(event.currentTarget);
+              }}
+            >
+              {altavoz && volumen > 0 ? <Volume2 size={18} /> : <VolumeOff size={18} />}
+              <span className="sala-copy">Volumen</span>
+            </button>
+          </Tooltip>
           <Tooltip label={open ? "" : (completa ? "Reducir pantalla" : "Pantalla completa")}>
             <button
               className="pantalla-hit"
               type="button"
               aria-label={completa ? "Reducir pantalla" : "Pantalla completa"}
+              onPointerDown={() => { restaurarPantalla.current = false; }}
               onClick={() => { restaurarPantalla.current = false; ocultarMenu(); alternarPantalla(); }}
             >
               {completa ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
@@ -1003,6 +1075,7 @@ export default function Shell() {
                 onChange={setPestana}
                 items={[
                   { id: "general", label: "General", icon: Settings },
+                  { id: "turnos", label: "Turnos", icon: Clock },
                   { id: "maquinas", label: "Máquinas", icon: Server },
                   { id: "motivos", label: "Motivos", icon: List },
                 ]}
@@ -1066,6 +1139,9 @@ export default function Shell() {
                 </div>
               </form>
               </>
+            ) : null}
+            {pestana === "turnos" ? (
+              <TurnosConfig turnos={sala.turnos} onGuardar={guardarTurnosSala} />
             ) : null}
             {pestana === "maquinas" ? (
               <div className={`sheet${actualizando ? " is-loading" : ""}`}>
@@ -1427,6 +1503,41 @@ export default function Shell() {
         />
       ) : null}
       <Toast message={toast} onClose={() => setToast("")} />
+      {volMenu ? createPortal(
+        <div className={`volumen-menu glass-pop${volOn ? " is-on" : ""}`} style={{ left: volMenu.left, bottom: volMenu.bottom }}>
+          <div className="volumen-fila">
+            <span>Sonido</span>
+            <Switch
+              aria-label="Sonido de este equipo"
+              value={altavoz}
+              onChange={(valor) => {
+                fijarAltavoz(valor);
+                setAltavoz(valor);
+                if (valor && volumenPorcentaje() === 0) setVolumen(fijarVolumen(80));
+              }}
+            />
+          </div>
+          <label className="volumen-fila">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              aria-label="Volumen"
+              value={volumen}
+              onChange={(event) => {
+                const pct = fijarVolumen(event.target.value);
+                setVolumen(pct);
+                const activo = pct > 0;
+                if (activo !== altavozActivo()) fijarAltavoz(activo);
+                setAltavoz(activo);
+              }}
+            />
+            <span>{volumen}%</span>
+          </label>
+        </div>,
+        document.body,
+      ) : null}
       {menu ? createPortal(
         <div className={`user-menu glass-pop${menuOn ? " is-on" : ""}`} style={{ left: menu.left, bottom: menu.bottom }}>
           <div className="user-menu-id">

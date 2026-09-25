@@ -546,6 +546,53 @@ html.dark .menu-list {
 .btn-inline { width: auto; gap: 8px; padding: 0 16px; }
 .shift { display: grid; grid-template-columns: 90px 1fr 1fr; gap: 12px; align-items: end; }
 .shift > span { height: 48px; display: flex; align-items: center; color: var(--ink-solid); }
+.setup-turnos {
+  width: min(100%, 720px);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.setup-turnos-lede {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.setup-turnos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.setup-turno {
+  grid-template-columns: 90px 1fr 1fr 40px;
+  align-items: end;
+}
+.setup-turno .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+.setup-turno .field > span {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.setup-turno-quitar {
+  align-self: end;
+  margin-bottom: 4px;
+}
+.setup-turno-quitar:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.setup-turnos-actions {
+  margin-top: 24px;
+  justify-content: space-between;
+  gap: 12px;
+}
+.setup-turnos-actions .btn-inline {
+  width: auto;
+}
 .room { width: 100%; display: flex; flex-direction: column; gap: 16px; }
 .room-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .room-actions { display: flex; gap: 10px; }
@@ -599,14 +646,22 @@ html.dark .menu-list {
 }
 .shell.is-collapsed .sidebar { width: 72px; }
 .shell.is-portrait { position: relative; }
-.shell.is-portrait.is-drawer .sidebar {
+.shell.is-portrait .sidebar {
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   z-index: 40;
-  width: 240px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   box-shadow: var(--glass-shadow);
+}
+html.dark .shell.is-portrait .sidebar {
+  background: rgba(12, 12, 12, 0.96);
+}
+.shell.is-portrait.is-drawer .sidebar {
+  width: 240px;
 }
 .saiba-scrim {
   position: absolute;
@@ -616,15 +671,22 @@ html.dark .menu-list {
   padding: 0;
   border: 0;
   cursor: pointer;
-  background: rgba(231, 237, 244, 0.45);
+  background: rgba(231, 237, 244, 0.01);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  opacity: 1;
+}
+.saiba-scrim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(231, 237, 244, 0.45);
   opacity: 0;
   animation: saiba-scrim-in var(--move) var(--ease) forwards;
+  pointer-events: none;
 }
-html.dark .saiba-scrim {
-  background: rgba(0, 0, 0, 0.35);
-}
+html.dark .saiba-scrim { background: rgba(0, 0, 0, 0.01); }
+html.dark .saiba-scrim::before { background: rgba(0, 0, 0, 0.35); }
 @keyframes saiba-scrim-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -764,6 +826,42 @@ html.dark .glass-pop {
   opacity: 1;
   transform: none;
 }
+.volumen-menu {
+  position: fixed;
+  z-index: 50;
+  width: 240px;
+  margin: 0;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: none;
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  transition: opacity var(--move) var(--ease), transform var(--move) var(--ease);
+}
+.volumen-menu.is-on {
+  opacity: 1;
+  transform: none;
+}
+.volumen-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 10px;
+  color: var(--ink-solid);
+}
+.volumen-fila input[type="range"] {
+  flex: 1;
+  height: 40px;
+  margin: 0;
+  accent-color: var(--ink-solid);
+  background: transparent;
+  cursor: pointer;
+}
+.volumen-fila span { flex: none; }
 .user-menu-id { padding: 8px 10px 6px; }
 .user-menu-id strong { display: block; color: var(--ink-solid); font-weight: 600; }
 .user-menu-id span { display: block; margin-top: 2px; color: var(--muted); font-size: 0.75rem; }
@@ -1047,8 +1145,21 @@ html.dark .modal-actions .theme-cancel-btn { background: rgba(255, 255, 255, 0.0
   align-items: center;
   gap: 8px;
 }
-.shell.is-collapsed .pantalla-hit {
-  width: 36px;
+.shell.is-collapsed .sidebar-foot > .tip-anchor,
+.shell.is-collapsed .sidebar-tools > .tip-anchor,
+.shell.is-collapsed .sidebar-user .tip-anchor {
+  display: flex;
+  justify-content: center;
+  width: 44px;
+}
+.shell.is-collapsed .pantalla-hit,
+.shell.is-collapsed .saiba-atajo,
+.shell.is-collapsed .sidebar-foot .icon-btn,
+.shell.is-collapsed .sidebar-top .icon-btn {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
   justify-content: center;
 }
 .shell.is-collapsed .pantalla-hit svg { margin-left: 0; }
@@ -1056,11 +1167,12 @@ html.dark .modal-actions .theme-cancel-btn { background: rgba(255, 255, 255, 0.0
   flex-direction: column-reverse;
   align-items: center;
   gap: 8px;
+  width: 44px;
 }
 .shell.is-collapsed .user-hit {
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   gap: 0;
   justify-content: center;
   padding: 0;

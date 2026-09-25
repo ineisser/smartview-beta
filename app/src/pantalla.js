@@ -8,17 +8,19 @@ export const guardarPantalla = (completa) => {
   localStorage.setItem(KEY, completa ? "completa" : "ventana");
 };
 
-export const estaCompleta = () => Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+export const estaCompleta = () => Boolean(
+  document.fullscreenElement || document.webkitFullscreenElement || document.webkitCurrentFullScreenElement,
+);
 
 export const entrarPantalla = async () => {
   const nodo = raiz();
-  const pedir = nodo.requestFullscreen || nodo.webkitRequestFullscreen;
+  const pedir = nodo.requestFullscreen || nodo.webkitRequestFullscreen || nodo.webkitRequestFullScreen;
   if (!pedir || estaCompleta()) return;
   await pedir.call(nodo).catch(() => {});
 };
 
 export const salirPantalla = async () => {
-  const salir = document.exitFullscreen || document.webkitExitFullscreen;
+  const salir = document.exitFullscreen || document.webkitExitFullscreen || document.webkitCancelFullScreen;
   if (!salir || !estaCompleta()) return;
   await salir.call(document).catch(() => {});
 };

@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import { useEffect, useState, useRef } from "react";
-import { ArrowUpRight, Minimize2, PanelRight, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowUpRight, Minimize2, PanelRight, Volume2, VolumeOff, X } from "lucide-react";
 import Button from "./Button";
 import Tooltip from "./Tooltip";
 import { esNotaAvance, reproducirNota } from "../hooks/useAvisoSonido";
@@ -145,7 +145,7 @@ function BotonAltavoz() {
       aria-pressed={activo}
       onClick={() => fijarAltavoz(!activo)}
     >
-      {activo ? <Volume2 size={16} /> : <VolumeX size={16} />}
+      {activo ? <Volume2 size={16} /> : <VolumeOff size={16} />}
     </Button>
   );
 }
