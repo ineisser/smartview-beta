@@ -41,6 +41,7 @@ export default function App() {
       <Route path="/:orgCodigo/ficha" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/notificaciones" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/mensajes" element={<Private><Shell /></Private>} />
+      <Route path="/:orgCodigo/laboratorio" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/:salaCodigo/setup" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/:salaCodigo" element={<Private><Shell /></Private>} />
       <Route path="/app" element={<Navigate to="/inicio" replace />} />

@@ -2267,6 +2267,39 @@ html.dark .time-panel {
 }
 .config-section { display: flex; flex-direction: column; gap: 16px; }
 .config-section h2 { font-size: 1.25rem; }
+.lab-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lab-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 720px;
+  padding-left: 46px;
+}
+.lab-lede { color: var(--muted); }
+.lab-log {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(70vh, 640px);
+  overflow: auto;
+  padding-right: 8px;
+}
+.lab-linea {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--glass);
+}
+.lab-linea time { color: var(--muted); font-size: 0.8rem; }
+.lab-vacio { color: var(--muted); }
 .config-section-head {
   display: flex;
   align-items: center;

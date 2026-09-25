@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRightFromLine, Bell, Cast, Check, ChevronRight, Circle, CircleGauge, CircleUser, Clock, EllipsisVertical, Grip, History, List, LogOut, Maximize2, MessageCircle, Minimize2, Monitor, Moon, Percent, RefreshCw, RotateCcw, Server, Settings, Square, Sun, X } from "lucide-react";
+import { ArrowLeft, ArrowRightFromLine, Bell, Cast, Check, ChevronRight, Circle, CircleGauge, CircleUser, Clock, EllipsisVertical, FlaskConical, Grip, History, List, LogOut, Maximize2, MessageCircle, Minimize2, Monitor, Moon, Percent, RefreshCw, RotateCcw, Server, Settings, Square, Sun, X } from "lucide-react";
 import "../styles/components/modal.css";
 import { push, ref, update } from "firebase/database";
 import { rtdb } from "../firebase";
@@ -13,6 +13,8 @@ import Mensajes from "./Mensajes";
 import Avatar from "../components/Avatar";
 import Colaboradores from "./Colaboradores";
 import CentralAvisos from "./CentralAvisos";
+import Laboratorio from "./Laboratorio";
+import { operariaAna, salasTelares } from "../simulador";
 import Ficha from "./Ficha";
 import useRobotAvance from "../hooks/useRobotAvance";
 import useHistorialOrg from "../hooks/useHistorialOrg";
@@ -429,11 +431,11 @@ const MODOS = [
 ];
 
 export default function Shell() {
-  const { profile, user, saveProfile, logout, cargarOrganizacion, guardarAvisoAvance, guardarMisDatos } = useAuth();
+  const { profile, user, saveProfile, logout, cargarOrganizacion, guardarAvisoAvance, guardarMisDatos, editarMiembro, activarCuenta } = useAuth();
   const { hayActualizacion, actualizar } = useAppVersion();
   const acceso = permisos(profile);
   const navigate = useNavigate();
-  const { pathname, state: rutaState } = useLocation();
+  const { pathname, search, state: rutaState } = useLocation();
   const { orgCodigo, salaCodigo } = useParams();
   const [open, setOpen] = useState(() => (typeof window !== "undefined" ? window.innerHeight <= window.innerWidth : true));
   const [vertical, setVertical] = useState(() => (typeof window !== "undefined" ? window.innerHeight > window.innerWidth : false));
@@ -445,6 +447,7 @@ export default function Shell() {
   const [tema, setTema] = useState(leerTema);
   const [completa, setCompleta] = useState(estaCompleta);
   const [organizacion, setOrganizacion] = useState(profile?.organizacion || "");
+  const [simulador, setSimulador] = useState(profile?.planta?.simuladorFallos === true);
   const [alertaSala, setAlertaSala] = useState("");
   const [vozSala, setVozSala] = useState(true);
   const [vecesSala, setVecesSala] = useState(String(REPETICIONES_VOZ));
@@ -545,7 +548,7 @@ export default function Shell() {
     paros: parosVozDe(sala?.parosVoz),
   });
   const { noLeidos } = useMensajes({ org: orgActiva, uid: user?.uid, nombre: profile?.nombre || user?.displayName || "" });
-  const vista = pathname.endsWith("/mensajes") ? "mensajes" : pathname.endsWith("/notificaciones") ? "notificaciones" : pathname.endsWith("/ficha") ? "ficha" : pathname.endsWith("/setup") ? "sala-config" : pathname.endsWith("/configuracion") ? "config" : "sala";
+  const vista = pathname.endsWith("/mensajes") ? "mensajes" : pathname.endsWith("/notificaciones") ? "notificaciones" : pathname.endsWith("/laboratorio") ? "laboratorio" : pathname.endsWith("/ficha") ? "ficha" : pathname.endsWith("/setup") ? "sala-config" : pathname.endsWith("/configuracion") ? "config" : "sala";
   const listaMiembros = useMemo(
     () => Object.entries(profile?.miembros || {}).map(([id, item]) => ({ id, ...item })),
     [profile?.miembros],
@@ -610,6 +613,25 @@ export default function Shell() {
   }, []);
 
   useEffect(() => { setOrganizacion(profile?.organizacion || ""); }, [profile?.organizacion]);
+  useEffect(() => { setSimulador(profile?.planta?.simuladorFallos === true); }, [profile?.planta?.simuladorFallos]);
+  const anaLista = useRef(false);
+  useEffect(() => {
+    if (vista !== "laboratorio" || !new URLSearchParams(search).get("correr") || anaLista.current) return;
+    const ana = operariaAna(profile?.miembros);
+    const codigo = profile?.codigo || orgCodigo;
+    if (!ana.clave || !codigo) return;
+    anaLista.current = true;
+    const asignadas = salasTelares(profile?.planta?.salas || []).map((sala) => sala.codigo);
+    editarMiembro({
+      orgCodigo: codigo,
+      clave: ana.clave,
+      uid: ana.uid,
+      nombre: ana.nombre,
+      telefono: ana.telefono || "",
+      rol: "operario",
+      salas: asignadas.length ? asignadas : ana.salas,
+    }).then(() => activarCuenta({ orgCodigo: codigo, clave: ana.clave, uid: ana.uid })).catch(() => {});
+  }, [vista, search, profile?.miembros, profile?.codigo, profile?.planta?.salas, orgCodigo, editarMiembro, activarCuenta]);
   useEffect(() => {
     if (!user?.uid || !foto || !orgActiva || !profile?.miembros) return;
     const entrada = Object.entries(profile.miembros).find(([clave, item]) => clave === user.uid || item?.uid === user.uid);
@@ -642,7 +664,7 @@ export default function Shell() {
   }, [profile, vista, acceso.editarPlanta, acceso.invitar, salas, orgCodigo, navigate]);
 
   useEffect(() => {
-    if (!profile || vista === "config" || vista === "ficha" || vista === "notificaciones" || vista === "mensajes" || !salaCodigo || !salas.length) return;
+    if (!profile || vista === "config" || vista === "ficha" || vista === "notificaciones" || vista === "mensajes" || vista === "laboratorio" || !salaCodigo || !salas.length) return;
     if (salas.some((item) => item.codigo === salaCodigo)) return;
     navigate(`/${profile.codigo || orgCodigo}/${salas[0].codigo}`, { replace: true });
   }, [profile, vista, salaCodigo, salas, orgCodigo, navigate]);
@@ -903,9 +925,9 @@ export default function Shell() {
         <header className="room-nav">
           <div className="room-title">
             <h1>
-              {vista === "notificaciones" || vista === "mensajes" || vista === "config" || vista === "ficha" || vista === "sala-config" ? (
+              {vista === "notificaciones" || vista === "mensajes" || vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? (
                 <button
-                  className={`icon-btn${vista === "config" || vista === "ficha" || vista === "sala-config" ? " volver-btn" : ""}`}
+                  className={`icon-btn${vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? " volver-btn" : ""}`}
                   type="button"
                   aria-label="Volver"
                   onClick={() => navigate(rutaState?.desde || `/${orgActiva}/${sala?.codigo || salas[0]?.codigo || ""}`)}
@@ -913,7 +935,7 @@ export default function Shell() {
                   <ArrowLeft size={18} />
                 </button>
               ) : null}
-              {vista === "config" ? "Configuración" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
+              {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
               {vista === "sala-config" ? <span className="room-kicker">Configuración</span> : null}
             </h1>
           </div>
@@ -1144,7 +1166,62 @@ export default function Shell() {
               />
             </>
           ) : null}
+          {acceso.editarPlanta ? (
+            <>
+              <hr className="config-rule" />
+              <section className="config-section">
+                <h2 className="lab-titulo"><FlaskConical size={22} /> Laboratorio</h2>
+                <div className="config-ask">
+                  <div className="config-row">
+                    <span className="config-copy">
+                      <strong>Usar simulador de fallos</strong>
+                      <small>Genera paros al azar en los telares y los levanta sola. La eficiencia de la sala no baja de 75 %.</small>
+                    </span>
+                    <Switch
+                      aria-label="Usar simulador de fallos"
+                      value={simulador}
+                      onChange={(valor) => {
+                        setSimulador(valor);
+                        if (!user || !profile?.planta) return;
+                        saveProfile(user.uid, { planta: { ...profile.planta, simuladorFallos: valor } }).catch(() => {});
+                      }}
+                    />
+                  </div>
+                  <div className={`config-reveal${simulador ? " is-open" : ""}`}>
+                    <div>
+                      <div className="config-row config-row-actions">
+                        <button
+                          className="btn btn-primary"
+                          type="button"
+                          disabled={!simulador}
+                          onClick={() => {
+                            if (!simulador) return;
+                            localStorage.setItem("smartview-sim-pedido", orgActiva);
+                            if (user && profile?.planta && !profile.planta.simuladorFallos) {
+                              saveProfile(user.uid, { planta: { ...profile.planta, simuladorFallos: true } }).catch(() => {});
+                            }
+                            const destino = `/${orgActiva}/laboratorio?correr=1`;
+                            const ventana = window.open(destino, "smartview-laboratorio");
+                            if (!ventana) navigate(destino);
+                          }}
+                        >
+                          Iniciar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </>
+          ) : null}
           </div>
+        ) : vista === "laboratorio" ? (
+          <Laboratorio
+            org={orgActiva}
+            planta={profile?.planta}
+            miembros={profile?.miembros}
+            correr={new URLSearchParams(search).get("correr") === "1" && (profile?.planta?.simuladorFallos === true || localStorage.getItem("smartview-sim-pedido") === orgActiva)}
+          />
         ) : sala && lista(sala) ? (
           <>
             <div className="sala-head">

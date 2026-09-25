@@ -90,6 +90,10 @@ export const cerrarParoRemoto = async (org, item) => {
     duration: item.duration || 0,
     via: item.via || item.arranqueVia || null,
     autor: item.autor || item.arranqueAutor || "",
+    autorNombre: item.autorNombre || "",
+    arranqueVia: item.arranqueVia || null,
+    arranqueAutor: item.arranqueAutor || "",
+    arranqueNombre: item.arranqueNombre || "",
   };
   if (id) {
     await update(ref(rtdb, `organizaciones/${org}/paros/${id}`), payload);
