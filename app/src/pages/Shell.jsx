@@ -26,8 +26,10 @@ import Tooltip from "../components/Tooltip";
 import ParoModal from "../components/ParoModal";
 import EficienciaPanel from "../components/EficienciaPanel";
 import AvanceTurno from "../components/AvanceTurno";
+import AvisoActualizacion from "../components/AvisoActualizacion";
 import { UMBRAL_OEE, alertaValida, avanceDeTurno, umbralDe } from "../turno";
-import { REPETICIONES_VOZ, etiquetaMaquina, fraseParo, parosVozDe, repeticionesValidas } from "../sonido";
+import { REPETICIONES_VOZ, etiquetaMaquina, fraseParo, fijarVolumen, parosVozDe, repeticionesValidas, tocarLlegada, volumenPorcentaje, VOLUMEN } from "../sonido";
+import useAppVersion from "../hooks/useAppVersion";
 import { Campana, CentroAvisos, PaginaAvisos, notasDeSala } from "../components/Notificaciones";
 import useSalaControl from "../hooks/useSalaControl";
 import { MOTIVOS_PARO } from "../data/motivos-paro";
@@ -428,11 +430,13 @@ const MODOS = [
 
 export default function Shell() {
   const { profile, user, saveProfile, logout, cargarOrganizacion, guardarAvisoAvance, guardarMisDatos } = useAuth();
+  const { hayActualizacion, actualizar } = useAppVersion();
   const acceso = permisos(profile);
   const navigate = useNavigate();
   const { pathname, state: rutaState } = useLocation();
   const { orgCodigo, salaCodigo } = useParams();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(() => (typeof window !== "undefined" ? window.innerHeight <= window.innerWidth : true));
+  const [vertical, setVertical] = useState(() => (typeof window !== "undefined" ? window.innerHeight > window.innerWidth : false));
   const [menu, setMenu] = useState(null);
   const [menuOn, setMenuOn] = useState(false);
   const menuTimer = useRef(0);
@@ -588,6 +592,23 @@ export default function Shell() {
     };
   }, []);
 
+  useEffect(() => {
+    let previa = window.innerHeight > window.innerWidth;
+    const sync = () => {
+      const esVertical = window.innerHeight > window.innerWidth;
+      if (esVertical === previa) return;
+      previa = esVertical;
+      setVertical(esVertical);
+      setOpen(!esVertical);
+    };
+    window.addEventListener("resize", sync);
+    window.addEventListener("orientationchange", sync);
+    return () => {
+      window.removeEventListener("resize", sync);
+      window.removeEventListener("orientationchange", sync);
+    };
+  }, []);
+
   useEffect(() => { setOrganizacion(profile?.organizacion || ""); }, [profile?.organizacion]);
   useEffect(() => {
     if (!user?.uid || !foto || !orgActiva || !profile?.miembros) return;
@@ -706,7 +727,7 @@ export default function Shell() {
     await saveProfile(user.uid, { organizacion: limpio });
     setAviso("Guardado correctamente");
     setToast("Se guardó correctamente.");
-    setTimeout(() => setAviso(""), 3000);
+    setTimeout(() => setAviso(""), 4000);
   };
 
   const guardarAlertaSala = async (event) => {
@@ -770,11 +791,31 @@ export default function Shell() {
     setToast("Se guardó correctamente.");
   };
 
+  const cerrarCajon = () => { if (vertical) { ocultarMenu(); setOpen(false); } };
+
   return (
-    <div className={`shell${open ? "" : " is-collapsed"}`}>
+    <div className={`shell${open ? "" : " is-collapsed"}${vertical ? " is-portrait" : ""}${vertical && open ? " is-drawer" : ""}`}>
+      {vertical && open ? (
+        <button
+          type="button"
+          className="saiba-scrim"
+          aria-label="Cerrar menú"
+          onClick={() => { ocultarMenu(); setOpen(false); }}
+        />
+      ) : null}
       <aside className="sidebar">
         <div className="sidebar-top">
-          <button className="icon-btn" type="button" aria-label={open ? "Cerrar menú" : "Abrir menú"} onClick={() => setOpen((value) => !value)}>
+          <button
+            className="icon-btn"
+            type="button"
+            aria-label={open ? "Cerrar menú" : "Abrir menú"}
+            onClick={() => {
+              setOpen((value) => {
+                if (value) ocultarMenu();
+                return !value;
+              });
+            }}
+          >
             <Cast size={20} />
           </button>
           <span className="sidebar-brand">Smart View</span>
@@ -782,7 +823,11 @@ export default function Shell() {
         <nav className="sidebar-nav">
           {salas.map((item, index) => (
             <Tooltip key={item.nombre} label={open ? "" : capital(item.nombre)}>
-              <button type="button" className={`sala-link${vista === "sala" || vista === "sala-config" ? (index === activa ? " is-on" : "") : ""}`} onClick={() => navigate(ruta(item.codigo || codigoSala(item.nombre, index)))}>
+              <button
+                type="button"
+                className={`sala-link${vista === "sala" || vista === "sala-config" ? (index === activa ? " is-on" : "") : ""}`}
+                onClick={() => { navigate(ruta(item.codigo || codigoSala(item.nombre, index))); cerrarCajon(); }}
+              >
                 <span className="sala-mark">{siglas(item.nombre)}</span>
                 <span className="sala-copy">
                   <span>{item.nombre}</span>
@@ -798,7 +843,7 @@ export default function Shell() {
             <button
               type="button"
               className={`sala-link saiba-atajo${vista === "notificaciones" ? " is-on" : ""}`}
-              onClick={() => navigate(`/${orgActiva}/notificaciones`, { state: { desde: pathname } })}
+              onClick={() => { navigate(`/${orgActiva}/notificaciones`, { state: { desde: pathname } }); cerrarCajon(); }}
             >
               <Bell className="saiba-ico" size={18} />
               <span className="sala-copy">Notificaciones</span>
@@ -809,7 +854,7 @@ export default function Shell() {
             <button
               type="button"
               className={`sala-link saiba-atajo${vista === "mensajes" ? " is-on" : ""}`}
-              onClick={() => navigate(`/${orgActiva}/mensajes`, { state: { desde: pathname } })}
+              onClick={() => { navigate(`/${orgActiva}/mensajes`, { state: { desde: pathname } }); cerrarCajon(); }}
             >
               <MessageCircle className="saiba-ico" size={18} />
               <span className="sala-copy">Mensajes</span>
@@ -829,6 +874,7 @@ export default function Shell() {
               <span className="sala-copy">{completa ? "Reducir pantalla" : "Pantalla completa"}</span>
             </button>
           </Tooltip>
+          <AvisoActualizacion visible={hayActualizacion} onActualizar={actualizar} compacto={!open} />
           <div className="sidebar-user">
             <button
               className="user-hit"
@@ -845,7 +891,7 @@ export default function Shell() {
             </button>
             {acceso.editarPlanta || acceso.invitar ? (
               <Tooltip label={open ? "" : "Configuración"}>
-                <button className="icon-btn" type="button" aria-label="Configuración" onClick={() => { ocultarMenu(); navigate(`/${profile?.codigo || orgCodigo}/configuracion`, { state: { desde: pathname } }); }}>
+                <button className="icon-btn" type="button" aria-label="Configuración" onClick={() => { ocultarMenu(); navigate(`/${profile?.codigo || orgCodigo}/configuracion`, { state: { desde: pathname } }); cerrarCajon(); }}>
                   <Settings size={18} />
                 </button>
               </Tooltip>
@@ -1324,6 +1370,7 @@ export default function Shell() {
               ocultarMenu();
               const desde = pathname.endsWith("/ficha") ? rutaState?.desde : pathname;
               navigate(`/${orgActiva}/ficha`, { state: { desde } });
+              cerrarCajon();
             }}
           >
             <CircleUser size={18} /> Ficha personal

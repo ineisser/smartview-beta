@@ -12,7 +12,8 @@ export default function MensajeInput({ onEnviar, disabled }) {
   const [aviso, setAviso] = useState("");
   const area = useRef(null);
   const reconocimiento = useRef(null);
-  const base = useRef("");
+  const prefijo = useRef("");
+  const confirmado = useRef("");
   const oyendoRef = useRef(false);
 
   useEffect(() => {
@@ -24,8 +25,20 @@ export default function MensajeInput({ onEnviar, disabled }) {
 
   useEffect(() => () => {
     oyendoRef.current = false;
-    try { reconocimiento.current?.stop?.(); } catch { /* ya parado */ }
+    try { reconocimiento.current?.abort?.(); } catch { /* ya parado */ }
   }, []);
+
+  const pintar = (parcial = "") => {
+    const junto = `${prefijo.current}${confirmado.current}${parcial}`.replace(/\s+/g, " ").trimStart();
+    setTexto(junto);
+  };
+
+  const consolidar = () => {
+    if (!confirmado.current) return;
+    prefijo.current = `${prefijo.current}${confirmado.current}`.replace(/\s+/g, " ");
+    if (prefijo.current && !prefijo.current.endsWith(" ")) prefijo.current += " ";
+    confirmado.current = "";
+  };
 
   const mandar = (valor = texto) => {
     const limpio = String(valor || "").trim();
@@ -33,14 +46,17 @@ export default function MensajeInput({ onEnviar, disabled }) {
     pararDictado(false);
     onEnviar(limpio);
     setTexto("");
-    base.current = "";
+    prefijo.current = "";
+    confirmado.current = "";
   };
 
   const pararDictado = (quedar = true) => {
     oyendoRef.current = false;
     setOyendo(false);
+    consolidar();
     try { reconocimiento.current?.stop?.(); } catch { /* ok */ }
     if (!quedar) reconocimiento.current = null;
+    pintar("");
   };
 
   const alternarMic = () => {
@@ -58,25 +74,36 @@ export default function MensajeInput({ onEnviar, disabled }) {
     motor.lang = "es-PE";
     motor.continuous = true;
     motor.interimResults = true;
-    base.current = texto.trim() ? `${texto.trim()} ` : "";
+    prefijo.current = texto.trim() ? `${texto.trim()} ` : "";
+    confirmado.current = "";
     motor.onresult = (event) => {
       let parcial = "";
-      let final = "";
-      for (let i = 0; i < event.results.length; i += 1) {
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
         const pieza = event.results[i][0]?.transcript || "";
-        if (event.results[i].isFinal) final += `${pieza} `;
-        else parcial += pieza;
+        if (!pieza) continue;
+        if (event.results[i].isFinal) {
+          confirmado.current = `${confirmado.current}${pieza} `.replace(/\s+/g, " ");
+        } else {
+          parcial += pieza;
+        }
       }
-      if (final) base.current = `${base.current}${final}`.replace(/\s+/g, " ");
-      setTexto(`${base.current}${parcial}`.trimStart());
+      pintar(parcial);
     };
-    motor.onerror = () => {
+    motor.onerror = (event) => {
+      if (event.error === "aborted" || event.error === "no-speech") return;
       oyendoRef.current = false;
       setOyendo(false);
+      consolidar();
+      pintar("");
     };
     motor.onend = () => {
+      consolidar();
+      pintar("");
       if (!oyendoRef.current) return;
-      try { motor.start(); } catch { oyendoRef.current = false; setOyendo(false); }
+      try { motor.start(); } catch {
+        oyendoRef.current = false;
+        setOyendo(false);
+      }
     };
     reconocimiento.current = motor;
     oyendoRef.current = true;
@@ -101,7 +128,8 @@ export default function MensajeInput({ onEnviar, disabled }) {
           disabled={disabled}
           onChange={(event) => {
             setTexto(event.target.value);
-            base.current = event.target.value;
+            prefijo.current = event.target.value;
+            confirmado.current = "";
           }}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {

@@ -593,11 +593,42 @@ html.dark .menu-list {
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   transition: width var(--move) var(--ease);
-  overflow: hidden;
+  overflow: visible;
   flex: none;
   align-self: stretch;
 }
 .shell.is-collapsed .sidebar { width: 72px; }
+.shell.is-portrait { position: relative; }
+.shell.is-portrait.is-drawer .sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 40;
+  width: 240px;
+  box-shadow: var(--glass-shadow);
+}
+.saiba-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: rgba(231, 237, 244, 0.45);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  opacity: 0;
+  animation: saiba-scrim-in var(--move) var(--ease) forwards;
+}
+html.dark .saiba-scrim {
+  background: rgba(0, 0, 0, 0.35);
+}
+@keyframes saiba-scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 .sidebar-brand, .user-copy, .sala-copy {
   transition: opacity var(--move) var(--ease), width var(--move) var(--ease);
   white-space: nowrap;
@@ -777,9 +808,14 @@ html.dark .glass-pop {
 }
 .tooltip.is-light { background: #ffffff; color: var(--ink-solid); }
 .tooltip.is-wrap { white-space: normal; max-width: 220px; }
+.tooltip.is-out { animation: tooltip-out var(--move) var(--ease) forwards; }
 @keyframes tooltip-in {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
+}
+@keyframes tooltip-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.9); }
 }
 .user-menu button, .user-sub button {
   width: 100%;
@@ -877,7 +913,13 @@ html.dark .glass-pop {
   to { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
 }
 .modal-actions { display: flex; gap: 1rem; padding-top: 1.5rem; }
-.modal-actions .btn { flex: 1; width: auto; }
+.modal-actions .btn {
+  flex: 1;
+  width: auto;
+  white-space: nowrap;
+}
+.modal-invitar { max-width: 520px; overflow: visible; }
+.modal-invitar .modal-actions .btn { flex: 1 1 auto; min-width: 0; }
 .modal-actions .theme-cancel-btn { color: var(--modal-text); background: rgba(0, 0, 0, 0.05); }
 html.dark .modal-actions .theme-cancel-btn { background: rgba(255, 255, 255, 0.05); color: white; }
 .modal-actions .confirm-stop { background: #dc2626; color: white; font-weight: 700; }
@@ -916,11 +958,67 @@ html.dark .modal-actions .theme-cancel-btn { background: rgba(255, 255, 255, 0.0
 .loom-card span { color: var(--muted); font-size: 0.85rem; }
 .sidebar-brand { font-family: var(--font-display); font-size: 1.05rem; color: var(--ink-solid); }
 .sidebar-foot {
+  position: relative;
   margin-top: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+}
+.saiba-update {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: max-content;
+  min-width: 100%;
+  max-width: 280px;
+  margin: 4px 0 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--glass-line);
+  border-radius: 12px;
+  background: var(--glass);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  color: var(--ink-solid);
+  text-align: left;
+  cursor: pointer;
+  animation: menu-in var(--move) var(--ease);
+  transition: background var(--move) var(--ease), border-color var(--move) var(--ease);
+}
+.saiba-update:hover { background: var(--hover); }
+.saiba-update-ico {
+  flex: none;
+  margin-top: 2px;
+  color: #1280d4;
+}
+.saiba-update-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.saiba-update-copy strong {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.saiba-update-copy small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+.shell.is-collapsed .saiba-update {
+  position: absolute;
+  left: calc(100% + 10px);
+  bottom: 52px;
+  z-index: 30;
+  width: 240px;
+  min-width: 240px;
+  max-width: 260px;
+}
+.shell.is-collapsed .saiba-update.is-compact {
+  /* sigue mostrando el texto al salir del Saiba */
 }
 .sidebar-user {
   display: flex;
@@ -1496,7 +1594,16 @@ html.dark .nota-modal { background: rgba(0, 0, 0, 0.4); }
   background: var(--ink-solid);
   color: var(--on-active);
   box-shadow: var(--shadow-hover);
-  animation: page-in var(--move) var(--ease);
+  animation: toast-in var(--move) var(--ease);
+}
+.toast.is-out { animation: toast-out var(--move) var(--ease) forwards; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-10px) scale(0.9); }
 }
 .tab-switch {
   position: relative;
@@ -1638,7 +1745,7 @@ html.dark .nota-modal { background: rgba(0, 0, 0, 0.4); }
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 8px 0 16px;
+  padding: 8px 14px 16px 0;
 }
 .mensajes-vacio {
   flex: 1;
@@ -1673,7 +1780,7 @@ html.dark .nota-modal { background: rgba(0, 0, 0, 0.4); }
 }
 .msg-bajar {
   position: absolute;
-  right: 8px;
+  right: 28px;
   bottom: 8px;
   z-index: 3;
   width: 40px;
@@ -1705,30 +1812,53 @@ html.dark .nota-modal { background: rgba(0, 0, 0, 0.4); }
   transform: none;
 }
 .msg-bajar:hover { background: var(--hover); }
+html.dark .msg-bajar {
+  background: var(--ink-solid);
+  color: var(--on-active);
+  border-color: transparent;
+  box-shadow: var(--shadow);
+}
+html.dark .msg-bajar:hover { background: #c5d4e0; color: #050505; }
 .msg-bubble {
   max-width: 80%;
-  margin: 0 0 10px;
-  padding: 10px 14px;
-  border-radius: 12px;
+  margin: 0 0 2px;
+  padding: 8px 12px;
+  border-radius: 2px;
   background: var(--hover);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.msg-bubble.is-solo {
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+.msg-bubble.is-inicio {
+  border-radius: 14px 14px 2px 2px;
+}
+.msg-bubble.is-medio {
+  border-radius: 2px;
+}
+.msg-bubble.is-fin {
+  border-radius: 2px 2px 14px 14px;
+  margin-bottom: 10px;
 }
 .msg-bubble.is-mine {
   margin-left: auto;
-  background: #1f7ec0;
-  color: #fff;
+  background: #e6f5ffde;
+  color: var(--ink);
 }
 html.dark .msg-bubble.is-mine {
-  background: #1280d4;
-  color: #fff;
+  background: #a2bdd12b;
+  color: var(--ink);
 }
-.msg-bubble.is-mine .msg-bubble-meta { opacity: 0.85; color: #fff; }
-.msg-bubble-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 4px;
-  font-size: 0.75rem;
-  opacity: 0.7;
+.msg-bubble time {
+  align-self: flex-end;
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--muted);
+  opacity: 0.9;
 }
 .msg-bubble p { margin: 0; white-space: pre-wrap; word-break: break-word; }
 .msg-composer {
@@ -2433,6 +2563,43 @@ html.dark .ficha-form > input:focus { box-shadow: 0 0 0 3px rgba(230, 245, 255, 
   list-style: none;
   max-height: 220px;
   overflow: auto;
+}
+.menu-side-anchor { position: relative; }
+.menu.menu-side .menu-chevron {
+  transform: rotate(-45deg);
+}
+.menu.menu-side .menu-trigger.open {
+  border-radius: 8px;
+}
+.menu.menu-side .menu-trigger.open .menu-chevron {
+  transform: rotate(-45deg);
+}
+.menu.menu-side .menu-list {
+  top: 0;
+  left: calc(100% + 10px);
+  right: auto;
+  width: max(100%, 240px);
+  z-index: 80;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 36px 90px rgba(15, 23, 42, 0.28),
+    0 14px 36px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  animation: menu-side-in var(--move) var(--ease);
+}
+html.dark .menu.menu-side .menu-list {
+  background: rgba(22, 22, 22, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 48px 120px rgba(0, 0, 0, 0.88),
+    0 16px 40px rgba(0, 0, 0, 0.55);
+}
+@keyframes menu-side-in {
+  from { opacity: 0; transform: translateX(-10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
 }
 .menu-check {
   display: flex;

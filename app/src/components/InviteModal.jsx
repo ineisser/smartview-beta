@@ -88,43 +88,45 @@ function MenuSalas({ salas, value, onChange }) {
   };
 
   return (
-    <div className="menu" ref={box}>
+    <div className="menu menu-side" ref={box}>
       <span className="menu-label">Seleccione una o más salas a las que tendrá acceso</span>
-      <button
-        type="button"
-        className={`menu-trigger ${open ? "open" : ""} ${value.length ? "" : "placeholder"}`}
-        aria-expanded={open}
-        onClick={() => (open ? setOpen(false) : abrir())}
-      >
-        {resumen()}
-        <span className="menu-chevron" aria-hidden="true" />
-      </button>
-      {open ? (
-        <div className="menu-list menu-multi" onPointerDown={(event) => event.stopPropagation()}>
-          <ul role="listbox" aria-multiselectable="true">
-            {(salas || []).map((sala) => {
-              const id = clave(sala);
-              return (
-                <li key={id}>
-                  <label className={`menu-check${borrador.includes(id) ? " selected" : ""}`}>
-                    <input
-                      type="checkbox"
-                      checked={borrador.includes(id)}
-                      onChange={() => toggle(id)}
-                      onClick={(event) => event.stopPropagation()}
-                    />
-                    {sala.nombre}
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="menu-actions">
-            <Button variant="ghost" type="button" onClick={() => { setBorrador(value); setOpen(false); }}>Cancelar</Button>
-            <Button type="button" onClick={() => { onChange(borrador); setOpen(false); }}>Seleccionar</Button>
+      <div className="menu-side-anchor">
+        <button
+          type="button"
+          className={`menu-trigger ${open ? "open" : ""} ${value.length ? "" : "placeholder"}`}
+          aria-expanded={open}
+          onClick={() => (open ? setOpen(false) : abrir())}
+        >
+          {resumen()}
+          <span className="menu-chevron" aria-hidden="true" />
+        </button>
+        {open ? (
+          <div className="menu-list menu-multi" onPointerDown={(event) => event.stopPropagation()}>
+            <ul role="listbox" aria-multiselectable="true">
+              {(salas || []).map((sala) => {
+                const id = clave(sala);
+                return (
+                  <li key={id}>
+                    <label className={`menu-check${borrador.includes(id) ? " selected" : ""}`}>
+                      <input
+                        type="checkbox"
+                        checked={borrador.includes(id)}
+                        onChange={() => toggle(id)}
+                        onClick={(event) => event.stopPropagation()}
+                      />
+                      {sala.nombre}
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="menu-actions">
+              <Button variant="ghost" type="button" onClick={() => { setBorrador(value); setOpen(false); }}>Cancelar</Button>
+              <Button type="button" onClick={() => { onChange(borrador); setOpen(false); }}>Seleccionar</Button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -213,7 +215,7 @@ export default function InviteModal({ modo = "invitar", usuario, salas, orgCodig
 
   return createPortal(
     <div id="modal-overlay" className={visible ? "active" : ""} onClick={(event) => { if (event.target.id === "modal-overlay") cerrar(); }}>
-      <div className="modal-glass" role="dialog" aria-labelledby="invitar-titulo" onClick={(event) => event.stopPropagation()}>
+      <div className="modal-glass modal-invitar" role="dialog" aria-labelledby="invitar-titulo" onClick={(event) => event.stopPropagation()}>
         <button className="modal-close" type="button" aria-label="Cerrar" onClick={cerrar}><X size={18} /></button>
         {enlace ? (
           <>

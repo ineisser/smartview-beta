@@ -4,9 +4,12 @@ const VEINTI = ["veinte", "veintiuno", "veintidós", "veintitrés", "veinticuatr
 const DECENAS = ["", "", "veinte", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"];
 
 const CLAVE_ALTAVOZ = "smartview-altavoz";
+const CLAVE_VOLUMEN = "smartview-volumen";
 export const ALTAVOZ = "smartview-altavoz-cambio";
+export const VOLUMEN = "smartview-volumen-cambio";
 export const REPETICIONES_VOZ = 2;
 export const PAROS_VOZ = ["ninguna", "auto", "todas"];
+export const VOLUMEN_DEFECTO = 80;
 
 export const parosVozDe = (valor) => (PAROS_VOZ.includes(valor) ? valor : "todas");
 let vecesActivas = REPETICIONES_VOZ;
@@ -18,6 +21,7 @@ export const fijarRepeticiones = (valor) => {
 export const repeticionesActuales = () => vecesActivas;
 
 let audio = null;
+let master = null;
 
 export const altavozActivo = () => {
   try { return localStorage.getItem(CLAVE_ALTAVOZ) !== "0"; } catch { return true; }
@@ -27,6 +31,32 @@ export const fijarAltavoz = (activo) => {
   try { localStorage.setItem(CLAVE_ALTAVOZ, activo ? "1" : "0"); } catch { /* este equipo no guarda */ }
   if (!activo) callarVoz();
   window.dispatchEvent(new Event(ALTAVOZ));
+};
+
+export const volumenValido = (valor) => {
+  const numero = Number(String(valor ?? "").replace(",", "."));
+  if (!Number.isFinite(numero)) return undefined;
+  return Math.max(0, Math.min(100, Math.round(numero)));
+};
+
+/** 0–1. Solo para este dispositivo / pestaña. */
+export const volumenActual = () => {
+  try {
+    const guardado = volumenValido(localStorage.getItem(CLAVE_VOLUMEN));
+    return (guardado ?? VOLUMEN_DEFECTO) / 100;
+  } catch {
+    return VOLUMEN_DEFECTO / 100;
+  }
+};
+
+export const volumenPorcentaje = () => Math.round(volumenActual() * 100);
+
+export const fijarVolumen = (valor) => {
+  const pct = volumenValido(valor) ?? VOLUMEN_DEFECTO;
+  try { localStorage.setItem(CLAVE_VOLUMEN, String(pct)); } catch { /* este equipo no guarda */ }
+  if (master) master.gain.value = pct / 100;
+  window.dispatchEvent(new CustomEvent(VOLUMEN, { detail: pct }));
+  return pct;
 };
 
 export const repeticionesValidas = (texto) => {
@@ -40,7 +70,21 @@ const contexto = () => {
   if (!Ctor) return null;
   if (!audio) audio = new Ctor();
   if (audio.state === "suspended") audio.resume().catch(() => {});
+  if (!master) {
+    master = audio.createGain();
+    master.gain.value = volumenActual();
+    master.connect(audio.destination);
+  }
   return audio;
+};
+
+const salida = (ctx) => {
+  if (!master) {
+    master = ctx.createGain();
+    master.gain.value = volumenActual();
+    master.connect(ctx.destination);
+  }
+  return master;
 };
 
 export const desbloquearAudio = () => contexto();
@@ -53,6 +97,7 @@ const golpe = (ctx, cuando, { grave, fuerza }) => {
   const acento = ctx.createGain();
   const t = cuando;
   const largo = grave ? 0.2 : 0.13;
+  const dest = salida(ctx);
   osc.type = "sine";
   osc.frequency.setValueAtTime(grave ? 86 : 148, t);
   osc.frequency.exponentialRampToValueAtTime(grave ? 42 : 78, t + largo);
@@ -67,9 +112,9 @@ const golpe = (ctx, cuando, { grave, fuerza }) => {
   acento.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
   osc.connect(filtro);
   filtro.connect(ganancia);
-  ganancia.connect(ctx.destination);
+  ganancia.connect(dest);
   click.connect(acento);
-  acento.connect(ctx.destination);
+  acento.connect(dest);
   osc.start(t);
   click.start(t);
   osc.stop(t + largo + 0.02);
@@ -141,6 +186,7 @@ const utteranceDe = (frase) => {
   habla.lang = "es-PE";
   habla.rate = 0.95;
   habla.pitch = 1;
+  habla.volume = volumenActual();
   const voz = vozEspanol();
   if (voz) habla.voice = voz;
   colaVoz.push(habla);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronsDown } from "lucide-react";
 import MensajeBurbuja from "./MensajeBurbuja";
 import { conDivisores } from "./dias";
 
@@ -55,7 +55,7 @@ export default function MensajeLista({ mensajes, uid }) {
               <span>{fila.etiqueta}</span>
             </div>
           ) : (
-            <MensajeBurbuja key={fila.id} mensaje={fila.mensaje} mio={fila.mensaje.de === uid} />
+            <MensajeBurbuja key={fila.id} mensaje={fila.mensaje} mio={fila.mensaje.de === uid} bloque={fila.bloque} />
           )
         ))}
       </div>
@@ -67,7 +67,7 @@ export default function MensajeLista({ mensajes, uid }) {
         tabIndex={bajar ? 0 : -1}
         onClick={() => irAlFinal(true)}
       >
-        <ChevronDown size={18} />
+        <ChevronsDown size={18} />
       </button>
     </div>
   );
