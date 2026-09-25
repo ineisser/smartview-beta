@@ -9,7 +9,7 @@ export const ALTAVOZ = "smartview-altavoz-cambio";
 export const VOLUMEN = "smartview-volumen-cambio";
 export const REPETICIONES_VOZ = 2;
 export const PAROS_VOZ = ["ninguna", "auto", "todas"];
-export const VOLUMEN_DEFECTO = 80;
+export const VOLUMEN_DEFECTO = 100;
 
 export const parosVozDe = (valor) => (PAROS_VOZ.includes(valor) ? valor : "todas");
 let vecesActivas = REPETICIONES_VOZ;

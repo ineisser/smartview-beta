@@ -968,6 +968,19 @@ export default function Shell() {
               <span className="sala-copy">{completa ? "Reducir pantalla" : "Pantalla completa"}</span>
             </button>
           </Tooltip>
+          {acceso.editarPlanta || acceso.invitar ? (
+            <Tooltip label={open ? "" : "Configuración"}>
+              <button
+                className="pantalla-hit saiba-config-hit"
+                type="button"
+                aria-label="Configuración"
+                onClick={() => { ocultarMenu(); navigate(`/${profile?.codigo || orgCodigo}/configuracion`, { state: { desde: pathname } }); cerrarCajon(); }}
+              >
+                <Settings size={18} />
+                <span className="sala-copy">Configuración</span>
+              </button>
+            </Tooltip>
+          ) : null}
           <AvisoActualizacion visible={hayActualizacion} onActualizar={actualizar} compacto={!open} />
           <div className="sidebar-user">
             <button
@@ -983,13 +996,6 @@ export default function Shell() {
                 <span className="user-name">{nombre}</span>
               </span>
             </button>
-            {acceso.editarPlanta || acceso.invitar ? (
-              <Tooltip label={open ? "" : "Configuración"}>
-                <button className="icon-btn" type="button" aria-label="Configuración" onClick={() => { ocultarMenu(); navigate(`/${profile?.codigo || orgCodigo}/configuracion`, { state: { desde: pathname } }); cerrarCajon(); }}>
-                  <Settings size={18} />
-                </button>
-              </Tooltip>
-            ) : null}
           </div>
         </div>
       </aside>
@@ -1513,7 +1519,7 @@ export default function Shell() {
               onChange={(valor) => {
                 fijarAltavoz(valor);
                 setAltavoz(valor);
-                if (valor && volumenPorcentaje() === 0) setVolumen(fijarVolumen(80));
+                if (valor && volumenPorcentaje() === 0) setVolumen(fijarVolumen(100));
               }}
             />
           </div>
@@ -1525,6 +1531,7 @@ export default function Shell() {
               step="1"
               aria-label="Volumen"
               value={volumen}
+              style={{ "--vol": `${volumen}%` }}
               onChange={(event) => {
                 const pct = fijarVolumen(event.target.value);
                 setVolumen(pct);
@@ -1533,7 +1540,7 @@ export default function Shell() {
                 setAltavoz(activo);
               }}
             />
-            <span>{volumen}%</span>
+            <span className="volumen-pct">{volumen}%</span>
           </label>
         </div>,
         document.body,
