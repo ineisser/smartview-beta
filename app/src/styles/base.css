@@ -1,0 +1,190 @@
+/* ============================================================
+   BASE.CSS — Variables CSS, temas dark/light, body, tipografía
+   ============================================================ */
+
+:root {
+  /* Colores Base */
+  --primary-white: rgba(255, 255, 255, 0.9);
+  --accent-green: #10b981;
+
+  /* Paleta de Alerta */
+  --color-alert-1: #e10202;
+  --color-alert-2: #500d0d;
+  --color-alert-3: #990000;
+  --color-alert-4: #800000;
+
+  /* Green Palette */
+  --color-green-300: #86efac;
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+
+  --color-alert: var(--color-alert-1);
+  --glow-alert: 0 0 20px var(--color-alert), 0 0 40px rgba(255, 0, 0, 0.4);
+
+  /* Color Reiniciar */
+  --color-restart: var(--color-green-600);
+  --glow-restart: 0 0 20px var(--color-restart), 0 0 40px rgba(22, 163, 74, 0.4);
+
+  /* Fondos */
+  --bg-dark: #050505;
+  --bg-light: #f8fafc;
+
+  /* Colores de Texto Estandarizados */
+  --text-blanco-azulado: rgba(230, 245, 255, 0.9);
+  --text-negro-azulado: rgba(15, 25, 40, 0.8);
+
+  /* Variable Unificada con light-dark() */
+  --color-text-primary: light-dark(var(--text-negro-azulado), var(--text-blanco-azulado));
+  --modal-border: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.2));
+
+  /* Variables de Componente — Tab View */
+  --tab-view-bg: light-dark(#ffffff, rgba(15, 15, 15, 0.6));
+  --tab-view-border: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+  --tab-item-active-bg: light-dark(#0f172a, rgba(255, 255, 255, 0.12));
+  --tab-item-active-text: light-dark(#ffffff, #ffffff);
+  --tab-item-hover-bg: light-dark(#f1f5f9, rgba(255, 255, 255, 0.05));
+
+  --border-color: rgba(255, 255, 255, 0.1);
+  --table-th-bg: light-dark(#dfe3ea, #1b262c);
+  --table-th-color: light-dark(#000, #fff);
+  --table-td-bg: light-dark(#e5e9ee61, #000);
+  --table-td-color: light-dark(#000, #fff);
+}
+
+/* ─── Tema Dark ─── */
+.dark,
+body.dark #root {
+  color-scheme: dark;
+  background-color: var(--bg-dark);
+  background-image: radial-gradient(circle at 50% 50%, #111111 0%, #050505 100%);
+  color: var(--color-text-primary);
+  --machine-bg-op: var(--color-green-900);
+  --res-start: var(--color-green-600);
+  --res-mid1: var(--color-green-700);
+  --res-mid2: var(--color-green-800);
+  --res-end: var(--color-green-900);
+  --footer-text: var(--text-blanco-azulado);
+  --clock-face-stroke: rgba(255, 255, 255, 0.03);
+  --hour-mark-stroke: rgba(255, 255, 255, 0.1);
+  --shift-track-stroke: rgba(135, 206, 250, 0.15);
+  --divider-color: rgba(255, 255, 255, 0.2);
+  --eff-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+  --navbar-icon-opacity: 0.8;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --modal-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --modal-text: #ffffff;
+  --modal-subtext: rgba(255, 255, 255, 0.6);
+  --chevron-color: rgba(255, 255, 255, 0.6);
+  --options-bg: #111111;
+  --options-border: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Tema Light ─── */
+.light,
+body.light #root {
+  color-scheme: light;
+  background-color: #ffffff;
+  background-image: none;
+  color: var(--color-text-primary);
+  --machine-bg-op: #86efac;
+  --res-start: var(--color-green-600);
+  --res-mid1: var(--color-green-500);
+  --res-mid2: var(--color-green-400);
+  --res-end: var(--color-green-300);
+  --footer-text: var(--color-text-primary);
+  --clock-face-stroke: rgba(0, 0, 0, 0.05);
+  --hour-mark-stroke: rgba(0, 0, 0, 0.1);
+  --shift-track-stroke: rgba(148, 163, 184, 0.3);
+  --divider-color: rgba(0, 0, 0, 0.15);
+  --eff-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+  --navbar-icon-opacity: 0.6;
+  --clock-bg: #ffffff;
+  --clock-outer-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --border-color: rgba(0, 0, 0, 0.05);
+  --modal-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%);
+  --modal-text: #0f172a;
+  --modal-subtext: #475569;
+  --chevron-color: #0f172a;
+  --options-bg: rgba(255, 255, 255, 0.95);
+  --options-border: rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Body ─── */
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  transition: background-color 0.6s ease, color 0.6s ease;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Root App Container (React mounts here) ─── */
+#root {
+  height: 100vh;
+  width: 100%;
+}
+
+/* ─── App Shell — actual layout grid container ─── */
+.app-shell {
+  display: grid;
+  grid-template-rows: 80px 1fr 10rem;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  transition: background-color 0.6s ease, color 0.6s ease;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ─── App Shell Dark Mode ─── */
+.app-shell.dark {
+  background-color: var(--bg-dark);
+  background-image: radial-gradient(circle at 50% 50%, #111111 0%, #050505 100%);
+  color: var(--color-text-primary);
+}
+
+/* ─── App Shell Light Mode ─── */
+.app-shell.light {
+  background-color: var(--bg-light);
+  background-image: none;
+  color: var(--color-text-primary);
+}
+
+/* ─── Dashboard Wrapper (legacy) ─── */
+.app-layout {
+  display: grid;
+  grid-template-rows: 80px 1fr 10rem;
+  height: 100vh;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* ─── Tipografía utilitaria ─── */
+.text-caption {
+  font-size: 0.75rem;
+  text-transform: none;
+  font-weight: 400;
+  opacity: 0.6;
+  line-height: 1.2;
+  position: relative;
+  z-index: 30;
+}
+
+.text-value-display {
+  font-size: 2.2rem;
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  margin: 0;
+}
+
+/* ─── Scrollbar global oculto ─── */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}

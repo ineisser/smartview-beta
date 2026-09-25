@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarjeta Estilo Bento - OEE Turnos</title>
+    <!-- Google Fonts: Urbanist (Primary) and Inter (Secondary for labels/small text) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* CSS Variables for Clean Theming and Smooth Dark Mode transition */
+        :root {
+            --bg-body: #f1f1f1;
+            --bg-card: #fafafa;
+            --border-card: 4px solid #ffffff;
+            --color-text-title: #2d2d2d;
+            --color-btn-bg: #ffffff;
+            --color-btn-border: #e0e0e0;
+            --color-btn-text: #2d2d2d;
+            --color-btn-hover-bg: #1a1a1a;
+            --color-btn-hover-text: #ffffff;
+            --bg-extra-space: rgba(0, 0, 0, 0.01);
+            --border-extra-space: 2px dashed rgba(0, 0, 0, 0.06);
+            --color-legend-title: #4a4a4a;
+            --color-legend-text: #555555;
+            --color-floating-percentage: #8e8e93;
+            --color-bar-primary: #87CEEB;
+            /* Sky Blue */
+            --color-bar-alert: #E89B65;
+            /* Warm soft ochre/coral alert - not screeching red */
+            --color-bar-horizontal-rgb: 234, 76, 137;
+            --color-tooltip-bg: #1a1a1a;
+            --color-tooltip-text: #ffffff;
+            --color-arrow-border: #1a1a1a;
+            --shadow-card: 0 15px 35px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+            --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03);
+            --transition-speed: 0.3s;
+        }
+
+        body.dark-mode {
+            --bg-body: #111115;
+            --bg-card: #1d1d22;
+            --border-card: 4px solid #2d2d35;
+            --color-text-title: #f5f5f7;
+            --color-btn-bg: #2d2d35;
+            --color-btn-border: #3d3d45;
+            --color-btn-text: #e5e5ea;
+            --color-btn-hover-bg: #ffffff;
+            --color-btn-hover-text: #111115;
+            --bg-extra-space: rgba(255, 255, 255, 0.02);
+            --border-extra-space: 2px dashed rgba(255, 255, 255, 0.12);
+            --color-legend-title: #a1a1aa;
+            --color-legend-text: #d1d1d6;
+            --color-floating-percentage: #a1a1aa;
+            --color-tooltip-bg: #ffffff;
+            --color-tooltip-text: #1a1a1a;
+            --color-arrow-border: #ffffff;
+            --shadow-card: 0 15px 35px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
+            --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Reset de márgenes y tipografía de sistema */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Apply Inter to small/utility/data text elements */
+        .card-bar-turnos .card-title,
+        .card-bar-turnos .bar-floating-percentage,
+        .legend-title,
+        .legend-item,
+        .legend-value,
+        .weekly-metrics-row,
+        .metric-title,
+        .metric-value,
+        .legend-dot,
+        .btn-update,
+        .chart-bar::before,
+        .weekly-bar .bar-letter,
+        .time-unit {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color var(--transition-speed) ease;
+        }
+
+        /* Estilo de la tarjeta Bento */
+        .card-bar-turnos {
+            background-color: var(--bg-card);
+            border: var(--border-card);
+            border-radius: 20px;
+            width: 400px;
+            height: 400px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: visible;
+            /* Modified to allow tooltips to extend beyond the top */
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                box-shadow var(--transition-speed) ease,
+                background-color var(--transition-speed) ease,
+                border-color var(--transition-speed) ease;
+        }
+
+        .card-bar-turnos:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Encabezado */
+        .card-bar-turnos .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .card-bar-turnos .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-title);
+            letter-spacing: -0.01em;
+            transition: color var(--transition-speed) ease;
+        }
+
+        /* Botón de Flecha Superior Derecha */
+        .card-bar-turnos .arrow-button {
+            width: 36px;
+            height: 36px;
+            background-color: var(--color-btn-bg);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--color-text-title);
+            border: 1px solid var(--color-btn-border);
+            cursor: pointer;
+            transition: background-color 0.2s ease,
+                border-color var(--transition-speed) ease,
+                color var(--transition-speed) ease,
+                transform 0.2s ease;
+        }
+
+        .card-bar-turnos .arrow-button:hover {
+            background-color: var(--color-btn-hover-bg);
+            color: var(--color-btn-hover-text);
+            transform: scale(1.08);
+        }
+
+        /* Layout inferior */
+        .card-bar-turnos .card-bottom-layout {
+            height: 50%;
+            display: flex;
+            width: 100%;
+            gap: 16px;
+            margin-top: auto;
+            align-items: flex-end;
+        }
+
+        /* Contenedor del Gráfico (60% del ancho inferior) */
+        .card-bar-turnos .chart-container {
+            height: 100%;
+            width: 60%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        /* Espacio reservado para el otro contenido (40% del ancho inferior) */
+        .card-bar-turnos .extra-content-space {
+            height: 100%;
+            width: 40%;
+            border: var(--border-extra-space);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            background-color: var(--bg-extra-space);
+            padding: 12px;
+            user-select: none;
+            transition: border-color var(--transition-speed) ease,
+                background-color var(--transition-speed) ease;
+        }
+
+        /* Legend component styling inside the 40% space */
+        .legend-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-legend-title);
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+            transition: color var(--transition-speed) ease;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--color-legend-text);
+            transition: color var(--transition-speed) ease;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--color-bar-primary);
+            transition: background-color 0.4s ease;
+        }
+
+        .legend-dot.low-efficiency {
+            background-color: var(--color-bar-alert);
+        }
+
+        .legend-label {
+            font-weight: 500;
+        }
+
+        .legend-value {
+            font-weight: 700;
+            transition: opacity 0.2s ease;
+        }
+
+        /* Estilo de las Barras */
+        .card-bar-turnos .chart-bar {
+            background-color: var(--color-bar-primary);
+            flex: 1;
+            border-radius: 16px 16px 10px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            height: 0%;
+            transition: height 1s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                background-color 0.4s ease,
+                filter 0.2s ease;
+        }
+
+        .card-bar-turnos .chart-bar.low-efficiency {
+            background-color: var(--color-bar-alert);
+        }
+
+        .card-bar-turnos .chart-bar:hover {
+            filter: brightness(0.95);
+        }
+
+        /* Porcentaje flotando arriba de la barra */
+        .card-bar-turnos .bar-floating-percentage {
+            position: absolute;
+            top: -2.2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: var(--color-floating-percentage);
+            line-height: 1;
+            pointer-events: none;
+            user-select: none;
+            transition: color var(--transition-speed) ease;
+        }
+
+        .card-bar-turnos .bar-floating-percentage span {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Letras ABC adentro en la parte inferior con transición suave de escala */
+        .card-bar-turnos .bar-letter {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 700;
+            width: 100%;
+            text-align: center;
+            padding-bottom: 8px;
+            user-select: none;
+            transform-origin: bottom center;
+            transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Incrementa tamaño de la letra un 50% al posarse sobre la barra */
+        .card-bar-turnos .chart-bar:hover .bar-letter {
+            transform: scale(1.5);
+        }
+
+        /* Tooltip interactivo con fondo dinámico a juego y tamaño estándar de 12px */
+        .card-bar-turnos .chart-bar::before {
+            content: attr(data-label);
+            position: absolute;
+            top: -88px;
+            left: 50%;
+            transform: translate(-50%, 5px);
+            background-color: var(--color-bar-primary);
+            color: #111115;
+            /* Texto oscuro para buen contraste con celeste */
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease, background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            white-space: nowrap;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .card-bar-turnos .chart-bar.low-efficiency::before {
+            background-color: var(--color-bar-alert);
+            color: #ffffff;
+            /* Texto claro para mejor contraste con naranja */
+        }
+
+        /* Indicador de flecha del tooltip, también coincide en color */
+        .card-bar-turnos .chart-bar::after {
+            content: '';
+            position: absolute;
+            top: -56px;
+            left: 50%;
+            transform: translate(-50%, 5px);
+            border-width: 6px;
+            border-style: solid;
+            border-color: var(--color-bar-primary) transparent transparent transparent;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease, border-top-color var(--transition-speed) ease;
+            z-index: 10;
+        }
+
+        .card-bar-turnos .chart-bar.low-efficiency::after {
+            border-top-color: var(--color-bar-alert);
+        }
+
+        .card-bar-turnos .chart-bar:hover::before,
+        .card-bar-turnos .chart-bar:hover::after {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* Controles interactivos fuera de la tarjeta */
+        .card-bar-turnos-controls {
+            margin-top: 24px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .card-bar-turnos-controls .btn-update {
+            background-color: var(--color-btn-bg);
+            border: 1px solid var(--color-btn-border);
+            color: var(--color-btn-text);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease, border-color var(--transition-speed) ease;
+        }
+
+        .card-bar-turnos-controls .btn-update:hover {
+            background-color: var(--color-btn-hover-bg);
+            color: var(--color-btn-hover-text);
+            border-color: var(--color-btn-hover-bg);
+        }
+
+        .btn-dark-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background-color: var(--color-btn-bg);
+            border: 1px solid var(--color-btn-border);
+            color: var(--color-btn-text);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 8px;
+        }
+
+        .btn-dark-toggle:hover {
+            background-color: var(--color-btn-hover-bg);
+            color: var(--color-btn-hover-text);
+            border-color: var(--color-btn-hover-bg);
+            transform: scale(1.08);
+        }
+
+        /* Estilos específicos para la tarjeta de 7 Días (Semanal) */
+        .weekly-card {
+            margin-top: 20px;
+        }
+
+        .weekly-bottom {
+            height: 48% !important;
+        }
+
+        .weekly-chart {
+            width: 100% !important;
+            /* Ocupa todo el contenedor inferior */
+            gap: 8px !important;
+        }
+
+        .weekly-bar {
+            border-radius: 12px 12px 8px 8px !important;
+        }
+
+        .weekly-bar .bar-floating-percentage {
+            font-size: 1.1rem !important;
+            top: -1.7rem !important;
+        }
+
+        .weekly-bar .bar-floating-percentage span {
+            font-size: 0.65rem !important;
+        }
+
+        .weekly-bar .bar-letter {
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            padding-bottom: 6px !important;
+        }
+
+        /* Tooltip adaptado para barras más estrechas de 7 días (mismo tamaño) */
+        .weekly-bar::before {
+            top: -82px !important;
+        }
+
+        .weekly-bar::after {
+            top: -50px !important;
+        }
+
+        /* Estilos para el selector de periodos (1T, 1D, 1S, etc.) */
+        .period-selector {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--bg-extra-space);
+            border: 1px solid var(--color-btn-border);
+            border-radius: 8px;
+            padding: 3px;
+            margin-top: 4px;
+            margin-bottom: 12px;
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+
+        .period-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--color-legend-text);
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 5px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .period-tab:hover {
+            color: var(--color-text-title);
+        }
+
+        .period-tab.active {
+            background-color: var(--bg-card);
+            color: var(--color-text-title);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+        }
+
+        /* Leyenda horizontal con 2 recuadros métricos por encima de las 7 barras */
+        .legend-container-horizontal {
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: auto;
+            background-color: var(--bg-extra-space);
+            border: var(--border-extra-space);
+            border-radius: 12px;
+            padding: 6px 8px;
+            user-select: none;
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+
+        .weekly-metrics-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .metric-box {
+            flex: 1;
+            background-color: var(--bg-card);
+            border: 1px solid var(--color-btn-border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+
+        .metric-title {
+            font-size: 8px;
+            font-weight: 700;
+            color: var(--color-legend-title);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: color var(--transition-speed) ease;
+        }
+
+        .metric-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-title);
+            transition: opacity 0.2s ease, color var(--transition-speed) ease;
+        }
+
+        /* Estilos para el gráfico de barras horizontales (Motivos de Parada) */
+        .horizontal-chart-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        .horizontal-bar-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .bar-guide-line {
+            flex: 1;
+            border-bottom: 2px dashed var(--color-btn-border);
+            margin: 0 4px;
+            opacity: 0.5;
+            height: 1px;
+            transition: border-color var(--transition-speed) ease;
+        }
+
+        .horizontal-bar-bg {
+            width: calc(100% - 3rem);
+            height: 32px;
+            background-color: rgba(var(--color-bar-horizontal-rgb), 0.08);
+            border: 1px solid rgba(var(--color-bar-horizontal-rgb), 0.18);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+
+        .horizontal-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 7px 0 0 7px;
+            display: flex;
+            align-items: center;
+            position: absolute;
+            left: 0;
+            top: 0;
+            overflow: hidden;
+            z-index: 2;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.4s ease;
+        }
+
+        .horizontal-bar-label-bg {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-title);
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            z-index: 1;
+            transition: color var(--transition-speed) ease;
+        }
+
+        .horizontal-bar-label-fg {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-title);
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            transition: color var(--transition-speed) ease;
+        }
+
+
+
+        .horizontal-value-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-text-title);
+            min-width: 32px;
+            text-align: right;
+            transition: color var(--transition-speed) ease;
+        }
+
+        /* Estilos para el navegador semanal */
+        .week-navigator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--color-legend-text);
+            user-select: none;
+        }
+
+        .nav-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--color-btn-border);
+            border-radius: 4px;
+            color: var(--color-text-title);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-arrow:hover {
+            background-color: var(--color-btn-hover-bg);
+            color: var(--color-btn-hover-text);
+            border-color: var(--color-btn-hover-bg);
+        }
+
+        .week-range-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            min-width: 230px;
+            text-align: center;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: var(--color-btn-border);
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px 0;">
+        <!-- Tarjeta 1: OEE Turnos (3 Turnos) -->
+        <div class="card-bar-turnos">
+            <!-- Sección Superior -->
+            <div class="card-header">
+                <span class="card-title">OEE Turnos</span>
+                <div class="arrow-button" onclick="actionNotify('card-turnos')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="7" y1="17" x2="17" y2="7"></line>
+                        <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="card-bottom-layout">
+                <!-- Gráfico de Barras (Ocupa el 60% del ancho de la Card) -->
+                <div class="chart-container">
+                    <!-- Barra A (Turno A) -->
+                    <div class="chart-bar" id="bar1" data-target="55">
+                        <div class="bar-floating-percentage">55<span>%</span></div>
+                        <div class="bar-letter">A</div>
+                    </div>
+                    <!-- Barra B (Turno B) -->
+                    <div class="chart-bar" id="bar2" data-target="78">
+                        <div class="bar-floating-percentage">78<span>%</span></div>
+                        <div class="bar-letter">B</div>
+                    </div>
+                    <!-- Barra C (Turno C) -->
+                    <div class="chart-bar" id="bar3" data-target="42">
+                        <div class="bar-floating-percentage">42<span>%</span></div>
+                        <div class="bar-letter">C</div>
+                    </div>
+                </div>
+
+                <!-- Leyenda de Down Time (Ocupa el 40% del ancho de la Card) -->
+                <div class="extra-content-space">
+                    <div class="legend-container">
+                        <div class="legend-title">Down Time</div>
+                        <div class="legend-item">
+                            <span class="legend-dot" id="dot-bar1"></span>
+                            <span class="legend-value" id="label-bar1">A: -- H -- M</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" id="dot-bar2"></span>
+                            <span class="legend-value" id="label-bar2">B: -- H -- M</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" id="dot-bar3"></span>
+                            <span class="legend-value" id="label-bar3">C: -- H -- M</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: OEE Semanal (7 Días) -->
+        <div class="card-bar-turnos weekly-card">
+            <!-- Sección Superior -->
+            <div class="card-header">
+                <span class="card-title">OEE Semanal</span>
+                <div class="arrow-button" onclick="actionNotify('card-weekly')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="7" y1="17" x2="17" y2="7"></line>
+                        <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Navegador Semanal (Semana Anterior / Semana Siguiente) -->
+            <div class="week-navigator">
+                <button class="nav-arrow" onclick="prevWeek()" title="Semana Anterior">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <span class="week-range-label" id="week-date-range">Lunes 1 - Domingo 7 de Junio del 2026</span>
+                <button class="nav-arrow" onclick="nextWeek()" title="Semana Siguiente">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Leyenda Horizontal con 2 Recuadros Métricos -->
+            <div class="legend-container-horizontal">
+                <div class="weekly-metrics-row">
+                    <div class="metric-box">
+                        <span class="metric-title">Down Time Total</span>
+                        <span class="metric-value" id="weekly-downtime">-- H -- M</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-title">Pérdida (Semanal)</span>
+                        <span class="metric-value" id="weekly-loss">-- kg</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layout inferior de 7 Barras (100% de ancho) -->
+            <div class="card-bottom-layout weekly-bottom">
+                <div class="chart-container weekly-chart">
+                    <div class="chart-bar weekly-bar" id="week1" data-target="55">
+                        <div class="bar-floating-percentage">55<span>%</span></div>
+                        <div class="bar-letter">Lu</div>
+                    </div>
+                    <div class="chart-bar weekly-bar" id="week2" data-target="78">
+                        <div class="bar-floating-percentage">78<span>%</span></div>
+                        <div class="bar-letter">Ma</div>
+                    </div>
+                    <div class="chart-bar weekly-bar" id="week3" data-target="42">
+                        <div class="bar-floating-percentage">42<span>%</span></div>
+                        <div class="bar-letter">Mi</div>
+                    </div>
+                    <div class="chart-bar weekly-bar" id="week4" data-target="88">
+                        <div class="bar-floating-percentage">88<span>%</span></div>
+                        <div class="bar-letter">Ju</div>
+                    </div>
+                    <div class="chart-bar weekly-bar" id="week5" data-target="95">
+                        <div class="bar-floating-percentage">95<span>%</span></div>
+                        <div class="bar-letter">Vi</div>
+                    </div>
+                    <div class="chart-bar weekly-bar" id="week6" data-target="70">
+                        <div class="bar-floating-percentage">70<span>%</span></div>
+                        <div class="bar-letter">Sá</div>
+                    </div>
+                    <div class="chart-bar weekly-bar" id="week7" data-target="64">
+                        <div class="bar-floating-percentage">64<span>%</span></div>
+                        <div class="bar-letter">Do</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Motivos de Parada (Barras Horizontales) -->
+        <div class="card-bar-turnos weekly-card">
+            <!-- Sección Superior -->
+            <div class="card-header">
+                <span class="card-title">Motivos de Parada</span>
+                <div class="arrow-button" onclick="actionNotify('card-horizontal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="7" y1="17" x2="17" y2="7"></line>
+                        <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Selector de Periodo -->
+            <div class="period-selector">
+                <button class="period-tab active" id="tab-1T" onclick="changePeriod('1T')">1T</button>
+                <button class="period-tab" id="tab-1D" onclick="changePeriod('1D')">1D</button>
+                <button class="period-tab" id="tab-1S" onclick="changePeriod('1S')">1S</button>
+                <button class="period-tab" id="tab-1M" onclick="changePeriod('1M')">1M</button>
+                <button class="period-tab" id="tab-1Sem" onclick="changePeriod('1Sem')">1Sem</button>
+            </div>
+
+            <!-- Gráfico de Barras Horizontales Dinámico -->
+            <div class="horizontal-chart-container" id="horizontal-chart-container">
+                <!-- Renderizado y ordenado dinámicamente mediante Javascript -->
+            </div>
+        </div>
+
+        <!-- Botones de Control para Simular Interacción -->
+        <div class="card-bar-turnos-controls">
+            <button class="btn-update" onclick="randomizeData()">Actualizar Datos</button>
+            <button class="btn-update" onclick="resetToOriginal()">Valores Originales</button>
+
+            <!-- Botón Dark Mode Toggle -->
+            <button class="btn-dark-toggle" onclick="toggleDarkMode()" title="Cambiar Tema">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Control de semanas para la tarjeta semanal (OEE Semanal)
+        let currentWeekOffset = 0; // 0 = actual, -1 = anterior, etc.
+
+        // Datos iniciales de la tarjeta de Motivos de Parada (deben sumar 100%)
+        let horizontalData = [
+            { id: 'hbar1', name: 'Falla Mecánica', target: 35 },
+            { id: 'hbar2', name: 'Falta de Material', target: 25 },
+            { id: 'hbar3', name: 'Configuración/Cambio', target: 20 },
+            { id: 'hbar4', name: 'Limpieza', target: 15 },
+            { id: 'hbar5', name: 'Otros', target: 5 }
+        ];
+
+        function updateWeekLabel() {
+            const baseStart = new Date(2026, 5, 1); // 1 de Junio de 2026 (Lunes)
+
+            // Calcular fecha de inicio y fin con respecto a la zona horaria local
+            const start = new Date(baseStart.getTime() + currentWeekOffset * 7 * 24 * 60 * 60 * 1000);
+            const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+
+            const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+            const label = `Lunes ${start.getDate()} - Domingo ${end.getDate()} de ${months[end.getMonth()]} del ${end.getFullYear()}`;
+            const rangeSpan = document.getElementById('week-date-range');
+            if (rangeSpan) {
+                rangeSpan.textContent = label;
+            }
+        }
+
+        function prevWeek() {
+            currentWeekOffset--;
+            updateWeekLabel();
+            randomizeWeeklyBarsOnly();
+        }
+
+        // Genera un set de N enteros aleatorios que suman exactamente 100
+        function generateRandomSum100(count) {
+            let nums = [];
+            let sum = 0;
+            for (let i = 0; i < count; i++) {
+                let val = Math.random() * 50 + 10;
+                nums.push(val);
+                sum += val;
+            }
+            // Normalizar a porcentaje entero
+            let normalized = nums.map(n => Math.round((n / sum) * 100));
+            // Ajustar errores de redondeo para sumar exactamente 100
+            let nSum = normalized.reduce((a, b) => a + b, 0);
+            let diff = 100 - nSum;
+            normalized[0] += diff;
+            return normalized;
+        }
+
+        // Renderiza y ordena dinámicamente las barras horizontales por porcentaje descendente, manteniendo "Otros" al final
+        function setAndOrderMotivos(motivos, porcentajes) {
+            let mapped = motivos.map((name, index) => {
+                return {
+                    id: `hbar${index + 1}`,
+                    name: name,
+                    target: porcentajes[index] || 0
+                };
+            });
+
+            // Separar "Otros" para colocarlo siempre al final
+            let otrosItem = mapped.find(item => item.name.toLowerCase() === 'otros');
+            let otherItems = mapped.filter(item => item.name.toLowerCase() !== 'otros');
+
+            // Ordenar las otras de mayor a menor porcentaje
+            otherItems.sort((a, b) => b.target - a.target);
+
+            // Re-ensamblar la lista colocando "Otros" al final
+            horizontalData = [...otherItems];
+            if (otrosItem) {
+                horizontalData.push(otrosItem);
+            }
+
+            renderHorizontalChart();
+        }
+
+        // Renderiza y dibuja las barras horizontales con sus líneas guías y etiquetas de doble capa (contraste perfecto)
+        function renderHorizontalChart() {
+            const container = document.getElementById('horizontal-chart-container');
+            if (!container) return;
+
+            let html = '';
+            horizontalData.forEach((item, index) => {
+                html += `
+                    <div class="horizontal-bar-row">
+                        <div class="horizontal-bar-bg">
+                            <!-- Etiqueta de fondo: color del texto del tema (visible si no está cubierto por la barra) -->
+                            <span class="horizontal-bar-label-bg">${item.name}</span>
+                            <div class="horizontal-bar-fill" id="${item.id}" data-target="${item.target}">
+                                <!-- Etiqueta de frente: color blanco (revelada por la barra con clipping) -->
+                                <span class="horizontal-bar-label-fg">${item.name}</span>
+                            </div>
+                        </div>
+                        <div class="bar-guide-line"></div>
+                        <div class="horizontal-value-label" id="label-${item.id}">${item.target}%</div>
+                    </div>
+                `;
+                if (index < horizontalData.length - 1) {
+                    html += `<div class="divider"></div>`;
+                }
+            });
+
+            container.innerHTML = html;
+
+            // Obtener el valor máximo actual de las fallas para el escalado relativo (el máximo ocupa el 100%)
+            const maxPct = Math.max(...horizontalData.map(item => item.target));
+
+            // Obtener porcentajes únicos ordenados de forma descendente para asignar opacidades (resolviendo empates)
+            let uniquePcts = [...new Set(horizontalData.map(item => item.target))];
+            uniquePcts.sort((a, b) => b - a);
+
+            const opacities = [1.0, 0.95, 0.90, 0.85, 0.80];
+            horizontalData.forEach((item) => {
+                const fill = document.getElementById(item.id);
+                if (fill) {
+                    // Encontrar rango según el valor para aplicar la opacidad correspondiente
+                    const rankIndex = uniquePcts.indexOf(item.target);
+                    const opacity = opacities[rankIndex] || 0.70;
+                    
+                    // Configurable usando la variable CSS --color-bar-horizontal-rgb
+                    fill.style.backgroundColor = `rgba(var(--color-bar-horizontal-rgb), ${opacity})`;
+
+                    // Animar la barra horizontal: escala relativa basada en el valor máximo
+                    const visualWidth = maxPct > 0 ? (item.target / maxPct) * 100 : 0;
+                    setTimeout(() => {
+                        fill.style.width = visualWidth + '%';
+                    }, 50);
+                }
+            });
+        }
+
+        // Cambiar el selector de periodo superior (OEE por Categoría/Motivos de Parada)
+        function changePeriod(periodId) {
+            // Quitar clase activa
+            document.querySelectorAll('.period-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Activar tab correspondiente
+            const selectedTab = document.getElementById('tab-' + periodId);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+
+            // Aleatorizar porcentajes de parada (que sumen 100%) al cambiar pestaña
+            const names = ['Falla Mecánica', 'Falta de Material', 'Configuración/Cambio', 'Limpieza', 'Otros'];
+            const randomPcts = generateRandomSum100(names.length);
+            setAndOrderMotivos(names, randomPcts);
+        }
+
+        function nextWeek() {
+            currentWeekOffset++;
+            updateWeekLabel();
+            randomizeWeeklyBarsOnly();
+        }
+
+        // Simula el cambio de datos al mover el navegador semanal
+        function randomizeWeeklyBarsOnly() {
+            const weeklyBars = document.querySelectorAll('.weekly-card:not(:last-of-type) .chart-bar');
+            weeklyBars.forEach(bar => {
+                const randomVal = Math.floor(Math.random() * 60) + 40;
+                bar.setAttribute('data-target', randomVal);
+                bar.querySelector('.bar-floating-percentage').innerHTML = randomVal + '<span>%</span>';
+            });
+            animateBars();
+        }
+
+        // Animación de entrada al cargar el documento
+        window.addEventListener('DOMContentLoaded', () => {
+            updateWeekLabel();
+            const names = ['Falla Mecánica', 'Falta de Material', 'Configuración/Cambio', 'Limpieza', 'Otros'];
+            const originalPcts = [35, 25, 20, 15, 5];
+            setAndOrderMotivos(names, originalPcts);
+            setTimeout(animateBars, 200);
+        });
+
+        // Helper para calcular Down Time en formato "Xh Ym" basado en turno de 8 horas (480 min)
+        function calcDownTime(efficiency) {
+            const totalMinutes = 8 * 60; // 480 min
+            const lostMinutes = Math.round(((100 - efficiency) / 100) * totalMinutes);
+            const hours = Math.floor(lostMinutes / 60);
+            const mins = lostMinutes % 60;
+            return `${hours}<span class="time-unit">h</span> ${mins}<span class="time-unit">m</span>`;
+        }
+
+        // Función para animar el crecimiento de las barras y aplicar colores según eficiencia (<75%)
+        function animateBars() {
+            // Animar barras verticales
+            const verticalBars = document.querySelectorAll('.card-bar-turnos .chart-bar');
+            let totalWeeklyMinutes = 0;
+            let totalWeeklyLoss = 0;
+
+            verticalBars.forEach(bar => {
+                const targetHeight = parseInt(bar.getAttribute('data-target'), 10);
+                bar.style.height = targetHeight + '%';
+
+                const dot = document.getElementById('dot-' + bar.id);
+
+                // Si la eficiencia es inferior al 75%, aplicar la clase de alerta
+                if (targetHeight < 75) {
+                    bar.classList.add('low-efficiency');
+                    if (dot) dot.classList.add('low-efficiency');
+                } else {
+                    bar.classList.remove('low-efficiency');
+                    if (dot) dot.classList.remove('low-efficiency');
+                }
+
+                // Cálculos y leyenda dinámica según tipo de tarjeta
+                if (bar.id.startsWith('bar')) {
+                    // Tarjeta OEE Turnos: calcular tiempo perdido en h y m
+                    const dtStr = calcDownTime(targetHeight);
+                    bar.setAttribute('data-label', dtStr.replace(/<[^>]*>/g, '')); // Tooltip texto plano
+
+                    const labelSpan = document.getElementById('label-' + bar.id);
+                    const letter = bar.id === 'bar1' ? 'A' : (bar.id === 'bar2' ? 'B' : 'C');
+                    const labelText = `${letter}: ${dtStr}`;
+
+                    if (labelSpan && labelSpan.innerHTML !== labelText) {
+                        labelSpan.style.opacity = 0;
+                        setTimeout(() => {
+                            labelSpan.innerHTML = labelText;
+                            labelSpan.style.opacity = 1;
+                        }, 150);
+                    }
+                } else if (bar.id.startsWith('week')) {
+                    // Tarjeta OEE Semanal: acumular tiempo y kg perdidos
+                    const lostMinutes = Math.round(((100 - targetHeight) / 100) * 8 * 60);
+                    totalWeeklyMinutes += lostMinutes;
+
+                    const dailyLoss = 100 - targetHeight; // 100 kg capacidad diaria
+                    totalWeeklyLoss += dailyLoss;
+
+                    // Tooltip de OEE Semanal con el mismo tamaño y formato downtime que Turnos
+                    const dtStr = calcDownTime(targetHeight);
+                    bar.setAttribute('data-label', dtStr.replace(/<[^>]*>/g, ''));
+                }
+            });
+
+            // Actualizar métricas acumuladas de la tarjeta Semanal
+            const weeklyHours = Math.floor(totalWeeklyMinutes / 60);
+            const weeklyMins = totalWeeklyMinutes % 60;
+            const dtText = `${weeklyHours}<span class="time-unit">h</span> ${weeklyMins}<span class="time-unit">m</span>`;
+            const lossText = `${totalWeeklyLoss} kg`;
+
+            const dtElement = document.getElementById('weekly-downtime');
+            const lossElement = document.getElementById('weekly-loss');
+
+            if (dtElement && dtElement.innerHTML !== dtText) {
+                dtElement.style.opacity = 0;
+                setTimeout(() => {
+                    dtElement.innerHTML = dtText;
+                    dtElement.style.opacity = 1;
+                }, 150);
+            }
+            if (lossElement && lossElement.textContent !== lossText) {
+                lossElement.style.opacity = 0;
+                setTimeout(() => {
+                    lossElement.textContent = lossText;
+                    lossElement.style.opacity = 1;
+                }, 150);
+            }
+        }
+
+        // Simula la actualización aleatoria de métricas de forma fluida para todas las tarjetas
+        function randomizeData() {
+            // Animar barras verticales (Turnos y Semanal)
+            const verticalBars = document.querySelectorAll('.card-bar-turnos .chart-bar');
+            verticalBars.forEach(bar => {
+                const randomVal = Math.floor(Math.random() * 60) + 40; // Rango del 40% al 100%
+                bar.setAttribute('data-target', randomVal);
+                bar.querySelector('.bar-floating-percentage').innerHTML = randomVal + '<span>%</span>';
+            });
+
+            // Animar barras horizontales (Motivos de Parada)
+            const names = ['Falla Mecánica', 'Falta de Material', 'Configuración/Cambio', 'Limpieza', 'Otros'];
+            const randomPcts = generateRandomSum100(names.length);
+            setAndOrderMotivos(names, randomPcts);
+
+            animateBars();
+        }
+
+        // Restaura los valores originales por defecto para todas las tarjetas
+        function resetToOriginal() {
+            // Restaurar navegador semanal a la semana por defecto
+            currentWeekOffset = 0;
+            updateWeekLabel();
+
+            // Restaurar selector de periodo activo a '1T'
+            document.querySelectorAll('.period-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            const tab1T = document.getElementById('tab-1T');
+            if (tab1T) tab1T.classList.add('active');
+
+            // Valores originales de Turnos y Semanal
+            const originalVerticals = [55, 78, 42, 55, 78, 42, 88, 95, 70, 64];
+            const verticalBars = document.querySelectorAll('.card-bar-turnos .chart-bar');
+            verticalBars.forEach((bar, index) => {
+                const val = originalVerticals[index];
+                bar.setAttribute('data-target', val);
+                bar.querySelector('.bar-floating-percentage').innerHTML = val + '<span>%</span>';
+            });
+
+            // Valores originales de Motivos de Parada (Tarjeta 3)
+            const names = ['Falla Mecánica', 'Falta de Material', 'Configuración/Cambio', 'Limpieza', 'Otros'];
+            const originalPcts = [35, 25, 20, 15, 5];
+            setAndOrderMotivos(names, originalPcts);
+
+            animateBars();
+        }
+
+        // Efecto visual al presionar el botón de la flecha superior
+        function actionNotify(cardType) {
+            let card;
+            if (cardType === 'card-turnos') {
+                card = document.querySelector('.card-bar-turnos:not(.weekly-card)');
+            } else if (cardType === 'card-weekly') {
+                card = document.querySelector('.weekly-card:not(:last-of-type)');
+            } else {
+                card = document.querySelector('.card-bar-turnos:last-of-type');
+            }
+
+            const isDark = document.body.classList.contains('dark-mode');
+            card.style.borderColor = '#87CEEB';
+            setTimeout(() => {
+                card.style.borderColor = isDark ? '#2d2d35' : '#ffffff';
+            }, 300);
+        }
+
+        // Alterna entre modo claro y modo oscuro
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+    </script>
+</body>
+
+</html>

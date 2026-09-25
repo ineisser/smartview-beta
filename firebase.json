@@ -1,0 +1,15 @@
+{
+  "database": [
+    {
+      "instance": "smart-view",
+      "rules": "database.rules.json"
+    }
+  ],
+  "firestore": [
+    {
+      "database": "smart-view",
+      "rules": "firestore.rules",
+      "indexes": "firestore.indexes.json"
+    }
+  ]
+}

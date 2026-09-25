@@ -1,0 +1,195 @@
+/* ============================================================
+   MODAL.CSS — Modal de selección de paro (desktop)
+   ============================================================ */
+
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(231, 237, 244, 0.55);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--move, 0.8s) var(--ease, cubic-bezier(0.22, 1, 0.36, 1)), visibility var(--move, 0.8s) var(--ease, cubic-bezier(0.22, 1, 0.36, 1)), backdrop-filter var(--move, 0.8s) var(--ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+html.dark #modal-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+#modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.modal-glass {
+  background: var(--modal-bg);
+  border: 1px solid var(--modal-border);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 450px;
+  padding: 2.5rem;
+  box-shadow: var(--glass-shadow, 0 28px 70px rgba(15, 23, 42, 0.16));
+  transform: translateY(30px) scale(0.98);
+  transition: transform var(--move, 0.8s) var(--ease, cubic-bezier(0.22, 1, 0.36, 1));
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  color: var(--modal-text);
+  position: relative;
+}
+
+.modal-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.4), transparent 70%);
+  pointer-events: none;
+  opacity: 0.5;
+  border-radius: 24px;
+}
+
+html.dark .modal-glass {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--modal-bg), var(--modal-bg)) padding-box,
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.72) 0%,
+      rgba(255, 255, 255, 0.28) 28%,
+      rgba(255, 255, 255, 0.16) 62%,
+      rgba(255, 255, 255, 0.16) 100%
+    ) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 32px 80px rgba(0, 0, 0, 0.72);
+}
+
+html.dark .modal-glass::before {
+  background: radial-gradient(ellipse 90% 70% at 6% 0%, rgba(255, 255, 255, 0.16), transparent 62%);
+  opacity: 1;
+}
+
+.modal-glass h3 { color: var(--modal-text); }
+.modal-glass p  { color: var(--modal-subtext); }
+
+#modal-overlay.active .modal-glass {
+  transform: translateY(0) scale(1);
+}
+
+#modal-machine-id {
+  color: var(--color-alert-1);
+}
+
+.light #modal-machine-id {
+  color: #ef4444;
+}
+
+/* ─── Select custom ─── */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+#reasons-select-trigger {
+  width: 100%;
+  padding: 0.85rem;
+  padding-right: 2.5rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  outline: none;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  text-align: left;
+  position: relative;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+#reasons-select-trigger.theme-select-trigger {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+.dark #reasons-select-trigger.theme-select-trigger {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+#reasons-options-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: var(--options-bg);
+  border: 1px solid var(--options-border);
+  border-radius: 12px;
+  margin-top: 0.5rem;
+  padding: 6px;
+  z-index: 250;
+  max-height: min(68vh, 520px);
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity var(--move, 0.8s) var(--ease, cubic-bezier(0.22, 1, 0.36, 1)), transform var(--move, 0.8s) var(--ease, cubic-bezier(0.22, 1, 0.36, 1)), visibility var(--move, 0.8s) var(--ease, cubic-bezier(0.22, 1, 0.36, 1));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(20px);
+}
+
+.select-wrapper.is-open #reasons-options-list {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.option-split { border: 0; border-top: 1px solid var(--options-border); margin: 6px 4px; }
+.option-item {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 6px;
+  color: var(--modal-text);
+  cursor: pointer;
+  transition: background var(--move, 0.8s) var(--ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.option-item:hover { background: var(--hover); }
+html.dark .option-item:hover { background: var(--hover); }
+
+.select-chevron {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+  color: var(--chevron-color);
+}
+
+.select-wrapper.is-open .select-chevron {
+  transform: rotate(180deg);
+}
+
+/* ─── Botones del modal ─── */
+.theme-cancel-btn {
+  color: var(--modal-text);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dark .theme-cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}

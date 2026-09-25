@@ -1,0 +1,105 @@
+/* ============================================================
+   DATA-TABLE.CSS — Tablas de datos (eficiencia + settings)
+   ============================================================ */
+
+/* ─── Contenedor tabla máquinas ─── */
+.maquinas-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.maquinas-container-table {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--modal-border);
+  background: var(--modal-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.maquinas-container-table table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.maquinas-container-table table.data-table th {
+  padding: 8px 16px;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  border-bottom: 1px solid var(--modal-border);
+  font-weight: 600;
+  background-color: var(--table-th-bg);
+  color: var(--table-th-color);
+}
+
+.maquinas-container-table table.data-table td {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--modal-border);
+  vertical-align: middle;
+  background-color: var(--table-td-bg);
+  color: var(--color-text-primary);
+}
+
+.maquinas-container-table table.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.maquinas-container-table table.data-table tr:hover td {
+  background: var(--options-bg);
+}
+
+/* ─── Settings table ─── */
+.settings-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.settings-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.settings-table th {
+  padding: 12px 16px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+}
+
+.settings-table td {
+  padding: 16px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+  color: var(--primary-white);
+}
+
+.settings-table tr:last-child td { border-bottom: none; }
+.settings-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+/* ─── Action buttons (settings) ─── */
+.action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--primary-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}

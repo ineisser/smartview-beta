@@ -1,0 +1,181 @@
+/* ============================================================
+   ANIMATIONS.CSS — Todos los @keyframes de la app
+   ============================================================ */
+
+/* ─── Loading Bar ─── */
+@keyframes load-progress-loop {
+  0%   { width: 0%; left: 0; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { width: 100%; left: 0; opacity: 1; }
+  100% { width: 100%; left: 0; opacity: 0; }
+}
+
+/* ─── Pulsos de máquina ─── */
+@keyframes pulse-glow-red {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--color-alert), inset 0 0 10px var(--color-alert);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 45px var(--color-alert), 0 0 90px rgba(255, 0, 0, 0.3);
+    transform: scale(1.06);
+  }
+}
+
+@keyframes pulse-glow-green-fast {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--color-restart), inset 0 0 10px var(--color-restart);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 50px var(--color-restart), 0 0 100px rgba(22, 163, 74, 0.4);
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse-glow-green {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--color-restart), inset 0 0 10px var(--color-restart);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 45px var(--color-restart), 0 0 90px rgba(22, 163, 74, 0.3);
+    transform: scale(1.06);
+  }
+}
+
+/* ─── Transición de color al reiniciar ─── */
+@keyframes bg-transition-green {
+  0%   { background: var(--res-start); border-color: var(--res-start); }
+  33%  { background: var(--res-mid1);  border-color: var(--res-mid1); }
+  66%  { background: var(--res-mid2);  border-color: var(--res-mid2); }
+  100% { background: var(--res-end);   border-color: var(--res-end); }
+}
+
+/* ─── Icono spinning ─── */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spinning-icon {
+  animation: spin-slow 1.5s linear infinite;
+}
+
+/* ─── Entradas de log items ─── */
+@keyframes item-entrance {
+  from {
+    opacity: 0;
+    transform: translateX(-15px) scale(0.98);
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    backdrop-filter: blur(10px);
+  }
+}
+.animate-log-item {
+  animation: item-entrance 1s cubic-bezier(0.1, 0.9, 0.24, 1) forwards;
+}
+
+/* ─── Resolved Glow (al reiniciar máquina) ─── */
+@keyframes stroke-glow-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    border-color: var(--modal-border);
+    transform: scale(1);
+  }
+  30% {
+    box-shadow: 0 0 25px 3px rgba(16, 185, 129, 0.4);
+    border-color: #10b981;
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    border-color: var(--modal-border);
+    transform: scale(1);
+  }
+}
+.resolved-glow {
+  animation: stroke-glow-green 1.5s cubic-bezier(0.1, 0.9, 0.24, 1) forwards;
+  background: rgba(16, 185, 129, 0.05) !important;
+}
+
+/* ─── Inserción de item (slide + scale) ─── */
+@keyframes log-slide-down {
+  0%   { max-height: 0;     margin-bottom: 0;      opacity: 0; filter: blur(10px); }
+  100% { max-height: 120px; margin-bottom: 0.65rem; opacity: 1; filter: blur(0px); }
+}
+@keyframes log-scale-up {
+  0%   { transform: scale(0.5); opacity: 0.5; }
+  100% { transform: scale(1);   opacity: 1;   }
+}
+.item-insert-wrapper {
+  overflow: hidden;
+  animation: log-slide-down 0.8s cubic-bezier(0.2, 1, 0.24, 1) forwards;
+}
+.item-insert-content {
+  opacity: 0;
+  transform: scale(0.5);
+  animation: log-scale-up 0.4s cubic-bezier(0.2, 1, 0.24, 1) 0.4s forwards;
+}
+
+/* ─── View fade-in ─── */
+@keyframes view-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.97);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+.view-animate {
+  animation: view-fade-in 0.6s cubic-bezier(0.2, 1, 0.24, 1) forwards;
+}
+
+/* ─── Salida de item de log ─── */
+@keyframes log-slide-out {
+  0% {
+    max-height: 120px; opacity: 1;
+    transform: translateX(0); margin-bottom: 0.75rem;
+  }
+  100% {
+    max-height: 0; opacity: 0;
+    transform: translateX(-30px); margin-bottom: 0; padding: 0; border: none;
+  }
+}
+@keyframes mini-exit {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.5); opacity: 0; }
+}
+.item-exit-active {
+  animation: log-slide-out 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
+.mini-exit-active {
+  animation: mini-exit 0.4s ease forwards;
+  pointer-events: none;
+}
+
+/* ─── Text glow entrance (status bar) ─── */
+@keyframes text-glow-entrance {
+  0% {
+    opacity: 0; filter: brightness(1) blur(5px);
+    transform: translateY(10px);
+  }
+  30% {
+    opacity: 1; filter: brightness(2.5) blur(0px);
+    text-shadow: 0 0 20px white; transform: translateY(0);
+  }
+  100% {
+    opacity: 1; filter: brightness(1);
+    text-shadow: 0 0 0px transparent; transform: translateY(0);
+  }
+}
+.animate-entrance {
+  animation: text-glow-entrance 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}

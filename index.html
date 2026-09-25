@@ -5,9 +5,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smartview Beta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* Font-family Urbanist for text above 1.2rem */
+        .text-xl,
+        .text-2xl,
+        .text-3xl,
+        .text-4xl,
+        .text-5xl,
+        .text-6xl,
+        .text-7xl,
+        .text-8xl,
+        .text-9xl,
+        .text-value-display,
+        .mobile-modal-title,
+        .maquina-id,
+        .incident-main,
+        .remaining-val,
+        #main-view-title,
+        .card-alert-left h2,
+        #reason-name-text,
+        #stop-time-display,
+        #eficiencia-numero,
+        [style*="font-size"] {
+            font-family: 'Urbanist', system-ui, -apple-system, sans-serif !important;
+            letter-spacing: -0.02em; /* Base letter-spacing for premium modern look */
+        }
+
+        /* Responsive typography optimization for different screens (monitors, tablets, mobile) */
+        @media (min-width: 1024px) {
+            /* Monitors / Large Screens: ultra-premium, tighter tracking for large displays */
+            .text-3xl, .text-4xl, .text-5xl, .text-6xl, .text-7xl, .text-8xl, .text-9xl,
+            .text-value-display, .card-alert-left h2, #eficiencia-numero, #clock-hm {
+                letter-spacing: -0.035em !important;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1023px) {
+            /* Tablets: balanced spacing for mid-size touch screens */
+            .text-3xl, .text-4xl, .text-5xl, .text-6xl,
+            .text-value-display, .card-alert-left h2, #eficiencia-numero, #clock-hm {
+                letter-spacing: -0.025em !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            /* Mobile: slightly more open tracking on small viewports to prevent collisions and maximize readability */
+            .text-xl, .text-2xl, .mobile-modal-title, .maquina-id, .incident-main {
+                letter-spacing: -0.01em !important;
+            }
+            .text-3xl, .text-4xl, .text-5xl, .text-value-display, .card-alert-left h2, #clock-hm {
+                letter-spacing: -0.02em !important;
+            }
+        }
+
         :root {
             /* Colores Base */
             --primary-white: rgba(255, 255, 255, 0.9);
@@ -48,6 +103,7 @@
 
             /* Variable Unificada con light-dark() */
             --color-text-primary: light-dark(var(--text-negro-azulado), var(--text-blanco-azulado));
+            --modal-border: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.2));
 
             /* Variables de Componente */
             --tab-view-bg: light-dark(#ffffff, rgba(15, 15, 15, 0.6));
@@ -57,6 +113,24 @@
             --tab-item-hover-bg: light-dark(#f1f5f9, rgba(255, 255, 255, 0.05));
 
             --border-color: rgba(255, 255, 255, 0.1);
+            --table-th-bg: light-dark(#dfe3ea, #1b262c);
+            --table-th-color: light-dark(#000, #fff);
+            --table-td-bg: light-dark(#e5e9ee61, #000);
+            --table-td-color: light-dark(#000, #fff);
+            --table-row-hover-bg: light-dark(rgba(15, 25, 40, 0.05), rgba(255, 255, 255, 0.06));
+            --table-cell-hover-bg: light-dark(rgba(15, 25, 40, 0.12), rgba(255, 255, 255, 0.14));
+
+        }
+
+        /* Sticky Header */
+        #maquinas-container-header {
+            z-index: 100;
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+            margin-top: -2.5rem;
+            /* pull up into col-main padding */
+            margin-bottom: 1.5rem !important;
+            /* override mb-10 */
         }
 
         /* Tab View Selector - Premium Design */
@@ -538,7 +612,6 @@
             --modal-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
             --modal-text: #ffffff;
             --modal-subtext: rgba(255, 255, 255, 0.6);
-            --modal-border: rgba(255, 255, 255, 0.2);
             --chevron-color: rgba(255, 255, 255, 0.6);
             --options-bg: #111111;
             --options-border: rgba(255, 255, 255, 0.2);
@@ -549,7 +622,7 @@
             background-color: #ffffff;
             background-image: none;
             color: var(--color-text-primary);
-            --machine-bg-op: #86efac;
+            --machine-bg-op: #0f986b;
             /* Green 300 exacto de la imagen */
             --res-start: var(--color-green-600);
             --res-mid1: var(--color-green-500);
@@ -569,7 +642,6 @@
             --modal-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%);
             --modal-text: #0f172a;
             --modal-subtext: #475569;
-            --modal-border: rgba(255, 255, 255, 0.8);
             --chevron-color: #0f172a;
             --options-bg: rgba(255, 255, 255, 0.95);
             --options-border: rgba(0, 0, 0, 0.1);
@@ -1148,9 +1220,69 @@
             transform: scale(1.2) translateY(-10px);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        
+
         .status-icon-log.activo {
             stroke: #10b981;
+        }
+
+        /* TABLA MÁQUINAS DINÁMICA (SOPORTA LIGHT/DARK) */
+        .maquinas-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .maquinas-container-table {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--modal-border);
+            background: var(--modal-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .maquinas-container-table table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .maquinas-container-table table.data-table th {
+            padding: 8px 16px;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            opacity: 0.8;
+            border-bottom: 1px solid var(--modal-border);
+            font-weight: 600;
+            background-color: var(--table-th-bg);
+            color: var(--table-th-color);
+        }
+
+        .maquinas-container-table table.data-table td {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--modal-border);
+            vertical-align: middle;
+            background-color: var(--table-td-bg);
+            color: var(--color-text-primary);
+            transition: background-color 0.2s ease;
+        }
+
+        .maquinas-container-table table.data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .maquinas-container-table table.data-table tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .maquinas-container-table table.data-table tr:hover td {
+            background-color: var(--table-row-hover-bg);
+        }
+
+        .maquinas-container-table table.data-table tr td:hover {
+            background-color: var(--table-cell-hover-bg) !important;
+            cursor: pointer;
         }
 
         /* SETTINGS TABLES */
@@ -1190,7 +1322,7 @@
         .settings-table tr:hover td {
             background: rgba(255, 255, 255, 0.02);
         }
-        
+
         .action-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1203,7 +1335,7 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .action-btn:hover {
             background: rgba(255, 255, 255, 0.1);
             border-color: rgba(255, 255, 255, 0.2);
@@ -1431,11 +1563,13 @@
             position: absolute;
             top: 6px;
             left: 10px;
-            font-size: 1.05rem;
+            font-size: 1.25rem;
             line-height: 1;
-            font-weight: 700;
-            opacity: 0.6;
+            font-weight: 500;
+            /* opacity: 0.6; */
             transition: all 0.5s;
+            text-shadow: 0 0 2px #0f172a61;
+            color: white;
         }
 
         .stop-timer {
@@ -1803,7 +1937,9 @@
             <div id="settings-container" class="settings-panel view-animate" style="display: none; padding: 2rem;">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-2xl font-bold">Configuración de sala</h2>
-                    <button class="btn-primary flex items-center justify-center w-fit px-8 py-3 rounded-xl font-bold transition-all hover:bg-[#0ea5e9]" style="background-color: var(--color-accent-blue, #0ea5e9); color: white;">
+                    <button
+                        class="btn-primary flex items-center justify-center w-fit px-8 py-3 rounded-xl font-bold transition-all hover:bg-[#0ea5e9]"
+                        style="background-color: var(--color-accent-blue, #0ea5e9); color: white;">
                         Aplicar los cambios
                     </button>
                 </div>
@@ -1824,18 +1960,24 @@
                     </button>
                 </div>
 
-                <div id="settings-content-general" class="settings-content active bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div id="settings-content-general"
+                    class="settings-content active bg-white/5 border border-white/10 rounded-2xl p-6">
                     <p class="opacity-60 mb-6">Ajustes generales para la operación del panel.</p>
                     <div class="flex flex-col gap-2 max-w-sm">
-                        <label class="text-xs opacity-70 uppercase tracking-widest">Tiempo de visualización de alerta roja (min)</label>
-                        <input type="number" id="alert-delay-input" value="1" min="1" class="bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-accent-green transition-colors w-full" placeholder="Ej. 1">
+                        <label class="text-xs opacity-70 uppercase tracking-widest">Tiempo de visualización de alerta
+                            roja (min)</label>
+                        <input type="number" id="alert-delay-input" value="1" min="1"
+                            class="bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-accent-green transition-colors w-full"
+                            placeholder="Ej. 1">
                     </div>
                 </div>
 
-                <div id="settings-content-maquinas" class="settings-content bg-white/5 border border-white/10 rounded-2xl p-6" style="display: none;">
+                <div id="settings-content-maquinas"
+                    class="settings-content bg-white/5 border border-white/10 rounded-2xl p-6" style="display: none;">
                     <div class="flex justify-between items-center mb-6">
                         <p class="opacity-60 text-sm m-0">Administra la lista de máquinas habilitadas en esta sala.</p>
-                        <button class="action-btn text-xs px-4 py-2 flex gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Añadir Máquina</button>
+                        <button class="action-btn text-xs px-4 py-2 flex gap-2"><i data-lucide="plus"
+                                class="w-4 h-4"></i>Añadir Máquina</button>
                     </div>
                     <div class="settings-table-container">
                         <table class="settings-table">
@@ -1854,10 +1996,10 @@
                                         const num = i.toString().padStart(2, '0');
                                         // Haremos que la 15 y 18 aparezcan inactivas de ejemplo, el resto activas
                                         const isActiva = (i !== 15 && i !== 18);
-                                        const estadoHtml = isActiva 
+                                        const estadoHtml = isActiva
                                             ? '<span class="text-[#10b981] flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4"></i>Activa</span>'
                                             : '<span class="opacity-40 flex items-center gap-2"><i data-lucide="minus-circle" class="w-4 h-4"></i>Inactiva</span>';
-                                        
+
                                         const tr = document.createElement('tr');
                                         tr.innerHTML = `
                                             <td><div class="font-bold">${num}</div></td>
@@ -1875,10 +2017,13 @@
                     </div>
                 </div>
 
-                <div id="settings-content-motivos" class="settings-content bg-white/5 border border-white/10 rounded-2xl p-6" style="display: none;">
+                <div id="settings-content-motivos"
+                    class="settings-content bg-white/5 border border-white/10 rounded-2xl p-6" style="display: none;">
                     <div class="flex justify-between items-center mb-6">
-                        <p class="opacity-60 text-sm m-0">Configura los motivos de paro disponibles para los operadores.</p>
-                        <button class="action-btn text-xs px-4 py-2 flex gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Nuevo Motivo</button>
+                        <p class="opacity-60 text-sm m-0">Configura los motivos de paro disponibles para los operadores.
+                        </p>
+                        <button class="action-btn text-xs px-4 py-2 flex gap-2"><i data-lucide="plus"
+                                class="w-4 h-4"></i>Nuevo Motivo</button>
                     </div>
                     <div class="settings-table-container">
                         <table class="settings-table">
@@ -1894,82 +2039,127 @@
                                 <tr>
                                     <td class="font-bold">Falta de material</td>
                                     <td>Operacional</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#f87171]"></div>Rojo</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#f87171]"></div>Rojo
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold">Falla mecánica</td>
                                     <td>Técnico</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#ef4444]"></div>Rojo</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#ef4444]"></div>Rojo
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold">Falla eléctrica</td>
                                     <td>Técnico</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#ef4444]"></div>Rojo</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#ef4444]"></div>Rojo
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold">Mantenimiento preventivo</td>
                                     <td>Técnico</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#fbbf24]"></div>Amarillo</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#fbbf24]"></div>Amarillo
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold">Cambio de formato / Lote</td>
                                     <td>Operacional</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#fbbf24]"></div>Amarillo</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#fbbf24]"></div>Amarillo
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold">Limpieza de sala</td>
                                     <td>Limpieza</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#60a5fa]"></div>Azul</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#60a5fa]"></div>Azul
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold">Calibración / Ajustes</td>
                                     <td>Técnico</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#60a5fa]"></div>Azul</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#60a5fa]"></div>Azul
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold">Descanso / Refrigerio</td>
                                     <td>Personal</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#10b981]"></div>Verde</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#10b981]"></div>Verde
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold">Falta de Operador</td>
                                     <td>Personal</td>
-                                    <td><div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#f87171]"></div>Rojo</div></td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded-full bg-[#f87171]"></div>Rojo
+                                        </div>
+                                    </td>
                                     <td class="text-right">
                                         <button class="action-btn"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        <button class="action-btn text-red-400 hover:text-red-300 ml-2"><i
+                                                data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -2253,12 +2443,12 @@
 
         window.changeView = (view) => {
             mainCurrentView = view;
-            
+
             // Toggle containers
             const mapContainer = document.getElementById('maquinas-container');
             const listContainer = document.getElementById('main-log-container');
             const settingsContainer = document.getElementById('settings-container');
-            
+
             if (view === 'mapa') {
                 if (mapContainer) mapContainer.style.display = 'grid';
                 if (listContainer) listContainer.style.display = 'none';
@@ -2271,7 +2461,7 @@
                     settingsContainer.classList.remove('view-animate');
                     void settingsContainer.offsetWidth;
                     settingsContainer.classList.add('view-animate');
-                    
+
                     const activeSettingsTab = document.querySelector('.settings-tab.active') || document.querySelector('.settings-tab');
                     if (activeSettingsTab && window.changeSettingsTab) {
                         setTimeout(() => window.changeSettingsTab('general', activeSettingsTab), 50);
@@ -2282,13 +2472,13 @@
                 if (settingsContainer) settingsContainer.style.display = 'none';
                 if (listContainer) {
                     listContainer.style.display = 'grid';
-                    
+
                     if (view === 'activity' || view === 'priority') {
                         listContainer.classList.add('activity-grid-desktop');
                     } else {
                         listContainer.classList.remove('activity-grid-desktop');
                     }
-                    
+
                     listContainer.classList.remove('view-animate');
                     void listContainer.offsetWidth;
                     listContainer.classList.add('view-animate');
@@ -2341,6 +2531,7 @@
                 const span = tab.querySelector('span');
                 if (span && (
                     span.textContent.toLowerCase().includes(view.toLowerCase()) ||
+                    (view === 'history' && span.textContent === 'Historial') ||
                     (view === 'priority' && span.textContent === 'Paros') ||
                     (view === 'activity' && span.textContent === 'Activas') ||
                     (view === 'mapa' && span.textContent === 'Mapa') ||
@@ -2359,7 +2550,7 @@
                     tab.classList.remove('active');
                 }
             });
-            
+
             if (!hasActiveTab && indicator) {
                 indicator.style.opacity = '0';
             }
@@ -2622,10 +2813,11 @@
             else if (viewToRender === 'efficiency') {
                 const machines = Array.from({ length: 19 }, (_, i) => (i + 1));
                 const totalShiftMinutes = 480; // Suponiendo un turno de 8 horas (480 min)
-                
+
                 let html = `
-                <div class="settings-table-container" style="grid-column: 1 / -1; width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);">
-                    <table class="settings-table w-full">
+                <div class="maquinas-container" style="grid-column: 1 / -1;">
+                    <div class="maquinas-container-table">
+                        <table class="data-table w-full">
                         <thead>
                             <tr>
                                 <th>Máquina</th>
@@ -2657,7 +2849,7 @@
                     // Tiempo desde inicio de turno
                     let elapsedShiftMin = Math.floor((Date.now() - shiftStart.getTime()) / 60000);
                     if (elapsedShiftMin < 0) elapsedShiftMin = 0;
-                    
+
                     let operationMin = elapsedShiftMin - unproductiveMin;
                     if (operationMin < 0) operationMin = 0;
 
@@ -2680,7 +2872,7 @@
                     const startTimeStr = new Date(shiftStart.getTime()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
                     const isStopped = !!stoppedMachines[id];
-                    const stateIndicator = isStopped 
+                    const stateIndicator = isStopped
                         ? '<i data-lucide="square" class="w-3.5 h-3.5 text-[#ef4444]" style="stroke-width: 2.5px; opacity: 0.8; filter: drop-shadow(0 0 6px rgba(239,68,68,0.5));"></i>'
                         : '<i data-lucide="circle" class="w-3.5 h-3.5 text-[#10b981]" style="stroke-width: 2.5px; opacity: 0.8; filter: drop-shadow(0 0 6px rgba(16,185,129,0.5));"></i>';
 
@@ -2688,8 +2880,8 @@
                         <tr>
                             <td><div class="font-bold flex items-center gap-3">${stateIndicator} M-${id.toString().padStart(2, '0')}</div></td>
                             <td><span class="opacity-60">${startTimeStr}</span></td>
-                            <td><div class="log-capsule" style="width:fit-content; background:transparent;"><i data-lucide="activity" class="text-[#10b981]"></i><span>${opStr} <span class="opacity-40 text-xs font-normal">/ ${shiftStr}</span></span></div></td>
-                            <td><div class="log-capsule" style="width:fit-content; background:transparent;"><i data-lucide="clock" class="text-[#ef4444]"></i><span>${unopStr}</span></div></td>
+                            <td><div class="log-capsule" style="width:fit-content; background:transparent;"><span>${opStr} <span class="opacity-40 text-xs font-normal">/ ${shiftStr}</span></span></div></td>
+                            <td><div class="log-capsule" style="width:fit-content; background:transparent;"><span>${unopStr}</span></div></td>
                             <td class="font-bold ${effColor}">${effPercent}%</td>
                             <td class="opacity-60">${inactPercent}%</td>
                         </tr>
@@ -2902,7 +3094,7 @@
             if (shiftStart.getTime() > Date.now()) {
                 shiftStart.setDate(shiftStart.getDate() - 1);
             }
-            
+
             let elapsedShiftMin = Math.floor((Date.now() - shiftStart.getTime()) / 60000);
             if (elapsedShiftMin < 0) elapsedShiftMin = 0;
             const totalMachineShiftMinutes = elapsedShiftMin * totalMachines;

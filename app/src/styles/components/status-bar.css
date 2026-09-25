@@ -1,0 +1,94 @@
+/* ============================================================
+   STATUS-BAR.CSS — Barra de estado superior (alerta roja)
+   ============================================================ */
+
+.top-status-bar {
+  background: var(--color-alert);
+  position: relative;
+  overflow: hidden;
+  height: 0px;
+  transition: height 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.top-status-bar.is-expanded {
+  height: 140px;
+}
+
+/* ─── Card alert content ─── */
+.card-alert {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 4rem;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+}
+
+.card-alert.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.card-alert-left {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 2.5rem;
+  color: white;
+}
+
+.card-alert-left h2 {
+  font-size: 4.5rem;
+  font-weight: 500;
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  margin: 0;
+}
+
+#reason-name-text {
+  font-size: 2.2rem;
+  font-weight: 500;
+  line-height: 0.85;
+  white-space: nowrap;
+  margin-bottom: 0;
+  padding-bottom: 0.2rem;
+}
+
+#stop-time-display {
+  font-size: 2.2rem;
+  font-weight: 500;
+  color: white;
+  align-self: flex-end;
+  line-height: 0.85;
+  opacity: 0;
+  padding-bottom: 0.2rem;
+}
+
+/* ─── Loading bar animada ─── */
+.loading-bar-container {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.loading-bar-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--color-alert);
+  box-shadow: var(--glow-alert);
+  width: 0%;
+  animation: load-progress-loop 3s linear infinite;
+}

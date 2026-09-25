@@ -1,0 +1,85 @@
+/* ============================================================
+   TAB-VIEW.CSS — Tab selector premium con indicador sliding
+   ============================================================ */
+
+.maquinas-container-tab-view {
+  display: inline-flex;
+  align-items: center;
+  background: var(--tab-view-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--tab-view-border);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 10;
+}
+
+.tab-indicator {
+  position: absolute;
+  height: calc(100% - 8px);
+  background: var(--tab-item-active-bg);
+  border-radius: 999px;
+  transition: all 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+  z-index: -1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.maquinas-container-tab-view .tab-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 16px 4px 12px;
+  border-radius: 999px;
+  transition: all 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.35);
+  min-width: 48px;
+  position: relative;
+  border: none;
+  background: none;
+  gap: 0.25rem;
+}
+
+.light .maquinas-container-tab-view .tab-item {
+  color: #64748b;
+}
+
+.maquinas-container-tab-view .tab-item i,
+.maquinas-container-tab-view .tab-item svg {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  stroke-width: 2.5px;
+  transition: transform 0.3s ease;
+}
+
+.maquinas-container-tab-view .tab-item:hover i {
+  transform: scale(1.1);
+}
+
+.maquinas-container-tab-view .tab-item span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: color 0.3s ease;
+}
+
+.maquinas-container-tab-view .tab-item.active {
+  color: var(--tab-item-active-text);
+}
+
+.maquinas-container-tab-view .tab-item.active i {
+  stroke-width: 3px;
+}
+
+.maquinas-container-tab-view .tab-item:hover:not(.active) {
+  color: var(--color-text-primary);
+}

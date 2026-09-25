@@ -1,0 +1,237 @@
+/* ============================================================
+   LOG-ITEM.CSS — Items de historial de paros
+   ============================================================ */
+
+/* ─── Contenedor scrolleable ─── */
+.log-list-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  padding-bottom: 90px;
+  position: relative;
+}
+
+.log-list-container::-webkit-scrollbar { width: 4px; }
+.log-list-container::-webkit-scrollbar-thumb {
+  background: var(--modal-border);
+  border-radius: 10px;
+}
+
+/* ─── Section label ─── */
+.section-label {
+  font-family: var(--font-text, Inter, system-ui, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--ink-solid);
+  opacity: 1;
+  margin: 1.5rem 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+html.dark .section-label { color: #ffffff; }
+.section-label-spaced { margin-top: 2rem; }
+.section-count {
+  font-weight: 300;
+  color: inherit;
+}
+
+/* ─── Log Item ─── */
+.log-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 0 1.25rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--modal-border);
+  display: grid;
+  grid-template-columns: 35px 1fr;
+  gap: 1.25rem;
+  align-items: center;
+  transition: transform 0.15s ease, border-color 0.3s, background 0.3s;
+  height: 72px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.log-item:active { transform: scale(0.9); }
+
+.light .log-item { background: rgba(0, 0, 0, 0.025); }
+
+.log-item:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.light .log-item:hover { border-color: rgba(0, 0, 0, 0.1); }
+
+/* ─── Log Item Mini (grid 3 cols) ─── */
+.log-grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 0 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.log-item.mini {
+  height: 48px;
+  padding: 0 0.75rem;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  margin-bottom: 0;
+  border-radius: 12px;
+}
+
+.log-item.mini .log-col-1 {
+  border-right: none;
+  padding-right: 0;
+  font-size: 0.95rem;
+  line-height: 48px;
+  text-align: left;
+}
+
+.log-item.mini .status-icon-log {
+  width: 0.9rem;
+  height: 0.9rem;
+  transform: translateY(0);
+}
+
+/* ─── Columnas internas del log item ─── */
+.log-col-1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--modal-text);
+  opacity: 0.7;
+  text-align: center;
+  border-right: 1px solid var(--modal-border);
+  padding-right: 0.75rem;
+  line-height: 72px;
+}
+
+.log-col-2 {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  justify-content: center;
+  height: 100%;
+}
+
+.log-item-reason {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--modal-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.log-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--modal-subtext);
+}
+
+.log-time-data {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* ─── Cápsula de tiempo/duración ─── */
+.log-capsule {
+  padding: 2px 12px 2px 6px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  backdrop-filter: blur(4px);
+  min-width: 95px;
+}
+
+.log-capsule i {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.9));
+  opacity: 0.9;
+}
+
+/* ─── Status icon ─── */
+.status-icon-log {
+  width: 1.2rem;
+  height: 1.2rem;
+  stroke-width: 2.5px;
+  transform: scale(1.2) translateY(-10px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.status-icon-log.activo { stroke: #10b981; }
+
+.status-icon-log.atendido {
+  color: #10b981;
+  fill: rgba(16, 185, 129, 0.2);
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+}
+
+.status-icon-log.detenido {
+  color: #ff0000;
+  fill: rgba(255, 0, 0, 0.2);
+  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.4));
+}
+
+/* ─── Main log container (vista desktop) ─── */
+#main-log-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  gap: 1rem;
+  align-content: start;
+  margin-top: 2rem;
+  padding-right: 10px;
+}
+
+#main-log-container.activity-grid-desktop {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+#main-log-container .log-item {
+  margin-bottom: 0;
+  height: 40px;
+  padding: 6px 1.25rem;
+}
+
+#main-log-container .log-col-1 { line-height: 28px; }
+#main-log-container .log-item-reason { line-height: 28px; }
+
+#main-log-container .log-col-2 {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+#main-log-container .log-item-reason {
+  width: auto;
+  flex: 1;
+}
+
+#main-log-container .log-item-footer {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: 1.5rem;
+}
+
+#main-log-container .status-icon-log {
+  transform: scale(1.2) translateY(0);
+}
+
+#main-log-container .section-label,
+#main-log-container .log-grid-container {
+  grid-column: 1 / -1;
+}

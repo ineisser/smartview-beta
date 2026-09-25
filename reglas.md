@@ -18,3 +18,9 @@
    - **Total de Paros**: Debe corresponder a la longitud total del historial de registros (`logs.length`). No se debe sumar dos veces la cantidad de paros actuales, ya que el historial ya los incluye.
    - **Máquinas Únicas**: Es el conteo de máquinas distintas (IDs únicos) que se encuentren dentro del historial de paros.
    - **Tiempo Sin Producción**: Debe ser la suma total del tiempo acumulado de los paros resueltos (`log.duration` cuando `status === 'atendido'`) más los minutos transcurridos en tiempo real de los paros actualmente activos (`Date.now() - log.id` cuando `status === 'detenido'`).
+
+5. **Turno y avance (OEE de disponibilidad):**
+   - El turno se lee del horario de la sala. Si no hay horario, el defecto es A 07:00–15:00, B 15:00–23:00 y C 23:00–07:00. Un solo turno se muestra como A. Fuera de ese horario el estado es **Fuera de turno** y no hay porcentaje.
+   - El avance es del turno en curso, sobre el tiempo ya transcurrido: `(minutos-máquina transcurridos − minutos-máquina en paro) / minutos-máquina transcurridos`. Sin paros es 100 %. Cuatro horas con una hora acumulada de paro son 75 %. Si toda la sala está detenida, puede llegar a 0 %.
+   - Un paro abierto cuenta hasta ahora. Al cerrar el turno se corta: los minutos de antes quedan en la liquidación de ese turno y no se mueven; los de después pasan al turno siguiente.
+   - El umbral de alerta es 90 % para toda la organización. Cada sala puede fijar el suyo. Por debajo, el chip va en rojo y la campanita avisa. En el umbral o por encima, va en verde.

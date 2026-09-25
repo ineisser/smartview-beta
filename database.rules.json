@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "onboarding": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "plataforma": {
+      "superusuario": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.val() == auth.uid)"
+      }
+    },
+    "usuarios": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte')",
+        ".write": "auth != null && (auth.uid == $uid || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || (data.exists() && data.child('tenantId').val() != null && data.child('tenantId').val() == root.child('usuarios').child(auth.uid).child('tenantId').val() && (root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'owner' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'admin' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'superusuario')))"
+      }
+    },
+    "organizaciones": {
+      ".read": "auth != null",
+      "$codigo": {
+        ".read": "auth != null && root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo",
+        ".write": "auth != null && (root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte')"
+      }
+    },
+    "invitaciones": {
+      ".read": "auth != null && (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'owner' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'admin' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'superusuario')",
+      "$token": {
+        ".read": true,
+        ".write": "auth != null && (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'owner' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'admin' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'superusuario' || (data.exists() && data.child('email').val() == auth.token.email))"
+      }
+    }
+  }
+}
