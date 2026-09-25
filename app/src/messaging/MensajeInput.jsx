@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Mic } from "lucide-react";
 import Button from "../components/Button";
+import { fusionarDictado, textoDeResultados } from "./dictado";
 
 const Recognition = typeof window !== "undefined"
   ? (window.SpeechRecognition || window.webkitSpeechRecognition)
@@ -29,14 +30,15 @@ export default function MensajeInput({ onEnviar, disabled }) {
   }, []);
 
   const pintar = (parcial = "") => {
-    const junto = `${prefijo.current}${confirmado.current}${parcial}`.replace(/\s+/g, " ").trimStart();
+    const junto = fusionarDictado(fusionarDictado(prefijo.current, confirmado.current), parcial);
     setTexto(junto);
   };
 
   const consolidar = () => {
-    if (!confirmado.current) return;
-    prefijo.current = `${prefijo.current}${confirmado.current}`.replace(/\s+/g, " ");
-    if (prefijo.current && !prefijo.current.endsWith(" ")) prefijo.current += " ";
+    const frase = confirmado.current.replace(/\s+/g, " ").trim();
+    if (!frase) return;
+    const junto = fusionarDictado(prefijo.current, frase);
+    prefijo.current = junto ? `${junto} ` : "";
     confirmado.current = "";
   };
 
@@ -77,16 +79,8 @@ export default function MensajeInput({ onEnviar, disabled }) {
     prefijo.current = texto.trim() ? `${texto.trim()} ` : "";
     confirmado.current = "";
     motor.onresult = (event) => {
-      let parcial = "";
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const pieza = event.results[i][0]?.transcript || "";
-        if (!pieza) continue;
-        if (event.results[i].isFinal) {
-          confirmado.current = `${confirmado.current}${pieza} `.replace(/\s+/g, " ");
-        } else {
-          parcial += pieza;
-        }
-      }
+      const { finales, parcial } = textoDeResultados(event.results);
+      confirmado.current = finales ? `${finales} ` : "";
       pintar(parcial);
     };
     motor.onerror = (event) => {
