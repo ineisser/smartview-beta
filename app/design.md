@@ -26,6 +26,14 @@ En tablet vertical (`.shell.is-portrait`) el Saiba flota sobre la página y qued
 - El aviso de guardado en móvil ocupa el ancho, centrado, encima de la barra inferior.
 - Debajo del mapa de sección, en tablet y escritorio (en móvil pasa a la hoja Eficiencia), va la línea en degradé (`.linea-moderna`, del centro hacia los lados) y la sección «Motivos», con el total de paros a la derecha. Cada motivo es una fila de 44px con fondo Alerta 1 translúcido (14 % en oscuro, 9 % en claro), separada 2px de la siguiente; el grupo lleva radio 14px. La fila dice «cantidad | motivo» y el porcentaje sobre el total a la derecha: cantidad y porcentaje en peso 700/600 con cifras tabulares, motivo en peso 500 a 15px, y el divisor es una línea vertical de 1px en Alerta 1 al 45 %. Cuenta los paros del turno en curso (incluidos los abiertos), de mayor a menor. Sin paros: «Sin paros en este turno». Debajo va el reloj del turno de Eficiencia (`RelojTurno`): la misma tarjeta de vidrio con el arco del turno y el «tiempo restante», verde si la eficiencia alcanza el umbral y Alerta 1 si no.
 
+### Volumen en la ficha (móvil)
+
+- En el menú de usuario, debajo de Modo, una sola fila de 40px: a la izquierda el icono (botón circular de 38px) y a la derecha la barra de volumen con su punto. Sin cifras ni porcentajes.
+- El icono es el altavoz cuando suena y el altavoz tachado cuando está en cero o apagado. Tocarlo silencia (barra a cero) o, si está en silencio, devuelve el último volumen usado (100 si no había).
+- Correr la barra a la derecha enciende el sonido; llevarla a cero lo apaga.
+- Mientras el dedo arrastra, detrás de la barra aparece en 0.8s una cápsula de verde suave en degradé (`#10b981` del 6 % al 30 %, de izquierda a derecha, con canto fino del mismo verde) y se apaga igual al soltar.
+- En escritorio el volumen sigue en su botón de la barra lateral.
+
 ### Configuración de la sala en móvil
 
 - Cabecera estilo título grande: arriba, la flecha de volver a la izquierda (su icono alineado al borde) y las acciones a la derecha; debajo, el nombre de la sala pegado al borde izquierdo con «Configuración» al lado. La flecha siempre está: la página no tiene otra salida.

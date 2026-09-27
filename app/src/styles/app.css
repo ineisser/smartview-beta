@@ -1027,6 +1027,45 @@ html.dark .volumen-fila input[type="range"]::-moz-range-thumb {
 }
 .user-menu button:hover, .user-sub button:hover,
 .user-menu button.is-on, .user-sub button.is-on { background: var(--hover); }
+
+/* Volumen en la ficha (móvil): icono que silencia y barra sin cifras */
+.menu-volumen {
+  position: relative;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 10px 0 0;
+}
+.menu-volumen::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 40px;
+  right: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.3) 100%);
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--move) var(--ease);
+}
+.menu-volumen.is-arrastre::before { opacity: 1; }
+.user-menu .menu-volumen-icono {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  transition: background var(--move) var(--ease), color var(--move) var(--ease);
+}
+.user-menu .menu-volumen-icono:active { background: var(--hover); }
+.user-menu .menu-volumen-icono[aria-pressed="true"] { color: var(--muted); }
+.menu-volumen input[type="range"] {
+  position: relative;
+  height: 32px;
+  touch-action: none;
+}
 .menu-sub-wrap { position: relative; }
 .user-sub {
   position: absolute;

@@ -550,6 +550,8 @@ export default function Shell() {
   const [completa, setCompleta] = useState(estaCompleta);
   const [altavoz, setAltavoz] = useState(altavozActivo);
   const [volumen, setVolumen] = useState(volumenPorcentaje);
+  const [arrastreVol, setArrastreVol] = useState(false);
+  const volPrevio = useRef(volumenPorcentaje() || 100);
   const [volMenu, setVolMenu] = useState(null);
   const [volOn, setVolOn] = useState(false);
   const volTimer = useRef(0);
@@ -873,6 +875,39 @@ export default function Shell() {
     setVolOn(false);
     window.clearTimeout(volTimer.current);
     volTimer.current = window.setTimeout(() => setVolMenu(null), 800);
+  };
+
+  const sonando = altavoz && volumen > 0;
+
+  const cambiarVolumen = (valor) => {
+    const pct = fijarVolumen(valor);
+    setVolumen(pct);
+    const activo = pct > 0;
+    if (activo) volPrevio.current = pct;
+    if (activo !== altavozActivo()) fijarAltavoz(activo);
+    setAltavoz(activo);
+  };
+
+  const alternarSonido = () => {
+    if (sonando) {
+      volPrevio.current = volumen;
+      setVolumen(fijarVolumen(0));
+      fijarAltavoz(false);
+      setAltavoz(false);
+      return;
+    }
+    cambiarVolumen(volPrevio.current > 0 ? volPrevio.current : 100);
+  };
+
+  const empezarArrastreVol = () => {
+    setArrastreVol(true);
+    const soltar = () => {
+      setArrastreVol(false);
+      window.removeEventListener("pointerup", soltar);
+      window.removeEventListener("pointercancel", soltar);
+    };
+    window.addEventListener("pointerup", soltar);
+    window.addEventListener("pointercancel", soltar);
   };
 
   const mostrarVolumen = (nodo) => {
@@ -1762,6 +1797,30 @@ export default function Shell() {
               </div>
             ) : null}
           </div>
+          {menu.movil ? (
+            <div className={`volumen-fila menu-volumen${arrastreVol ? " is-arrastre" : ""}`}>
+              <button
+                type="button"
+                className="menu-volumen-icono"
+                aria-label={sonando ? "Silenciar" : "Activar sonido"}
+                aria-pressed={!sonando}
+                onClick={alternarSonido}
+              >
+                {sonando ? <Volume2 size={18} /> : <VolumeOff size={18} />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Volumen"
+                value={altavoz ? volumen : 0}
+                style={{ "--vol": `${altavoz ? volumen : 0}%` }}
+                onPointerDown={empezarArrastreVol}
+                onChange={(event) => cambiarVolumen(event.target.value)}
+              />
+            </div>
+          ) : null}
           <hr />
           <button type="button" onClick={salir}><LogOut size={18} /> Cerrar sesión</button>
         </div>,
