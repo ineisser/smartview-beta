@@ -181,9 +181,9 @@ html.dark .section-label { color: #ffffff; }
 }
 
 .status-icon-log.detenido {
-  color: #ff0000;
-  fill: rgba(255, 0, 0, 0.2);
-  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.4));
+  color: var(--color-alert-1);
+  fill: color-mix(in srgb, var(--color-alert-1) 20%, transparent);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-alert-1) 40%, transparent));
 }
 
 /* ─── Main log container (vista desktop) ─── */
@@ -234,4 +234,11 @@ html.dark .section-label { color: #ffffff; }
 #main-log-container .section-label,
 #main-log-container .log-grid-container {
   grid-column: 1 / -1;
+}
+
+@media (max-width: 1024px) {
+  #main-log-container,
+  #main-log-container.activity-grid-desktop {
+    grid-template-columns: 1fr;
+  }
 }

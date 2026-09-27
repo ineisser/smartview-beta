@@ -91,6 +91,80 @@ html.dark .modal-glass::before {
   color: #ef4444;
 }
 
+/* ─── Cabecera del modal de paro: número grande y caption ─── */
+.paro-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  padding-right: 44px;
+}
+.paro-titulo #modal-machine-id {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.paro-titulo small {
+  color: var(--modal-subtext);
+  font-family: var(--font-text);
+  font-size: 0.9375rem;
+  font-style: normal;
+  font-weight: 500;
+}
+.modal-glass .paro-texto {
+  margin: 10px 0 20px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.paro-acciones { flex-direction: row-reverse; }
+
+@media (max-width: 640px) {
+  #modal-overlay.is-paro {
+    align-items: flex-end;
+    padding: 0 8px calc(8px + env(safe-area-inset-bottom, 0px) + var(--teclado, 0px));
+    transition:
+      opacity var(--move) var(--ease),
+      visibility var(--move) var(--ease),
+      backdrop-filter var(--move) var(--ease),
+      padding var(--move) var(--ease);
+  }
+  .modal-paro {
+    max-width: none;
+    padding: 24px 20px 20px;
+    border-radius: 28px;
+    transform: translateY(40px);
+  }
+  .modal-paro::before { border-radius: 28px; }
+  .modal-paro .modal-close { top: 18px; right: 16px; }
+  .modal-paro .paro-titulo #modal-machine-id { font-size: 4rem; }
+  .modal-paro .select-wrapper { margin-bottom: 16px; }
+  .modal-paro #reasons-select-trigger { min-height: 52px; font-size: 1rem; }
+  .modal-paro .select-chevron { top: 16px; }
+  .modal-paro #reasons-options-list {
+    top: auto;
+    bottom: 100%;
+    margin: 0 0 0.5rem;
+    max-height: min(56vh, 420px);
+    transform: translateY(10px);
+  }
+  .modal-paro .select-wrapper.is-open #reasons-options-list { transform: translateY(0); }
+  .modal-paro .field input { min-height: 48px; font-size: 16px; }
+  .modal-paro .paro-acciones {
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 20px;
+  }
+  .modal-paro .paro-acciones .btn {
+    flex: none;
+    width: 100%;
+    min-height: 52px;
+    font-size: 1rem;
+  }
+}
+
 /* ─── Select custom ─── */
 .select-wrapper {
   position: relative;

@@ -2,6 +2,8 @@
 
 Fuente: modo claro de `index.html`. Las pantallas de `app/` usan estos tokens y no inventan otra paleta.
 
+Cómo se acomoda la interfaz en móvil, tablet y escritorio está en `design.md`.
+
 ## Tipografía
 
 | Uso | Familia | Tamaño | Peso |

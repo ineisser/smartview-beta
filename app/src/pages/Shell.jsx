@@ -26,10 +26,14 @@ import Switch from "../components/Switch";
 import TabSwitch from "../components/TabSwitch";
 import Tooltip from "../components/Tooltip";
 import ParoModal from "../components/ParoModal";
-import EficienciaPanel from "../components/EficienciaPanel";
+import EficienciaPanel, { RelojTurno } from "../components/EficienciaPanel";
 import AvanceTurno from "../components/AvanceTurno";
 import AvisoActualizacion from "../components/AvisoActualizacion";
 import TurnosConfig from "../components/TurnosConfig";
+import HojaSala, { NavHoja, VISTA_EFICIENCIA } from "../components/HojaSala";
+import useMedia, { MOVIL } from "../hooks/useMedia";
+import useFlip from "../hooks/useFlip";
+import useBarrido from "../hooks/useBarrido";
 import { UMBRAL_OEE, alertaValida, avanceDeTurno, umbralDe } from "../turno";
 import { ALTAVOZ, REPETICIONES_VOZ, altavozActivo, etiquetaMaquina, fijarAltavoz, fijarVolumen, fraseParo, parosVozDe, repeticionesValidas, tocarLlegada, volumenPorcentaje, VOLUMEN } from "../sonido";
 import useAppVersion from "../hooks/useAppVersion";
@@ -116,12 +120,14 @@ const COLUMNAS_HISTORIAL = [
   { key: "estado", titulo: "Estado", ancho: 130, min: 90 },
 ];
 
-function FilaSala({ numero, motivo, hora, desde, activo, onAbrir }) {
+function FilaSala({ numero, motivo, hora, desde, tiempo, estado = "detenido", onAbrir }) {
+  const activo = estado === "activo";
+  const atendido = estado === "atendido";
   return (
-    <div className="log-item" data-machine-id={numero} role={onAbrir ? "button" : undefined} tabIndex={onAbrir ? 0 : undefined} onClick={onAbrir} onKeyDown={onAbrir ? (event) => { if (event.key === "Enter") onAbrir(); } : undefined}>
+    <div className={`log-item is-${estado}${motivo ? "" : " is-solo"}`} data-machine-id={numero} role={onAbrir ? "button" : undefined} tabIndex={onAbrir ? 0 : undefined} onClick={onAbrir} onKeyDown={onAbrir ? (event) => { if (event.key === "Enter") onAbrir(); } : undefined}>
       <div className="log-col-1">{numero}</div>
       <div className="log-col-2">
-        <div className="log-item-reason" style={activo ? { opacity: 0.6 } : undefined}>{motivo}</div>
+        {motivo ? <div className="log-item-reason" style={activo ? { opacity: 0.6 } : undefined}>{motivo}</div> : null}
         <div className="log-item-footer">
           <div className="log-time-data">
             <div className="log-capsule">
@@ -129,25 +135,117 @@ function FilaSala({ numero, motivo, hora, desde, activo, onAbrir }) {
               <span>{hora}</span>
             </div>
             <div className="log-capsule">
-              <CircleGauge className="spinning-icon" size={16} color={activo ? "#10b981" : undefined} />
-              <span style={activo ? { fontWeight: 700 } : undefined}>{textoDuracion(desde)}</span>
+              {atendido ? <Check size={16} color="#10b981" /> : <CircleGauge className="spinning-icon" size={16} color={activo ? "#10b981" : undefined} />}
+              <span style={activo || atendido ? { fontWeight: 700 } : undefined}>{tiempo ?? textoDuracion(desde)}</span>
             </div>
           </div>
-          {activo ? <Circle className="status-icon-log activo" /> : <Square className="status-icon-log detenido" />}
+          {activo || atendido ? <Circle className={`status-icon-log ${estado}`} /> : <Square className="status-icon-log detenido" />}
         </div>
       </div>
     </div>
   );
 }
 
-function ListaSala({ panel, maquinas, paros, onAbrir }) {
+const filasHistorial = (logs, paros) => {
+  const abiertos = new Set(logs.filter((item) => item.status !== "atendido" && !item.fin).map((item) => String(item.machine).padStart(2, "0")));
+  return [
+    ...logs,
+    ...Object.entries(paros).filter(([numero]) => !abiertos.has(numero)).map(([numero, paro]) => ({
+      id: paro.inicio || Date.now(),
+      machine: numero,
+      reason: paro.nombre,
+      inicio: paro.inicio,
+      status: "detenido",
+    })),
+  ].sort((a, b) => (b.inicio || b.id || 0) - (a.inicio || a.id || 0));
+};
+
+function MotivosSala({ logs, paros, desde, turnos, buena, hoja = false }) {
+  const cuentas = new Map();
+  filasHistorial(logs, paros).forEach((item) => {
+    if (Number(item.inicio || item.id || 0) < desde) return;
+    const motivo = item.reason || "Paro manual";
+    cuentas.set(motivo, (cuentas.get(motivo) || 0) + 1);
+  });
+  const filas = [...cuentas].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const total = filas.reduce((suma, [, cuenta]) => suma + cuenta, 0);
+  return (
+    <section className={`motivos-sala${hoja ? " is-hoja" : ""}`}>
+      {hoja ? null : <hr className="linea-moderna" />}
+      <div className="section-label">
+        <span>Motivos</span>
+        <span className="section-count">{total}</span>
+      </div>
+      {filas.length ? (
+        <ul className="motivos-lista">
+          {filas.map(([motivo, cuenta]) => (
+            <li key={motivo}>
+              <strong>{cuenta}</strong>
+              <i className="motivos-barra" aria-hidden="true" />
+              <span className="motivos-nombre">{motivo}</span>
+              <span className="motivos-porcentaje">{Math.round((cuenta / total) * 100)}%</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="motivos-vacio">Sin paros en este turno</p>
+      )}
+      <RelojTurno turnos={turnos} buena={buena} className="motivos-reloj" />
+    </section>
+  );
+}
+
+function HistorialHoja({ logs, paros, onAbrir }) {
   const [, setMarca] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setMarca((valor) => valor + 1), 30000);
+    return () => window.clearInterval(id);
+  }, []);
+  const filas = filasHistorial(logs, paros);
+  if (!filas.length) return <p className="historial-vacio">Sin historial</p>;
+  return (
+    <div className="log-list-container lista-hoja is-historial">
+      {filas.map((item) => {
+        const enCurso = item.status !== "atendido" && !item.fin;
+        const numero = String(item.machine).padStart(2, "0");
+        return (
+          <FilaSala
+            key={`${item.id}-${item.machine}`}
+            numero={numero}
+            motivo={item.reason || "Paro manual"}
+            hora={item.inicio ? horaCorta(item.inicio) : (item.stopTime || "—")}
+            desde={item.inicio || item.id}
+            tiempo={enCurso ? undefined : textoMinutos(minutosDe(item))}
+            estado={enCurso ? "detenido" : "atendido"}
+            onAbrir={enCurso ? () => onAbrir(numero) : undefined}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function ListaSala({ panel, maquinas, paros: parosVivos, logs = [], onAbrir, hoja = false, congelar = false }) {
+  const [, setMarca] = useState(0);
+  const [parosVistos, setParosVistos] = useState(parosVivos);
+  const lista = useRef(null);
   useEffect(() => {
     const id = window.setInterval(() => setMarca((valor) => valor + 1), 1000);
     return () => window.clearInterval(id);
   }, []);
+  useEffect(() => {
+    if (!congelar) setParosVistos(parosVivos);
+  }, [parosVivos, congelar]);
+  useFlip(lista);
+  const paros = congelar ? parosVistos : parosVivos;
+  const cuadros = hoja && panel === "priority";
   const turno = inicioTurno();
-  const horaTurno = turno.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+  const arranques = {};
+  logs.forEach((item) => {
+    const fin = Number(item.fin || 0);
+    const numero = String(item.machine).padStart(2, "0");
+    if (fin > (arranques[numero] || 0)) arranques[numero] = fin;
+  });
   const detenidas = [];
   const activas = [];
   maquinas.forEach((machine, index) => {
@@ -155,9 +253,12 @@ function ListaSala({ panel, maquinas, paros, onAbrir }) {
     if (paros[numero]) detenidas.push(numero);
     else activas.push(numero);
   });
-  const filaActiva = (numero) => (
-    <FilaSala key={numero} numero={numero} motivo="Operando" hora={horaTurno} desde={turno.getTime()} activo onAbrir={() => onAbrir(numero)} />
-  );
+  const filaActiva = (numero) => {
+    const desde = Math.max(turno.getTime(), arranques[numero] || 0);
+    return (
+      <FilaSala key={numero} numero={numero} motivo={hoja ? null : "Operando"} hora={horaCorta(desde)} desde={desde} estado="activo" onAbrir={() => onAbrir(numero)} />
+    );
+  };
   const filaParo = (numero) => {
     const paro = paros[numero];
     const inicio = paro.inicio || Date.now();
@@ -177,17 +278,27 @@ function ListaSala({ panel, maquinas, paros, onAbrir }) {
   const etiquetaPrimero = panel === "priority" ? "En espera" : "Activas";
   const etiquetaSegundo = panel === "priority" ? "Funcionando" : "Detenidas";
   return (
-    <div id="main-log-container" className="log-list-container activity-grid-desktop">
+    <div ref={lista} id={hoja ? undefined : "main-log-container"} className={hoja ? "log-list-container lista-hoja" : "log-list-container activity-grid-desktop"}>
       <div className="section-label">
         <span>{etiquetaPrimero}</span>
         <span className="section-count">{primero.length}</span>
       </div>
       {primero.map((numero) => (panel === "priority" ? filaParo(numero) : filaActiva(numero)))}
-      <div className="section-label section-label-spaced">
+      <div className="section-label section-label-spaced" data-flip="segunda">
         <span>{etiquetaSegundo}</span>
         <span className="section-count">{segundo.length}</span>
       </div>
-      {segundo.map((numero) => (panel === "priority" ? filaActiva(numero) : filaParo(numero)))}
+      {cuadros ? (
+        <div className="cuadros-sala">
+          {segundo.map((numero) => (
+            <button key={numero} type="button" className="cuadro-sala" data-machine-id={numero} onClick={() => onAbrir(numero)}>
+              {numero}
+            </button>
+          ))}
+        </div>
+      ) : (
+        segundo.map((numero) => (panel === "priority" ? filaActiva(numero) : filaParo(numero)))
+      )}
     </div>
   );
 }
@@ -218,17 +329,7 @@ function HistorialTabla({ org, salaCodigo, paros, turnos, nombres = {}, puedeRei
       window.removeEventListener("pointerup", soltar);
     };
   }, []);
-  const abiertos = new Set(logs.filter((item) => item.status !== "atendido" && !item.fin).map((item) => String(item.machine).padStart(2, "0")));
-  const filas = [
-    ...logs,
-    ...Object.entries(paros).filter(([numero]) => !abiertos.has(numero)).map(([numero, paro]) => ({
-      id: paro.inicio || Date.now(),
-      machine: numero,
-      reason: paro.nombre,
-      inicio: paro.inicio,
-      status: "detenido",
-    })),
-  ].sort((a, b) => (b.inicio || b.id || 0) - (a.inicio || a.id || 0));
+  const filas = filasHistorial(logs, paros);
   const total = filas.reduce((suma, item) => suma + minutosDe(item), 0);
   const actualizar = () => {
     if (girando) return;
@@ -463,6 +564,10 @@ export default function Shell() {
   const [toast, setToast] = useState("");
   const [pestana, setPestana] = useState("general");
   const [panel, setPanel] = useState("mapa");
+  const movil = useMedia(MOVIL);
+  const mapaRef = useRef(null);
+  useBarrido(mapaRef, movil && panel === "mapa");
+  const [hoja, setHoja] = useState(null);
   const [tituloPanel, setTituloPanel] = useState("mapa");
   const [faseTitulo, setFaseTitulo] = useState("");
   const [paro, setParo] = useState(null);
@@ -520,6 +625,14 @@ export default function Shell() {
     ? avanceDeTurno({ turnos: sala.turnos, ahora, maquinas: sala.maquinas || [], paros, salaCodigo, logs: logsSala })
     : null;
   const umbralSala = umbralDe(sala, profile?.planta);
+  const eficienciaBuena = !avanceSala || avanceSala.fuera || avanceSala.avance >= Number(umbralSala);
+  const motivosProps = sala ? {
+    logs: logsSala,
+    paros,
+    desde: avanceSala && !avanceSala.fuera && avanceSala.inicio ? Number(avanceSala.inicio) : inicioTurno().getTime(),
+    turnos: sala.turnos,
+    buena: eficienciaBuena,
+  } : null;
   const alertaOee = avanceSala && !avanceSala.fuera && avanceSala.avance < umbralSala
     ? {
       id: `oee:${salaCodigo}:${avanceSala.inicio}`,
@@ -690,6 +803,13 @@ export default function Shell() {
   }, [profile, vista, salaCodigo, salas, orgCodigo, navigate]);
 
   useEffect(() => {
+    if (movil) setPanel("mapa");
+    else setHoja(null);
+  }, [movil]);
+
+  useEffect(() => { setHoja(null); }, [salaCodigo, vista]);
+
+  useEffect(() => {
     if (panel === tituloPanel) return undefined;
     setFaseTitulo("is-out");
     const id = window.setTimeout(() => {
@@ -719,8 +839,14 @@ export default function Shell() {
   const puestoMenu = (nodo) => {
     const usuario = nodo.getBoundingClientRect();
     const barra = nodo.closest(".sidebar")?.getBoundingClientRect();
+    if (!barra) {
+      const left = Math.max(12, Math.min(usuario.right, window.innerWidth - 12) - 240);
+      return usuario.top < window.innerHeight / 2
+        ? { left, top: usuario.bottom + 8, movil: true }
+        : { left, bottom: window.innerHeight - usuario.top + 8, movil: true };
+    }
     return {
-      left: (barra?.right ?? usuario.right) + 8,
+      left: barra.right + 8,
       bottom: window.innerHeight - usuario.top + 8,
     };
   };
@@ -871,6 +997,18 @@ export default function Shell() {
 
   const cerrarCajon = () => { if (vertical) { ocultarMenu(); ocultarVolumen(); setOpen(false); } };
 
+  const conVolver = ["notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio"].includes(vista);
+  const botonVolver = (
+    <button
+      className={`icon-btn${vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? " volver-btn" : ""}`}
+      type="button"
+      aria-label="Volver"
+      onClick={() => navigate(rutaState?.desde || `/${orgActiva}/${sala?.codigo || salas[0]?.codigo || ""}`)}
+    >
+      <ArrowLeft size={18} />
+    </button>
+  );
+
   return (
     <div className={`shell${open ? "" : " is-collapsed"}${vertical ? " is-portrait" : ""}${vertical && open ? " is-drawer" : ""}`}>
       {vertical && open ? (
@@ -1000,19 +1138,11 @@ export default function Shell() {
         </div>
       </aside>
       <main className="shell-main">
-        <header className="room-nav">
+        <header className={`room-nav${movil && conVolver ? " has-volver" : ""}`}>
+          {movil && conVolver ? botonVolver : null}
           <div className="room-title">
             <h1>
-              {vista === "notificaciones" || vista === "mensajes" || vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? (
-                <button
-                  className={`icon-btn${vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? " volver-btn" : ""}`}
-                  type="button"
-                  aria-label="Volver"
-                  onClick={() => navigate(rutaState?.desde || `/${orgActiva}/${sala?.codigo || salas[0]?.codigo || ""}`)}
-                >
-                  <ArrowLeft size={18} />
-                </button>
-              ) : null}
+              {!movil && conVolver ? botonVolver : null}
               {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
               {vista === "sala-config" ? <span className="room-kicker">Configuración</span> : null}
             </h1>
@@ -1044,7 +1174,21 @@ export default function Shell() {
               }}
               onExpandir={() => { setAvisos(false); setCentro(true); }}
             />
-            {sala && vista === "sala" && acceso.editarPlanta ? (
+            {movil ? (
+              <button
+                className="icon-btn user-hit"
+                type="button"
+                aria-label="Menú de usuario"
+                aria-haspopup="menu"
+                aria-expanded={Boolean(menu && menuOn)}
+                onClick={(event) => {
+                  if (menu && menuOn) ocultarMenu();
+                  else mostrarMenu(event.currentTarget);
+                }}
+              >
+                <EllipsisVertical size={18} />
+              </button>
+            ) : sala && vista === "sala" && acceso.editarPlanta ? (
               <button className="icon-btn" type="button" aria-label="Configuración de la sala" onClick={() => navigate(ruta(sala.codigo || codigoSala(sala.nombre, activa), true), { state: { desde: pathname } })}>
                 <Settings size={18} />
               </button>
@@ -1326,7 +1470,7 @@ export default function Shell() {
             </div>
             <div className="sala-vista" key={panel}>
             {panel === "mapa" ? (
-              <div className="maquinas-grid">
+              <div className="maquinas-grid" ref={mapaRef}>
                 {sala.maquinas.map((machine, index) => {
                   const numero = String(machine.numero || index + 1).padStart(2, "0");
                   return (
@@ -1338,12 +1482,34 @@ export default function Shell() {
                 })}
               </div>
             ) : null}
+            {panel === "mapa" && !(movil && acceso.estadistica) ? <MotivosSala {...motivosProps} /> : null}
             {panel === "activity" || panel === "priority" ? (
-              <ListaSala panel={panel} maquinas={sala.maquinas} paros={paros} onAbrir={setParo} />
+              <ListaSala panel={panel} maquinas={sala.maquinas} paros={paros} logs={logsSala} onAbrir={setParo} congelar={Boolean(paro)} />
             ) : null}
             {panel === "history" ? <HistorialTabla org={orgActiva} salaCodigo={salaCodigo} paros={paros} turnos={sala.turnos} logs={logsSala} puedeReiniciar={acceso.editarPlanta} nombres={Object.fromEntries(Object.values(profile?.miembros || {}).filter((item) => item.uid).map((item) => [item.uid, item.nombre || item.email]) .concat(user?.uid ? [[user.uid, nombre]] : []))} /> : null}
             {panel === "efficiency" ? <EficienciaPanel maquinas={sala.maquinas} paros={paros} salaCodigo={salaCodigo} turnos={sala.turnos} logs={logsSala} umbral={umbralSala} /> : null}
             </div>
+            {movil ? (
+              <>
+                <HojaSala vista={hoja} onCerrar={() => setHoja(null)}>
+                  {(vistaHoja) => (
+                    vistaHoja === "history" ? (
+                      <HistorialHoja logs={logsSala} paros={paros} onAbrir={setParo} />
+                    ) : vistaHoja === VISTA_EFICIENCIA ? (
+                      <MotivosSala hoja {...motivosProps} />
+                    ) : (
+                      <ListaSala hoja panel={vistaHoja} maquinas={sala.maquinas} paros={paros} logs={logsSala} onAbrir={setParo} congelar={Boolean(paro)} />
+                    )
+                  )}
+                </HojaSala>
+                <NavHoja
+                  vista={hoja}
+                  onVista={setHoja}
+                  insignias={{ priority: sala.maquinas.filter((machine, index) => paros[String(machine.numero || index + 1).padStart(2, "0")]).length }}
+                  eficiencia={acceso.estadistica ? { valor: avanceSala && !avanceSala.fuera ? avanceSala.avance : null, buena: eficienciaBuena } : null}
+                />
+              </>
+            ) : null}
             {paro ? (
               <ParoModal
                 numero={paro}
@@ -1546,7 +1712,7 @@ export default function Shell() {
         document.body,
       ) : null}
       {menu ? createPortal(
-        <div className={`user-menu glass-pop${menuOn ? " is-on" : ""}`} style={{ left: menu.left, bottom: menu.bottom }}>
+        <div className={`user-menu glass-pop${menuOn ? " is-on" : ""}${menu.movil ? " is-movil" : ""}${menu.top != null ? " is-abajo" : ""}`} style={{ left: menu.left, bottom: menu.bottom, top: menu.top }}>
           <div className="user-menu-id">
             <strong>{nombre}</strong>
             <span>{correo}</span>
@@ -1570,6 +1736,17 @@ export default function Shell() {
           >
             <CircleUser size={18} /> Ficha personal
           </button>
+          {menu.movil && sala && vista === "sala" && acceso.editarPlanta ? (
+            <button
+              type="button"
+              onClick={() => {
+                ocultarMenu();
+                navigate(ruta(sala.codigo || codigoSala(sala.nombre, activa), true), { state: { desde: pathname } });
+              }}
+            >
+              <Settings size={18} /> Configuración
+            </button>
+          ) : null}
           <div className="menu-sub-wrap">
             <button type="button" className="menu-sub" onClick={() => setModos((value) => !value)}>
               <span><ModoIcon size={18} /> Modo</span>

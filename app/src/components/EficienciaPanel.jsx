@@ -95,6 +95,53 @@ function usePulso(valor, pasoMs) {
   return visto;
 }
 
+export function RelojTurno({ turnos, buena = true, className = "" }) {
+  const [ahora, setAhora] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setAhora(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const agenda = useMemo(() => turnosDe(turnos), [turnos]);
+  const turno = turnoActual(agenda, ahora);
+  const totalMin = Math.max(1, minutosTurno(turno));
+  const elapsed = Math.min(totalMin, transcurrido(turno, ahora));
+  const arco = (Math.min(totalMin, 12 * 60) / (12 * 60)) * CIRCUNFERENCIA;
+  const avance = (Math.min(elapsed, 12 * 60) / (12 * 60)) * CIRCUNFERENCIA;
+  const giro = ((turno.inicio / 60) % 12) * 30;
+  return (
+    <article className={`eficiencia-card eficiencia-reloj${className ? ` ${className}` : ""}`}>
+      <div className="clock-svg-wrapper">
+        <svg className="clock-svg" viewBox="0 0 100 100" aria-hidden="true">
+          <g>
+            {marcas.map((marca) => (
+              <line key={`${marca.x1}-${marca.y1}`} className="hour-mark" x1={marca.x1} y1={marca.y1} x2={marca.x2} y2={marca.y2} />
+            ))}
+          </g>
+          <circle className="clock-face" cx="50" cy="50" r={RADIO} />
+          <circle
+            className="shift-track"
+            cx="50"
+            cy="50"
+            r={RADIO}
+            style={{ strokeDasharray: `${arco} ${CIRCUNFERENCIA}`, transform: `rotate(${giro}deg)` }}
+          />
+          <circle
+            className={`shift-progress ${buena ? "efficiency-good" : "efficiency-bad"}`}
+            cx="50"
+            cy="50"
+            r={RADIO}
+            style={{ strokeDasharray: `${avance} ${CIRCUNFERENCIA}`, transform: `rotate(${giro}deg)` }}
+          />
+        </svg>
+        <div className="clock-center-info">
+          <span className="eficiencia-caption">tiempo restante</span>
+          <div className={`remaining-val ${buena ? "is-good" : "is-bad"}`}>{formatoReloj(totalMin - elapsed)}</div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function EficienciaPanel({ maquinas = [], paros = {}, salaCodigo, turnos, logs = [], umbral = UMBRAL_OEE }) {
   const [ahora, setAhora] = useState(() => new Date());
   useEffect(() => {
@@ -106,8 +153,6 @@ export default function EficienciaPanel({ maquinas = [], paros = {}, salaCodigo,
   const turno = turnoActual(agenda, ahora);
   const totalMin = Math.max(1, minutosTurno(turno));
   const elapsed = Math.min(totalMin, transcurrido(turno, ahora));
-  const restante = formatoReloj(totalMin - elapsed);
-
   const numeros = maquinas.map((machine, index) => String(machine.numero || index + 1).padStart(2, "0"));
   const activos = numeros.filter((numero) => paros[numero]);
   const parosVistos = usePulso(activos.length, 100);
@@ -136,44 +181,12 @@ export default function EficienciaPanel({ maquinas = [], paros = {}, salaCodigo,
 
   const eficiencia = usePulso(calculo.eficiencia, 30);
   const buena = eficiencia >= Number(umbral);
-  const arco = (Math.min(totalMin, 12 * 60) / (12 * 60)) * CIRCUNFERENCIA;
-  const avance = (Math.min(elapsed, 12 * 60) / (12 * 60)) * CIRCUNFERENCIA;
-  const giro = ((turno.inicio / 60) % 12) * 30;
   const hora = ahora.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
   const segundo = ahora.getSeconds().toString().padStart(2, "0");
 
   return (
     <section className="eficiencia-panel" aria-label="Eficiencia del turno">
-      <article className="eficiencia-card eficiencia-reloj">
-        <div className="clock-svg-wrapper">
-          <svg className="clock-svg" viewBox="0 0 100 100" aria-hidden="true">
-            <g>
-              {marcas.map((marca) => (
-                <line key={`${marca.x1}-${marca.y1}`} className="hour-mark" x1={marca.x1} y1={marca.y1} x2={marca.x2} y2={marca.y2} />
-              ))}
-            </g>
-            <circle className="clock-face" cx="50" cy="50" r={RADIO} />
-            <circle
-              className="shift-track"
-              cx="50"
-              cy="50"
-              r={RADIO}
-              style={{ strokeDasharray: `${arco} ${CIRCUNFERENCIA}`, transform: `rotate(${giro}deg)` }}
-            />
-            <circle
-              className={`shift-progress ${buena ? "efficiency-good" : "efficiency-bad"}`}
-              cx="50"
-              cy="50"
-              r={RADIO}
-              style={{ strokeDasharray: `${avance} ${CIRCUNFERENCIA}`, transform: `rotate(${giro}deg)` }}
-            />
-          </svg>
-          <div className="clock-center-info">
-            <span className="eficiencia-caption">tiempo restante</span>
-            <div className={`remaining-val ${buena ? "is-good" : "is-bad"}`}>{restante}</div>
-          </div>
-        </div>
-      </article>
+      <RelojTurno turnos={turnos} buena={buena} />
 
       <article className="eficiencia-card eficiencia-valor">
         <span className="eficiencia-caption">Eficiencia</span>
