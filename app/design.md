@@ -31,7 +31,7 @@ En tablet vertical (`.shell.is-portrait`) el Saiba flota sobre la página y qued
 - En el menú de usuario, debajo de Modo, una sola fila de 40px: a la izquierda el icono (botón circular de 38px) y a la derecha la barra de volumen con su punto. Sin cifras ni porcentajes.
 - El icono es el altavoz cuando suena y el altavoz tachado cuando está en cero o apagado. Tocarlo silencia (barra a cero) o, si está en silencio, devuelve el último volumen usado (100 si no había).
 - Correr la barra a la derecha enciende el sonido; llevarla a cero lo apaga.
-- Mientras el dedo arrastra, detrás de la barra aparece en 0.8s una cápsula de verde suave en degradé (`#10b981` del 6 % al 30 %, de izquierda a derecha, con canto fino del mismo verde) y se apaga igual al soltar.
+- Mientras el dedo arrastra, detrás de la barra aparece en 0.8s un fondo de verde suave en degradé (`#10b981` del 6 % al 30 %, de izquierda a derecha), sin borde ni esquinas redondeadas, y se apaga igual al soltar.
 - En escritorio el volumen sigue en su botón de la barra lateral.
 
 ### Configuración de la sala en móvil
@@ -92,7 +92,7 @@ Sigue la tab bar de un teléfono (guía `mobile-bottom-nav-design`) con el crist
 - La pastilla se desplaza de un botón a otro en 0.8s. Es un grupo `btn-slide`: no lleva el efecto de pulsación del botón.
 - Sala está activa mientras no hay hoja abierta, así que la pastilla siempre se ve. Tocar Paros, Activas o Historial abre la hoja en esa vista; tocar Sala o la vista activa la cierra y vuelve al mapa.
 - Si el perfil ve estadística, el centro lleva el botón de eficiencia: Sala y Paros a la izquierda, Activas e Historial a la derecha, y un hueco en medio del mismo ancho que un botón.
-  - Círculo de 60px que asoma sobre la barra (su centro queda 4px por encima del borde superior). La barra se recorta con una muesca de 37px de radio alrededor del botón, y el canto de la muesca lleva la misma línea de luz del vidrio.
+  - Círculo de 60px que asoma sobre la barra (su centro queda 4px por encima del borde superior). La barra se recorta con una muesca de 37px de radio alrededor del botón; donde la muesca toca el borde recto, dos curvas de 12px de radio la enlazan sin esquinas en punta. El canto de todo ese contorno lleva la misma línea de luz del vidrio. La forma se genera como SVG en `HojaSala` (máscara del vidrio y trazo del canto).
   - Usa la misma lógica de color que la píldora de turno de la cabecera (`.avance-turno`): la parte vacía es el verde de máquina (`--machine-bg-op`: `#14532d` en oscuro, `#86efac` en claro) y el relleno, plano, es `#10b981` hasta el porcentaje de eficiencia del turno; sube en 0.8s. Bajo el umbral, la parte vacía es rojo al 20 % y el relleno `#ff0000`. Aro fino y halo del color del relleno.
   - El porcentaje va en Urbanist 1rem, peso 700, cifras tabulares: blanco en oscuro y color del texto en claro, como la píldora. Fuera de turno dice «—», el fondo es vidrio transparente con borde de línea y no hay relleno.
   - Tocarlo abre la hoja Eficiencia; tocarlo otra vez la cierra. Abierto, el aro se engrosa y la pastilla de las pestañas se oculta. Al pulsar se reduce a escala 0.94.

@@ -901,13 +901,12 @@ export default function Shell() {
 
   const empezarArrastreVol = () => {
     setArrastreVol(true);
+    const fines = ["pointerup", "pointercancel", "touchend", "touchcancel", "mouseup", "blur"];
     const soltar = () => {
       setArrastreVol(false);
-      window.removeEventListener("pointerup", soltar);
-      window.removeEventListener("pointercancel", soltar);
+      fines.forEach((tipo) => window.removeEventListener(tipo, soltar, true));
     };
-    window.addEventListener("pointerup", soltar);
-    window.addEventListener("pointercancel", soltar);
+    fines.forEach((tipo) => window.addEventListener(tipo, soltar, true));
   };
 
   const mostrarVolumen = (nodo) => {

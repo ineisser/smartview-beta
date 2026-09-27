@@ -17,6 +17,32 @@ const CONFIG_HOJA = [...VISTAS_HOJA, { id: VISTA_EFICIENCIA, titulo: "Eficiencia
 
 const CIERRE_ARRASTRE = 96;
 
+// Muesca del botón central: círculo de radio R con su centro Y px sobre el borde de la barra,
+// unido al borde recto por dos curvas de radio CURVA tangentes a ambos.
+const MUESCA = (() => {
+  const r = 37;
+  const y = -4;
+  const curva = 12;
+  const n = (valor) => Number(valor.toFixed(3));
+  const ancho = 2 * Math.sqrt((r + curva) ** 2 - (curva - y) ** 2);
+  const k = r / (r + curva);
+  const tx = n((ancho / 2) * (1 - k));
+  const ty = n(y + k * (curva - y));
+  const alto = Math.ceil(y + r + 1);
+  const contorno = `M0 0A${curva} ${curva} 0 0 1 ${tx} ${ty}A${r} ${r} 0 0 0 ${n(ancho - tx)} ${ty}A${curva} ${curva} 0 0 1 ${n(ancho)} 0`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${n(ancho)}" height="${alto}" viewBox="0 0 ${n(ancho)} ${alto}"><path d="${contorno}Z" fill="#000"/></svg>`;
+  return {
+    ancho: n(ancho),
+    alto,
+    contorno,
+    estilo: {
+      "--muesca-mascara": `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
+      "--muesca-ancho": `${n(ancho)}px`,
+      "--muesca-alto": `${alto}px`,
+    },
+  };
+})();
+
 export default function HojaSala({ vista, onCerrar, children }) {
   const [montada, setMontada] = useState(Boolean(vista));
   const [visible, setVisible] = useState(false);
@@ -119,9 +145,18 @@ export function NavHoja({ vista, onVista, insignias = {}, eficiencia = null }) {
   return createPortal(
     <>
       <i className="hoja-nav-sombra" aria-hidden="true" />
-      <nav className={`hoja-nav btn-slide${centro ? " has-centro" : ""}`} role="tablist" aria-label="Vistas de la sala">
+      <nav
+        className={`hoja-nav btn-slide${centro ? " has-centro" : ""}`}
+        style={centro ? MUESCA.estilo : undefined}
+        role="tablist"
+        aria-label="Vistas de la sala"
+      >
         <i className="hoja-nav-vidrio" aria-hidden="true" />
-        {centro ? <i className="hoja-nav-muesca" aria-hidden="true" /> : null}
+        {centro ? (
+          <svg className="hoja-nav-muesca" width={MUESCA.ancho} height={MUESCA.alto} viewBox={`0 0 ${MUESCA.ancho} ${MUESCA.alto}`} aria-hidden="true">
+            <path d={MUESCA.contorno} />
+          </svg>
+        ) : null}
         <i
           className={`hoja-nav-marca${enEficiencia ? "" : " is-on"}`}
           style={{ left: `calc(5px + (100% - 10px) * ${casilla} / ${total})`, width: `calc((100% - 10px) / ${total})` }}

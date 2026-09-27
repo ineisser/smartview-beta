@@ -1042,9 +1042,7 @@ html.dark .volumen-fila input[type="range"]::-moz-range-thumb {
   bottom: 4px;
   left: 40px;
   right: 2px;
-  border-radius: 999px;
   background: linear-gradient(90deg, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.3) 100%);
-  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.22);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--move) var(--ease);

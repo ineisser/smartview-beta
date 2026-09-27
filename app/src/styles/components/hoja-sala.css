@@ -341,8 +341,6 @@ html.dark .hoja-nav-sombra {
     0 16px 44px rgba(15, 23, 42, 0.22);
   transform: translateX(-50%);
   isolation: isolate;
-  --muesca-r: 37px;
-  --muesca-y: -4px;
 }
 html.dark .hoja-nav {
   box-shadow:
@@ -368,27 +366,32 @@ html.dark .hoja-nav-vidrio {
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     inset 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
+/* La muesca (círculo con curvas de enlace) se recorta con un SVG generado en HojaSala */
 .hoja-nav.has-centro .hoja-nav-vidrio {
-  -webkit-mask: radial-gradient(circle at 50% var(--muesca-y), transparent calc(var(--muesca-r) - 0.5px), #000 var(--muesca-r));
-  mask: radial-gradient(circle at 50% var(--muesca-y), transparent calc(var(--muesca-r) - 0.5px), #000 var(--muesca-r));
+  -webkit-mask:
+    var(--muesca-mascara) 50% 0 / var(--muesca-ancho) var(--muesca-alto) no-repeat,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    var(--muesca-mascara) 50% 0 / var(--muesca-ancho) var(--muesca-alto) no-repeat exclude,
+    linear-gradient(#000 0 0);
 }
 
 /* Canto de la muesca: el borde del vidrio sigue la curva */
 .hoja-nav-muesca {
   position: absolute;
   left: 50%;
-  top: calc(var(--muesca-y) - var(--muesca-r));
-  width: calc(var(--muesca-r) * 2);
-  height: calc(var(--muesca-r) * 2);
-  box-sizing: border-box;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
+  top: 0;
+  overflow: visible;
   transform: translateX(-50%);
-  -webkit-mask: linear-gradient(transparent calc(var(--muesca-r) - var(--muesca-y)), #000 0);
-  mask: linear-gradient(transparent calc(var(--muesca-r) - var(--muesca-y)), #000 0);
   pointer-events: none;
 }
-html.dark .hoja-nav-muesca { border-color: rgba(255, 255, 255, 0.16); }
+.hoja-nav-muesca path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 1;
+}
+html.dark .hoja-nav-muesca path { stroke: rgba(255, 255, 255, 0.16); }
 .hoja-nav-hueco {
   flex: 1;
   min-width: 44px;
