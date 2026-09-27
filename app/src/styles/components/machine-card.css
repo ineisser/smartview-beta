@@ -80,6 +80,20 @@
   opacity: 1;
 }
 
+/* En móvil las tarjetas son de color sólido: sin desenfoque y sin transicionar todo */
+@media (max-width: 640px) {
+  .card-maquina,
+  .light .card-maquina {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-maquina:hover {
+    transform: none !important;
+    box-shadow: none;
+  }
+}
+
 /* Barrido de luz que recorre el mapa telar por telar (móvil) */
 .card-maquina.is-barrido::after {
   content: "";

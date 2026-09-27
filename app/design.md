@@ -114,7 +114,7 @@ Sigue la tab bar de un teléfono (guía `mobile-bottom-nav-design`) con el crist
 
 #### Cristal líquido de la barra
 
-- Fondo translúcido (blanco al 55 % en claro, gris al 55 % en oscuro) con desenfoque de 24px y saturación: el contenido se ve pasar por debajo.
+- Fondo casi opaco (blanco al 88 % en claro, gris al 90 % en oscuro) con desenfoque de 16px y saturación, para que las pestañas se lean bien sobre cualquier contenido.
 - Borde de 1px en degradado que se ilumina desde la esquina superior izquierda y vuelve a brillar abajo a la derecha.
 - Reflejo suave arriba a la izquierda, línea de luz interior en el borde superior y sombra amplia debajo.
 - La pastilla activa es también vidrio: fondo tenue con su propia línea de luz arriba.
@@ -137,6 +137,19 @@ Sigue la tab bar de un teléfono (guía `mobile-bottom-nav-design`) con el crist
 | Atendido | Reloj y hora de inicio | Check verde y duración total en negrita | Círculo verde relleno | Igual que activo |
 
 La tarjeta detenida lleva fondo propio más opaco para que el cristal no la tiña con el verde del mapa que queda detrás: un paro siempre se lee rojo. El rojo es Alerta 1 (`--color-alert-1`), nunca `#ff0000`.
+
+## Rendimiento en móvil
+
+- La hoja inferior no usa desenfoque de fondo: es casi opaca (blanco al 94 % en claro, gris al 96 % en oscuro). Un desenfoque a pantalla completa que se desliza traba los teléfonos.
+- Las tarjetas del mapa no llevan desenfoque en móvil y solo transicionan color, escala y sombra; sin efecto de hover.
+- El barrido del mapa se detiene mientras hay una hoja abierta.
+- La pantalla de la sala recalcula la eficiencia cada 5 segundos (antes, cada segundo redibujaba toda la vista). Los relojes que muestran segundos llevan su propio tic.
+- La animación de reordenar la lista solo mide las filas cuando cambia qué máquinas están paradas, no en cada segundo.
+
+## Aviso de nueva versión en móvil
+
+- Cuando hay una versión nueva desplegada, baja desde arriba un aviso flotante (0.8s): icono de actualizar en verde, «Nueva versión disponible» y «Toca para actualizar». Tocarlo recarga la app; la X circular lo oculta hasta la próxima versión.
+- Vidrio casi opaco como los menús (blanco al 94 % / gris al 94 %), radio 20px, respeta la zona segura superior.
 
 ## Comprobar
 

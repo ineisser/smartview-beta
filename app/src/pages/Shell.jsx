@@ -28,7 +28,7 @@ import Tooltip from "../components/Tooltip";
 import ParoModal from "../components/ParoModal";
 import EficienciaPanel, { RelojTurno } from "../components/EficienciaPanel";
 import AvanceTurno from "../components/AvanceTurno";
-import AvisoActualizacion from "../components/AvisoActualizacion";
+import AvisoActualizacion, { AvisoActualizacionMovil } from "../components/AvisoActualizacion";
 import TurnosConfig from "../components/TurnosConfig";
 import HojaSala, { NavHoja, VISTA_EFICIENCIA } from "../components/HojaSala";
 import useMedia, { MOVIL } from "../hooks/useMedia";
@@ -236,7 +236,6 @@ function ListaSala({ panel, maquinas, paros: parosVivos, logs = [], onAbrir, hoj
   useEffect(() => {
     if (!congelar) setParosVistos(parosVivos);
   }, [parosVivos, congelar]);
-  useFlip(lista);
   const paros = congelar ? parosVistos : parosVivos;
   const cuadros = hoja && panel === "priority";
   const turno = inicioTurno();
@@ -253,6 +252,7 @@ function ListaSala({ panel, maquinas, paros: parosVivos, logs = [], onAbrir, hoj
     if (paros[numero]) detenidas.push(numero);
     else activas.push(numero);
   });
+  useFlip(lista, `${panel}|${cuadros}|${detenidas.join(",")}|${activas.length}`);
   const filaActiva = (numero) => {
     const desde = Math.max(turno.getTime(), arranques[numero] || 0);
     return (
@@ -568,8 +568,8 @@ export default function Shell() {
   const [panel, setPanel] = useState("mapa");
   const movil = useMedia(MOVIL);
   const mapaRef = useRef(null);
-  useBarrido(mapaRef, movil && panel === "mapa");
   const [hoja, setHoja] = useState(null);
+  useBarrido(mapaRef, movil && panel === "mapa" && !hoja);
   const [tituloPanel, setTituloPanel] = useState("mapa");
   const [faseTitulo, setFaseTitulo] = useState("");
   const [paro, setParo] = useState(null);
@@ -780,7 +780,7 @@ export default function Shell() {
     setParosVoz(parosVozDe(sala?.parosVoz));
   }, [sala?.codigo, sala?.alertaOee, sala?.notificacionesAltavoz, sala?.repeticionesVoz, sala?.parosVoz, profile?.planta?.repeticionesVoz]);
   useEffect(() => {
-    const id = window.setInterval(() => setAhora(new Date()), 1000);
+    const id = window.setInterval(() => setAhora(new Date()), 5000);
     return () => window.clearInterval(id);
   }, []);
   useEffect(() => { setVistos(leerVistos(user?.uid)); }, [user?.uid]);
@@ -1510,7 +1510,7 @@ export default function Shell() {
                   return (
                     <div key={numero} className={`card-maquina${paros[numero] ? " is-stopped" : ""}`} role="button" tabIndex={0} onClick={() => { if (acceso.cargarParo || acceso.comentar) setParo(numero); }} onKeyDown={(event) => { if (event.key === "Enter" && (acceso.cargarParo || acceso.comentar)) setParo(numero); }}>
                       <span className="maquina-id">{numero}</span>
-                      <span className="stop-timer">0 min</span>
+                      <span className="stop-timer">{paros[numero] ? textoDuracion(Number(paros[numero].inicio) || Date.now()) : ""}</span>
                     </div>
                   );
                 })}
@@ -1709,6 +1709,7 @@ export default function Shell() {
         />
       ) : null}
       <Toast message={toast} onClose={() => setToast("")} />
+      {movil ? <AvisoActualizacionMovil visible={hayActualizacion} onActualizar={actualizar} /> : null}
       {volMenu ? createPortal(
         <div className={`volumen-menu glass-pop${volOn ? " is-on" : ""}`} style={{ left: volMenu.left, bottom: volMenu.bottom }}>
           <div className="volumen-fila">

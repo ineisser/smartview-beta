@@ -1028,6 +1028,76 @@ html.dark .volumen-fila input[type="range"]::-moz-range-thumb {
 .user-menu button:hover, .user-sub button:hover,
 .user-menu button.is-on, .user-sub button.is-on { background: var(--hover); }
 
+/* Aviso de nueva versión en móvil: baja desde arriba */
+.aviso-version {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: 12px;
+  right: 12px;
+  z-index: 210;
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--glass-line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.2);
+  color: var(--ink-solid);
+  opacity: 0;
+  transform: translateY(calc(-100% - 24px));
+  transition: transform var(--move) var(--ease), opacity var(--move) var(--ease);
+}
+html.dark .aviso-version {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(28, 28, 28, 0.94);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.aviso-version.is-on {
+  opacity: 1;
+  transform: none;
+}
+.aviso-version-accion {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.aviso-version-accion svg { flex: none; color: #10b981; }
+.aviso-version-accion span { display: flex; flex-direction: column; min-width: 0; }
+.aviso-version-accion strong { font-size: 0.9375rem; font-weight: 600; }
+.aviso-version-accion small { color: var(--muted); font-size: 0.8125rem; }
+.aviso-version-cerrar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-solid);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: background var(--move) var(--ease), opacity var(--move) var(--ease);
+}
+.aviso-version-cerrar:active { background: var(--hover); opacity: 1; }
+
 /* Volumen en la ficha (móvil): icono que silencia y barra sin cifras */
 .menu-volumen {
   position: relative;

@@ -14,7 +14,7 @@ const cajaDe = (nodo, raiz) => {
   return { x, y, w: nodo.offsetWidth, h: nodo.offsetHeight };
 };
 
-export default function useFlip(contenedor) {
+export default function useFlip(contenedor, firma) {
   const antes = useRef(new Map());
   useLayoutEffect(() => {
     const raiz = contenedor.current;
@@ -40,5 +40,5 @@ export default function useFlip(contenedor) {
       );
     });
     antes.current = ahora;
-  });
+  }, [contenedor, firma]);
 }
