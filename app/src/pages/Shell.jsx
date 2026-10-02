@@ -1018,6 +1018,35 @@ export default function Shell() {
     await saveProfile(user.uid, { planta });
   };
 
+  const guardarSalaParcial = async (cambios) => {
+    if (!user || !sala) return;
+    const siguientes = salas.map((item, index) => index === activa ? { ...item, ...cambios } : item);
+    await saveProfile(user.uid, { planta: { ...profile.planta, salas: siguientes } });
+  };
+
+  const simularMaquinas = async () => {
+    const entrada = window.prompt("¿Cuántas máquinas deseas crear?", "10");
+    const cantidad = Math.max(0, Math.min(1000, Number.parseInt(entrada || "0", 10) || 0));
+    if (!cantidad) return;
+    const maquinas = Array.from({ length: cantidad }, (_, i) => ({ numero: i + 1, codigo: String(i + 1), nombre: `Máquina ${String(i + 1).padStart(2, "0")}`, marca: "Desconocido", modelo: "Desconocido", serie: String(i + 1) }));
+    await guardarSalaParcial({ maquinas, decisionMaquinas: "si" });
+    setToast(`Se crearon ${cantidad} máquinas para completar.`);
+  };
+
+  const descargarPlantillaMaquinas = () => {
+    const entrada = window.prompt("¿Cuántas filas tendrá la plantilla?", "250");
+    const cantidad = Math.max(1, Math.min(1000, Number.parseInt(entrada || "250", 10) || 250));
+    const filas = ["codigo,nombre,marca,modelo,serie", ...Array.from({ length: cantidad }, (_, i) => `${i + 1},Máquina ${String(i + 1).padStart(2, "0")},Desconocido,Desconocido,${i + 1}`)];
+    const url = URL.createObjectURL(new Blob([filas.join("\n")], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a"); a.href = url; a.download = `plantilla-maquinas-${cantidad}.csv`; a.click(); URL.revokeObjectURL(url);
+  };
+
+  const descargarPlantillaMotivos = () => {
+    const filas = ["codigo,descripcion_corta,tipo,causa,deteccion,oee", "P01,Paro manual,Manual,,,Sí"];
+    const url = URL.createObjectURL(new Blob([filas.join("\n")], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a"); a.href = url; a.download = "plantilla-motivos.csv"; a.click(); URL.revokeObjectURL(url);
+  };
+
   const guardarFicha = async (event) => {
     event.preventDefault();
     if (!user || !sala || !ficha) return;
@@ -1663,21 +1692,12 @@ export default function Shell() {
             <p className="lede">No operativa. Falta configuración para poder usarla.</p>
             <ul className="setup-list">
               <Paso hecho texto="Has completado colocarle el nombre" />
-              <Paso
-                hecho={(sala.maquinas || []).length > 0}
-                texto={(sala.maquinas || []).length > 0 ? "Has completado ingresar el número de máquinas" : "No has completado ingresar el número de máquinas"}
-                pregunta="¿Quieres cargar las máquinas ahora?"
-                value={sala.decisionMaquinas || ""}
-                onChange={(opcion) => decidir("decisionMaquinas", "cantidad", opcion)}
-              />
-              <Paso
-                hecho={(sala.motivos || []).length > 0}
-                texto={(sala.motivos || []).length > 0 ? "Has completado la carga de motivos de paro" : "No has completado la carga de motivos de paro"}
-                pregunta="¿Deseas cargar los motivos de paro ahora?"
-                value={sala.decisionMotivos || ""}
-                onChange={(opcion) => decidir("decisionMotivos", "motivos", opcion)}
-              />
+              <Paso hecho={(sala.maquinas || []).length > 0} texto={(sala.maquinas || []).length > 0 ? "Máquinas cargadas" : "Aún no hay máquinas configuradas"} />
+              {!((sala.maquinas || []).length) ? <li className="onboarding-actions"><button className="btn btn-primary" type="button" onClick={simularMaquinas}>Crear máquinas</button><button className="btn btn-ghost" type="button" onClick={descargarPlantillaMaquinas}>Descargar plantilla</button></li> : null}
+              <Paso hecho={(sala.motivos || []).length > 0} texto={(sala.motivos || []).length > 0 ? "Motivos de paro cargados" : "Aún no hay motivos de paro configurados"} />
+              {!((sala.motivos || []).length) ? <li className="onboarding-actions"><button className="btn btn-ghost" type="button" onClick={descargarPlantillaMotivos}>Descargar plantilla de motivos</button></li> : null}
             </ul>
+            <div className="onboarding-skip"><button className="btn btn-primary" type="button" onClick={() => navigate(ruta(sala.codigo || codigoSala(sala.nombre, activa), true), { state: { desde: pathname } })}>Continuar a configuración</button><small>Puedes omitir estos pasos y completarlos después en Máquinas y Motivos.</small></div>
           </>
         ) : (
           <h1>Planta</h1>
