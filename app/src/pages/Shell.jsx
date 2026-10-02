@@ -14,7 +14,9 @@ import Avatar from "../components/Avatar";
 import Colaboradores from "./Colaboradores";
 import CentralAvisos from "./CentralAvisos";
 import Laboratorio from "./Laboratorio";
-import Dispositivos from "./Dispositivos";
+import Dispositivos, { dispositivosConectados } from "./Dispositivos";
+import DispositivosNav from "../components/DispositivosNav";
+import VolumenControl from "../components/VolumenControl";
 import { operariaAna, salasTelares } from "../simulador";
 import Ficha from "./Ficha";
 import useRobotAvance from "../hooks/useRobotAvance";
@@ -1020,8 +1022,9 @@ export default function Shell() {
     event.preventDefault();
     if (!user || !sala || !ficha) return;
     const listaActual = ficha.tipo === "maquina" ? [...(sala.maquinas || [])] : [...(sala.motivos || [])];
-    const { tipo, index, ...datos } = ficha;
-    listaActual[index] = { ...listaActual[index], ...datos };
+    const { tipo, index, nuevo, ...datos } = ficha;
+    if (nuevo) listaActual.push(datos);
+    else listaActual[index] = { ...listaActual[index], ...datos };
     const siguientes = salas.map((item, i) => (
       i === activa ? { ...item, [tipo === "maquina" ? "maquinas" : "motivos"]: listaActual } : item
     ));
@@ -1032,7 +1035,7 @@ export default function Shell() {
 
   const cerrarCajon = () => { if (vertical) { ocultarMenu(); ocultarVolumen(); setOpen(false); } };
 
-  const conVolver = ["notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio"].includes(vista);
+  const conVolver = ["notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio", "dispositivos"].includes(vista);
   const botonVolver = (
     <button
       className={`icon-btn${vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? " volver-btn" : ""}`}
@@ -1114,6 +1117,11 @@ export default function Shell() {
           </Tooltip>
         </div>
         <div className="sidebar-foot">
+          <Tooltip label={open ? "" : "Dispositivos"}>
+            <button className="pantalla-hit" type="button" aria-label="Dispositivos" onClick={() => { navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } }); cerrarCajon(); }}>
+              <Wifi size={18} /><span className="sala-copy">Dispositivos</span>
+            </button>
+          </Tooltip>
           <Tooltip label={open ? "" : (altavoz && volumen > 0 ? "Volumen" : "Sonido apagado")}>
             <button
               className="pantalla-hit volumen-hit"
@@ -1186,10 +1194,8 @@ export default function Shell() {
             {(vista === "sala" || vista === "sala-config") && avanceSala ? (
               <AvanceTurno letra={avanceSala.letra} avance={avanceSala.avance} fuera={avanceSala.fuera} umbral={umbralSala} />
             ) : null}
-            {vista === "sala" ? (
-              <button className="icon-btn" type="button" aria-label="Dispositivos conectados" onClick={() => navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })}>
-                <Wifi size={18} />
-              </button>
+            {vista === "sala" || vista === "dispositivos" ? (
+              <DispositivosNav conectados={dispositivosConectados()} activo={vista === "dispositivos"} onClick={() => vista === "dispositivos" ? window.location.reload() : navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })} />
             ) : null}
             <button
               ref={campanaRef}
@@ -1334,7 +1340,9 @@ export default function Shell() {
               <TurnosConfig turnos={sala.turnos} onGuardar={guardarTurnosSala} />
             ) : null}
             {pestana === "maquinas" ? (
-              <div className={`sheet${actualizando ? " is-loading" : ""}`}>
+              <div className="setup-table-section">
+                <div className="setup-table-actions"><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ tipo: "maquina", nuevo: true, nombre: "", marca: "Desconocido", modelo: "Desconocido", serie: String((sala.maquinas || []).length + 1), anio: "", codigo: String((sala.maquinas || []).length + 1), numero: (sala.maquinas || []).length + 1 })}>Nueva máquina</button></div>
+              <div className={`sheet setup-scroll-table${actualizando ? " is-loading" : ""}`}>
                 <table>
                   <colgroup>
                     <col className="col-code" />
@@ -1358,10 +1366,12 @@ export default function Shell() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </div></div>
             ) : null}
             {pestana === "motivos" ? (
-              <div className={`sheet${actualizando ? " is-loading" : ""}`}>
+              <div className="setup-table-section">
+                <div className="setup-table-actions"><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ tipo: "motivo", nuevo: true, codigo: "", corta: "", causa: "", deteccion: "", oee: "", tipoParo: "" })}>Nuevo motivo</button></div>
+              <div className={`sheet setup-scroll-table${actualizando ? " is-loading" : ""}`}>
                 <table>
                   <colgroup>
                     <col className="col-code" />
@@ -1381,11 +1391,12 @@ export default function Shell() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </div></div>
             ) : null}
+            <footer className="setup-footer">Smart View</footer>
           </div>
         ) : vista === "dispositivos" ? (
-          <Dispositivos />
+          <Dispositivos usuarioActual={nombre} />
         ) : vista === "ficha" ? (
           <Ficha
             profile={profile}
@@ -1677,7 +1688,7 @@ export default function Shell() {
         <div className="drawer-layer">
           <button className="drawer-back" type="button" aria-label="Cerrar" onClick={() => setFicha(null)} />
           <form className="drawer" onSubmit={guardarFicha}>
-            <h2>{ficha.tipo === "maquina" ? ficha.nombre : (ficha.corta || ficha.codigo)}</h2>
+            <div className="drawer-head"><h2>{ficha.nuevo ? (ficha.tipo === "maquina" ? "Nueva máquina" : "Nuevo motivo") : (ficha.tipo === "maquina" ? "Editar máquina" : "Editar motivo")}</h2><button className="icon-btn" type="button" aria-label="Cerrar" onClick={() => setFicha(null)}><X size={18}/></button></div>
             {ficha.tipo === "maquina" ? (
               ["nombre", "marca", "modelo", "serie", "anio"].map((campo) => (
                 <label className="field" key={campo}>
@@ -1693,7 +1704,7 @@ export default function Shell() {
                 </label>
               ))
             )}
-            <button className="btn btn-primary" type="submit">Guardar</button>
+            <div className="drawer-foot"><button className="btn btn-primary" type="submit">Guardar</button></div>
           </form>
         </div>
       ) : null}
@@ -1779,6 +1790,11 @@ export default function Shell() {
           >
             <CircleUser size={18} /> Ficha personal
           </button>
+          {menu.movil ? (
+            <button type="button" onClick={() => { ocultarMenu(); navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } }); }}>
+              <Wifi size={18} /> Dispositivos
+            </button>
+          ) : null}
           {menu.movil && sala && vista === "sala" && acceso.editarPlanta ? (
             <button
               type="button"
@@ -1806,6 +1822,9 @@ export default function Shell() {
             ) : null}
           </div>
           {menu.movil ? (
+            <VolumenControl compacto />
+          ) : null}
+          {false && menu.movil ? (
             <div className={`volumen-fila menu-volumen${arrastreVol ? " is-arrastre" : ""}`}>
               <button
                 type="button"
