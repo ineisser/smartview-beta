@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRightFromLine, Bell, Cast, Check, ChevronRight, Circle, CircleGauge, CircleUser, Clock, EllipsisVertical, FlaskConical, Grip, History, List, LogOut, Maximize2, MessageCircle, Minimize2, Monitor, Moon, Percent, RefreshCw, RotateCcw, Server, Settings, Square, Sun, Volume2, VolumeOff, X } from "lucide-react";
+import { ArrowLeft, ArrowRightFromLine, Bell, Cast, Check, ChevronRight, Circle, CircleGauge, CircleUser, Clock, EllipsisVertical, FlaskConical, Grip, History, List, LogOut, Maximize2, MessageCircle, Minimize2, Monitor, Moon, Percent, RefreshCw, Wifi, RotateCcw, Server, Settings, Square, Sun, Volume2, VolumeOff, X } from "lucide-react";
 import "../styles/components/modal.css";
 import { push, ref, update } from "firebase/database";
 import { rtdb } from "../firebase";
@@ -14,6 +14,7 @@ import Avatar from "../components/Avatar";
 import Colaboradores from "./Colaboradores";
 import CentralAvisos from "./CentralAvisos";
 import Laboratorio from "./Laboratorio";
+import Dispositivos from "./Dispositivos";
 import { operariaAna, salasTelares } from "../simulador";
 import Ficha from "./Ficha";
 import useRobotAvance from "../hooks/useRobotAvance";
@@ -669,7 +670,7 @@ export default function Shell() {
     paros: parosVozDe(sala?.parosVoz),
   });
   const { noLeidos } = useMensajes({ org: orgActiva, uid: user?.uid, nombre: profile?.nombre || user?.displayName || "" });
-  const vista = pathname.endsWith("/mensajes") ? "mensajes" : pathname.endsWith("/notificaciones") ? "notificaciones" : pathname.endsWith("/laboratorio") ? "laboratorio" : pathname.endsWith("/ficha") ? "ficha" : pathname.endsWith("/setup") ? "sala-config" : pathname.endsWith("/configuracion") ? "config" : "sala";
+  const vista = pathname.endsWith("/mensajes") ? "mensajes" : pathname.endsWith("/notificaciones") ? "notificaciones" : pathname.endsWith("/laboratorio") ? "laboratorio" : pathname.endsWith("/dispositivos") ? "dispositivos" : pathname.endsWith("/ficha") ? "ficha" : pathname.endsWith("/setup") ? "sala-config" : pathname.endsWith("/configuracion") ? "config" : "sala";
   const listaMiembros = useMemo(
     () => Object.entries(profile?.miembros || {}).map(([id, item]) => ({ id, ...item })),
     [profile?.miembros],
@@ -1177,13 +1178,18 @@ export default function Shell() {
           <div className="room-title">
             <h1>
               {!movil && conVolver ? botonVolver : null}
-              {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
+              {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "dispositivos" ? "Dispositivos" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
               {vista === "sala-config" ? <span className="room-kicker">Configuración</span> : null}
             </h1>
           </div>
           <div className="room-nav-actions">
             {(vista === "sala" || vista === "sala-config") && avanceSala ? (
               <AvanceTurno letra={avanceSala.letra} avance={avanceSala.avance} fuera={avanceSala.fuera} umbral={umbralSala} />
+            ) : null}
+            {vista === "sala" ? (
+              <button className="icon-btn" type="button" aria-label="Dispositivos conectados" onClick={() => navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })}>
+                <Wifi size={18} />
+              </button>
             ) : null}
             <button
               ref={campanaRef}
@@ -1378,6 +1384,8 @@ export default function Shell() {
               </div>
             ) : null}
           </div>
+        ) : vista === "dispositivos" ? (
+          <Dispositivos />
         ) : vista === "ficha" ? (
           <Ficha
             profile={profile}
