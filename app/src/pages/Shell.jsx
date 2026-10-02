@@ -1021,12 +1021,12 @@ export default function Shell() {
   const guardarFicha = async (event) => {
     event.preventDefault();
     if (!user || !sala || !ficha) return;
-    const listaActual = ficha.tipo === "maquina" ? [...(sala.maquinas || [])] : [...(sala.motivos || [])];
-    const { tipo, index, nuevo, ...datos } = ficha;
+    const listaActual = ficha.kind === "maquina" ? [...(sala.maquinas || [])] : [...(sala.motivos || [])];
+    const { kind, index, nuevo, ...datos } = ficha;
     if (nuevo) listaActual.push(datos);
     else listaActual[index] = { ...listaActual[index], ...datos };
     const siguientes = salas.map((item, i) => (
-      i === activa ? { ...item, [tipo === "maquina" ? "maquinas" : "motivos"]: listaActual } : item
+      i === activa ? { ...item, [kind === "maquina" ? "maquinas" : "motivos"]: listaActual } : item
     ));
     await saveProfile(user.uid, { planta: { ...profile.planta, salas: siguientes } });
     setFicha(null);
@@ -1341,7 +1341,7 @@ export default function Shell() {
             ) : null}
             {pestana === "maquinas" ? (
               <div className="setup-table-section">
-                <div className="setup-table-actions"><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ tipo: "maquina", nuevo: true, nombre: "", marca: "Desconocido", modelo: "Desconocido", serie: String((sala.maquinas || []).length + 1), anio: "", codigo: String((sala.maquinas || []).length + 1), numero: (sala.maquinas || []).length + 1 })}>Nueva máquina</button></div>
+                <div className="setup-table-actions"><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ kind: "maquina", nuevo: true, nombre: "", marca: "Desconocido", modelo: "Desconocido", serie: String((sala.maquinas || []).length + 1), anio: "", codigo: String((sala.maquinas || []).length + 1), numero: (sala.maquinas || []).length + 1 })}>Nueva máquina</button></div>
               <div className={`sheet setup-scroll-table${actualizando ? " is-loading" : ""}`}>
                 <table>
                   <colgroup>
@@ -1356,7 +1356,7 @@ export default function Shell() {
                   </thead>
                   <tbody>
                     {actualizando ? <FilasSkeleton columnas={5} /> : (sala.maquinas || []).map((machine, index) => (
-                      <tr key={machine.numero || index} onClick={() => setFicha({ tipo: "maquina", index, ...machine })}>
+                      <tr key={machine.numero || index} onClick={() => setFicha({ kind: "maquina", index, ...machine })}>
                         <td>{machine.codigo || machine.numero}</td>
                         <td>{machine.nombre}</td>
                         <td>{machine.marca || "—"}</td>
@@ -1370,7 +1370,7 @@ export default function Shell() {
             ) : null}
             {pestana === "motivos" ? (
               <div className="setup-table-section">
-                <div className="setup-table-actions"><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ tipo: "motivo", nuevo: true, codigo: "", corta: "", causa: "", deteccion: "", oee: "", tipoParo: "" })}>Nuevo motivo</button></div>
+                <div className="setup-table-actions"><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ kind: "motivo", nuevo: true, codigo: "", corta: "", causa: "", deteccion: "", oee: "", tipo: "" })}>Nuevo motivo</button></div>
               <div className={`sheet setup-scroll-table${actualizando ? " is-loading" : ""}`}>
                 <table>
                   <colgroup>
@@ -1383,7 +1383,7 @@ export default function Shell() {
                   </thead>
                   <tbody>
                     {actualizando ? <FilasSkeleton columnas={3} /> : (sala.motivos || []).map((motivo, index) => (
-                      <tr key={motivo.codigo || index} onClick={() => setFicha({ tipo: "motivo", index, ...motivo })}>
+                      <tr key={motivo.codigo || index} onClick={() => setFicha({ kind: "motivo", index, ...motivo })}>
                         <td>{motivo.codigo}</td>
                         <td>{motivo.corta || motivo.nombre || "—"}</td>
                         <td>{motivo.tipo || "—"}</td>
@@ -1688,8 +1688,8 @@ export default function Shell() {
         <div className="drawer-layer">
           <button className="drawer-back" type="button" aria-label="Cerrar" onClick={() => setFicha(null)} />
           <form className="drawer" onSubmit={guardarFicha}>
-            <div className="drawer-head"><h2>{ficha.nuevo ? (ficha.tipo === "maquina" ? "Nueva máquina" : "Nuevo motivo") : (ficha.tipo === "maquina" ? "Editar máquina" : "Editar motivo")}</h2><button className="icon-btn" type="button" aria-label="Cerrar" onClick={() => setFicha(null)}><X size={18}/></button></div>
-            {ficha.tipo === "maquina" ? (
+            <div className="drawer-head"><h2>{ficha.nuevo ? (ficha.kind === "maquina" ? "Nueva máquina" : "Nuevo motivo") : (ficha.kind === "maquina" ? "Editar máquina" : "Editar motivo")}</h2><button className="icon-btn" type="button" aria-label="Cerrar" onClick={() => setFicha(null)}><X size={18}/></button></div>
+            {ficha.kind === "maquina" ? (
               ["nombre", "marca", "modelo", "serie", "anio"].map((campo) => (
                 <label className="field" key={campo}>
                   <span>{campo}</span>
