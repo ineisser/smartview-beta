@@ -65,3 +65,31 @@
   .devices-view.is-desktop > .sheet.is-small tbody tr { cursor: pointer; }
   .devices-view.is-desktop > .sheet.is-small tbody tr:focus-visible { outline: 2px solid var(--ink-solid); outline-offset: -2px; }
 }
+
+
+/* Barra de filtros y resumen de Dispositivos. */
+.devices-view .dispositivos-filtros { justify-content: flex-start; }
+.devices-view .dispositivos-tipos { display: flex; align-items: center; gap: 10px; }
+.devices-view .dispositivos-tipos .device-filter { width: auto; min-height: 38px; padding: 0 10px; display: inline-flex; align-items: center; gap: 8px; border-radius: 9px; }
+.devices-view .dispositivos-tipos .device-filter > span { font-size: .75rem; }
+.devices-view .dispositivos-tipos .device-filter > i { position: static; min-width: 24px; height: 22px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.92); border-radius: 7px; background: #eceff3; color: currentColor; font-size: .7rem; font-style: normal; line-height: 1; }
+.devices-view .dispositivos-tipos .device-filter.is-on { background: var(--ink-solid); color: var(--surface); }
+.devices-view .dispositivos-tipos .device-filter.is-on > i { background: #fff; color: #111827; border-color: #fff; }
+.devices-filter-separator { width: 1px; height: 30px; margin-inline: 3px; background: linear-gradient(to bottom, transparent, var(--line) 22%, var(--line) 78%, transparent); }
+.devices-view .dispositivos-tipos .devices-refresh { width: 38px; height: 38px; background: transparent; }
+.devices-view .dispositivos-tipos .devices-refresh:hover { background: var(--hover); }
+.devices-footer { width: 100%; margin-top: 14px; padding: 12px 2px; border-top: 1px solid var(--line); color: var(--muted); font-size: .76rem; text-align: left; }
+.devices-footer strong { color: var(--ink-solid); }
+@media (prefers-color-scheme: dark) {
+  .devices-view .dispositivos-tipos .device-filter > i { background: #fff; color: #111827; border-color: #fff; }
+}
+@media (min-width: 641px) {
+  .devices-view.is-desktop { max-width: 1180px; }
+  .devices-view.is-desktop > .sheet.is-small { width: 100%; max-width: 100%; }
+}
+@media (max-width: 640px) {
+  .devices-view .dispositivos-tipos .device-filter > span:not(:first-child) { display: none; }
+  .devices-view .dispositivos-tipos { gap: 6px; padding-inline: 16px; }
+  .devices-filter-separator, .devices-refresh { display: none !important; }
+  .devices-footer { padding-inline: 16px; }
+}
