@@ -58,3 +58,10 @@
 }
 @keyframes device-sheet-up { from { transform: translateY(100%); opacity: .8; } to { transform: translateY(0); opacity: 1; } }
 @keyframes device-sheet-left { from { transform: translateX(100%); opacity: .8; } to { transform: translateX(0); opacity: 1; } }
+
+/* Desktop: conserva el aspecto de tabla original y añade interacción de detalle. */
+@media (min-width: 641px) {
+  .devices-view.is-desktop > .sheet.is-small { margin-top: 12px; }
+  .devices-view.is-desktop > .sheet.is-small tbody tr { cursor: pointer; }
+  .devices-view.is-desktop > .sheet.is-small tbody tr:focus-visible { outline: 2px solid var(--ink-solid); outline-offset: -2px; }
+}
