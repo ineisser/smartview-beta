@@ -127,16 +127,19 @@ export default function Dispositivos({ dispositivos = [], demostracion = false }
         </article>;
       })}
       {!visibles.length && <p className="devices-empty" role="status">No hay dispositivos para este filtro.</p>}
-    </div> : <div className="devices-table-wrap">
-      <table className="devices-table">
-        <thead><tr><th>Dispositivo</th><th>MAC</th><th>Usuario</th><th>Estado</th><th>Último acceso</th></tr></thead>
+    </div> : <div className="sheet is-small">
+      <table>
+        <thead><tr><th>Dispositivo</th><th>MAC</th><th>Usuario</th><th>Estado</th></tr></thead>
         <tbody>{visibles.map((item) => {
           const Icono = iconoDe(item.tipo);
-          return <tr key={item.id} tabIndex="0" onClick={(event) => { origen.current = event.currentTarget; setSeleccion(item.id); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); origen.current = event.currentTarget; setSeleccion(item.id); } }}>
-            <td><span className="device-table-name"><Icono size={18} aria-hidden="true" />{item.nombre}</span></td>
-            <td>{item.mac || item.id}</td><td>{item.usuario || '—'}</td>
-            <td><span className="device-table-status"><i className={item.estado === 'Conectado' ? 'is-on' : 'is-off'} />{item.estado}</span></td>
-            <td><time dateTime={new Date(item.ultima).toISOString()} title={exacto(item.ultima)}>{relativo(item.ultima, ahora)}</time></td>
+          const conectado = item.estado === 'Conectado';
+          return <tr key={item.id} className={conectado ? '' : 'is-off'} tabIndex="0"
+            onClick={(event) => { origen.current = event.currentTarget; setSeleccion(item.id); }}
+            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); origen.current = event.currentTarget; setSeleccion(item.id); } }}>
+            <td><span className="estado-fila"><Icono size={18} aria-hidden="true" />{item.nombre}</span></td>
+            <td className="col-correo">{item.mac || item.id}</td>
+            <td>{item.usuario || '—'}</td>
+            <td><span className="estado-fila">{item.estado}<i className={`estado-punto ${conectado ? 'is-connected' : 'is-disconnected'}`} aria-hidden="true" /></span></td>
           </tr>;
         })}</tbody>
       </table>
