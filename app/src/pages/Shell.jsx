@@ -14,7 +14,8 @@ import Avatar from "../components/Avatar";
 import Colaboradores from "./Colaboradores";
 import CentralAvisos from "./CentralAvisos";
 import Laboratorio from "./Laboratorio";
-import Dispositivos, { dispositivosConectados } from "./Dispositivos";
+import Dispositivos from "./Dispositivos";
+import { dispositivosDemo, contarConectados } from "../data/dispositivos-demo";
 import DispositivosNav from "../components/DispositivosNav";
 import VolumenControl from "../components/VolumenControl";
 import { operariaAna, salasTelares } from "../simulador";
@@ -1224,7 +1225,7 @@ export default function Shell() {
               <AvanceTurno letra={avanceSala.letra} avance={avanceSala.avance} fuera={avanceSala.fuera} umbral={umbralSala} />
             ) : null}
             {vista === "sala" || vista === "dispositivos" ? (
-              <DispositivosNav conectados={dispositivosConectados()} activo={vista === "dispositivos"} onClick={() => vista === "dispositivos" ? window.location.reload() : navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })} />
+              <DispositivosNav conectados={contarConectados(dispositivosDemo)} demostracion activo={vista === "dispositivos"} onClick={() => vista === "dispositivos" ? undefined : navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })} />
             ) : null}
             <button
               ref={campanaRef}
@@ -1425,7 +1426,7 @@ export default function Shell() {
             <footer className="setup-footer">Smart View</footer>
           </div>
         ) : vista === "dispositivos" ? (
-          <Dispositivos usuarioActual={nombre} />
+          <Dispositivos dispositivos={dispositivosDemo} demostracion />
         ) : vista === "ficha" ? (
           <Ficha
             profile={profile}
