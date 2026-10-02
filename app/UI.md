@@ -95,3 +95,16 @@ Una columna centrada, máximo 420px, sobre fondo blanco.
 Rangos de empleados y de planta: 1 a 10, 10 a 20, 20 a 50, 50 a 500, 500 a 1000, más de 1000. Salas: 1, 2 a 3, 4 a 5, más de 5. Equipos: 1 a 20, 20 a 50, 50 a 100, 100 a 500, 500 a 1000.
 
 El rubro textil permite varias marcas: hilandería, tejeduría, tintorería, confección y otros. Metalmecánica no tiene subopciones.
+
+## Regla de reutilización
+
+Antes de crear una pantalla o componente nuevo, se revisan primero las pantallas, componentes y clases existentes de Smart View. Si ya existe un patrón equivalente, se reutiliza su estructura y sus clases; no se crea una variante visual nueva ni se agregan estilos inline para resolver el mismo caso.
+
+Patrones de referencia actuales:
+
+- **Tabla compacta de configuración:** usar la estructura de «Usuarios y accesos»: `.config-section`, `.config-section-head` y `.sheet.is-small`. Las nuevas tablas administrativas, como Dispositivos, parten de este patrón.
+- **Estados de fila:** reutilizar `.is-off`, `.estado-fila` y `.estado-punto` cuando corresponda, antes de crear indicadores nuevos.
+- **Botones, tooltips, modales y tabs:** reutilizar los componentes existentes `Button`, `Tooltip`, modal y `TabSwitch` descritos en esta guía.
+- **Responsive:** cualquier adaptación por tamaño se documenta en `design.md` y respeta sus breakpoints. No se crea un breakpoint aislado si uno existente resuelve el caso.
+
+Una pantalla nueva debe sentirse como una extensión de Smart View, no como una interfaz independiente.
