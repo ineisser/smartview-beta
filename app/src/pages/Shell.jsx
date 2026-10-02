@@ -1225,7 +1225,7 @@ export default function Shell() {
               <AvanceTurno letra={avanceSala.letra} avance={avanceSala.avance} fuera={avanceSala.fuera} umbral={umbralSala} />
             ) : null}
             {vista === "sala" || vista === "dispositivos" ? (
-              <DispositivosNav conectados={contarConectados(dispositivosDemo)} demostracion activo={vista === "dispositivos"} onClick={() => vista === "dispositivos" ? undefined : navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })} />
+              <DispositivosNav conectados={contarConectados(dispositivosDemo)} demostracion activo={vista === "dispositivos"} mac={dispositivosDemo.find((item) => item.tipo === "iot")?.mac || ""} onClick={() => vista === "dispositivos" ? undefined : navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })} />
             ) : null}
             <button
               ref={campanaRef}
