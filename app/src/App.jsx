@@ -38,6 +38,7 @@ export default function App() {
       <Route path="/plataforma" element={<Private><Platform /></Private>} />
       <Route path="/invitar/:token" element={<Invite />} />
       <Route path="/:orgCodigo/configuracion" element={<Private><Shell /></Private>} />
+      <Route path="/:orgCodigo/dispositivos" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/ficha" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/notificaciones" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/mensajes" element={<Private><Shell /></Private>} />
