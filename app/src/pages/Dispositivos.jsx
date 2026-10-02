@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, Cpu, Ellipsis, Laptop, Monitor, Smartphone, Tablet, X } from "lucide-react";
 import { contarConectados } from "../data/dispositivos-demo";
+import useMedia, { MOVIL } from "../hooks/useMedia";
 import "../styles/components/dispositivos.css";
 
 const tipos = [
@@ -75,6 +76,7 @@ function DetalleDispositivo({ dispositivo, ahora, volverA, onCerrar }) {
 
 // La página recibe un listado; la fuente de datos se decide fuera de la UI.
 export default function Dispositivos({ dispositivos = [], demostracion = false }) {
+  const movil = useMedia(MOVIL);
   const [filtro, setFiltro] = useState('todos');
   const origen = useRef(null);
   const [seleccion, setSeleccion] = useState(null);
@@ -97,7 +99,7 @@ export default function Dispositivos({ dispositivos = [], demostracion = false }
   }, [menu]);
   const detalle = dispositivos.find((item) => item.id === seleccion);
   const visibles = dispositivos.filter((item) => filtro === 'todos' || item.tipo === filtro);
-  return <section className="dispositivos-page devices-view" aria-label="Dispositivos">
+  return <section className={`dispositivos-page devices-view${movil ? " is-mobile" : " is-desktop"}`} aria-label="Dispositivos">
     {demostracion && <p className="devices-demo">Datos de demostración · La presencia en tiempo real aún no está disponible.</p>}
     <div className="dispositivos-filtros">
       <strong>{contarConectados(dispositivos)} conectados</strong>
@@ -112,23 +114,34 @@ export default function Dispositivos({ dispositivos = [], demostracion = false }
         })}
       </div>
     </div>
-    <div className="dispositivos-lista">
+    {movil ? <div className="dispositivos-lista">
       {visibles.map((item) => {
         const Icono = iconoDe(item.tipo);
         return <article className="dispositivo-card device-row" key={item.id}>
-          <button className="device-open" type="button" onClick={(event) => { origen.current = event.currentTarget; setSeleccion(item.id); }} aria-label={`Ver detalle de ${item.nombre}, ${item.estado}`}>
-            <span className="dispositivo-tipo"><Icono size={26} aria-hidden="true" /><i className={item.estado === 'Conectado' ? 'is-on' : 'is-off'} aria-hidden="true" /></span>
-            <span className="device-row-text"><strong>{item.usuario || item.nombre}</strong><span>{item.nombre}</span><span>{item.mac || item.id}</span></span>
-          </button>
+          <span className="dispositivo-tipo"><Icono size={26} aria-hidden="true" /><i className={item.estado === 'Conectado' ? 'is-on' : 'is-off'} aria-hidden="true" /></span>
+          <span className="device-row-text"><strong>{item.usuario || item.nombre}</strong><span>{item.nombre}</span><span>{item.mac || item.id}</span></span>
           <div className="device-actions">
-            <button className="icon-btn" type="button" aria-label={`Opciones de ${item.nombre}`} aria-expanded={menu === item.id} aria-controls={`opciones-${item.id}`} onClick={(event) => { origen.current = event.currentTarget; setMenu(menu === item.id ? null : item.id); }}><Ellipsis size={20} /></button>
+            <button className="icon-btn" type="button" aria-label={`Opciones de ${item.nombre}`} onClick={(event) => { origen.current = event.currentTarget; setSeleccion(item.id); }}><Ellipsis size={20} /></button>
             <time dateTime={new Date(item.ultima).toISOString()} title={exacto(item.ultima)}>{relativo(item.ultima, ahora)}</time>
-            {menu === item.id && <div className="device-options" id={`opciones-${item.id}`}><button type="button" onClick={() => { setSeleccion(item.id); setMenu(null); }}>Ver detalle</button></div>}
           </div>
         </article>;
       })}
       {!visibles.length && <p className="devices-empty" role="status">No hay dispositivos para este filtro.</p>}
-    </div>
+    </div> : <div className="devices-table-wrap">
+      <table className="devices-table">
+        <thead><tr><th>Dispositivo</th><th>MAC</th><th>Usuario</th><th>Estado</th><th>Último acceso</th></tr></thead>
+        <tbody>{visibles.map((item) => {
+          const Icono = iconoDe(item.tipo);
+          return <tr key={item.id} tabIndex="0" onClick={(event) => { origen.current = event.currentTarget; setSeleccion(item.id); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); origen.current = event.currentTarget; setSeleccion(item.id); } }}>
+            <td><span className="device-table-name"><Icono size={18} aria-hidden="true" />{item.nombre}</span></td>
+            <td>{item.mac || item.id}</td><td>{item.usuario || '—'}</td>
+            <td><span className="device-table-status"><i className={item.estado === 'Conectado' ? 'is-on' : 'is-off'} />{item.estado}</span></td>
+            <td><time dateTime={new Date(item.ultima).toISOString()} title={exacto(item.ultima)}>{relativo(item.ultima, ahora)}</time></td>
+          </tr>;
+        })}</tbody>
+      </table>
+      {!visibles.length && <p className="devices-empty" role="status">No hay dispositivos para este filtro.</p>}
+    </div>}
     {detalle && <DetalleDispositivo key={detalle.id} dispositivo={detalle} ahora={ahora} volverA={origen.current} onCerrar={() => setSeleccion(null)} />}
   </section>;
 }
