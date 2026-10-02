@@ -3210,3 +3210,5 @@ html.dark .menu.menu-side .menu-list {
 .device-history-head,.device-history>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.device-history-head{margin:12px 0 6px}.device-history-head span{font-size:.7rem;color:var(--muted)}
 .device-history>div{min-height:38px;border-bottom:1px solid var(--line);font-size:.76rem}.device-history time{color:var(--muted);font-variant-numeric:tabular-nums}.device-more{display:block;margin:12px 0 0 auto;border:0;background:transparent;color:var(--ink-solid);font-weight:600}
 @media(max-width:640px){.setup-table-section{max-height:calc(100dvh - 190px - var(--tabbar-reserva,104px))}.setup-footer{padding-bottom:var(--tabbar-reserva,104px)}}
+
+.onboarding-actions{display:flex;flex-wrap:wrap;gap:8px;padding:8px 0 16px 40px;list-style:none}.onboarding-actions .btn{width:auto}.onboarding-skip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}.onboarding-skip .btn{width:auto}.onboarding-skip small{color:var(--muted)}
