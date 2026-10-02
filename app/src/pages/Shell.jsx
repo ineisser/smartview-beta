@@ -673,7 +673,8 @@ export default function Shell() {
     paros: parosVozDe(sala?.parosVoz),
   });
   const { noLeidos } = useMensajes({ org: orgActiva, uid: user?.uid, nombre: profile?.nombre || user?.displayName || "" });
-  const vista = pathname.endsWith("/mensajes") ? "mensajes" : pathname.endsWith("/notificaciones") ? "notificaciones" : pathname.endsWith("/laboratorio") ? "laboratorio" : pathname.endsWith("/dispositivos") ? "dispositivos" : pathname.endsWith("/ficha") ? "ficha" : pathname.endsWith("/setup") ? "sala-config" : pathname.endsWith("/configuracion") ? "config" : "sala";
+  const pathnameNormalizado = pathname.length > 1 ? pathname.replace(/\\/+$/, "") : pathname;
+  const vista = pathnameNormalizado.endsWith("/mensajes") ? "mensajes" : pathnameNormalizado.endsWith("/notificaciones") ? "notificaciones" : pathnameNormalizado.endsWith("/laboratorio") ? "laboratorio" : pathnameNormalizado.endsWith("/dispositivos") ? "dispositivos" : pathnameNormalizado.endsWith("/ficha") ? "ficha" : pathnameNormalizado.endsWith("/setup") ? "sala-config" : pathnameNormalizado.endsWith("/configuracion") ? "config" : "sala";
   const listaMiembros = useMemo(
     () => Object.entries(profile?.miembros || {}).map(([id, item]) => ({ id, ...item })),
     [profile?.miembros],
