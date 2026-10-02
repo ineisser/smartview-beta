@@ -108,3 +108,12 @@ Patrones de referencia actuales:
 - **Responsive:** cualquier adaptación por tamaño se documenta en `design.md` y respeta sus breakpoints. No se crea un breakpoint aislado si uno existente resuelve el caso.
 
 Una pantalla nueva debe sentirse como una extensión de Smart View, no como una interfaz independiente.
+
+
+## Reglas transversales añadidas
+
+- **Claro y oscuro:** toda pantalla, control, badge, tabla, drawer y hoja inferior reutiliza los tokens de tema; un cambio funcional debe revisarse en ambos modos.
+- **Tablas largas:** la página conserva su cabecera; el cuerpo de la tabla ocupa el alto disponible y hace scroll interno. El encabezado de columnas permanece sticky y un footer marca el límite inferior.
+- **Cajón de alta/edición:** crear y editar máquinas o motivos usa el mismo drawer lateral. Título y cierre permanecen arriba; acciones permanecen abajo.
+- **Dispositivos:** el acceso de cabecera es un componente único con badge morado y contador blanco. En móvil la tabla se transforma en tarjetas y el detalle usa una hoja inferior.
+- **Volumen:** icono, slider, mute/restauración y persistencia pertenecen a un único componente reutilizable. Durante el arrastre, progreso y thumb usan Alerta 1 con halo; fuera del arrastre vuelven al estado neutro.
