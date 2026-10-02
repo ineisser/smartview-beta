@@ -11,45 +11,50 @@ const dispositivos = [
 const iconos = { movil: Smartphone, tablet: Tablet, laptop: Laptop, pc: Monitor, iot: Cpu };
 
 export default function Dispositivos() {
+  const conectados = dispositivos.filter((item) => item.estado === "Conectado").length;
+
   return (
-    <div className="config-page">
-      <section className="config-section">
-        <div className="section-label">
-          <span>Dispositivos conectados</span>
-          <span className="section-count">{dispositivos.filter((item) => item.estado === "Conectado").length}</span>
-        </div>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Dispositivo</th><th>MAC</th><th>Usuario</th><th>Estado</th></tr>
-            </thead>
-            <tbody>
-              {dispositivos.map((item) => {
-                const Icono = iconos[item.tipo] || Cpu;
-                const conectado = item.estado === "Conectado";
-                return (
-                  <tr key={item.id}>
-                    <td>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                        <Icono size={19} />
-                        <strong>{item.nombre}</strong>
-                      </span>
-                    </td>
-                    <td><span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}>{item.mac}</span></td>
-                    <td>{item.usuario}</td>
-                    <td>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                        <i aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: conectado ? "#10b981" : "currentColor", opacity: conectado ? 1 : .35 }} />
-                        <span style={conectado ? undefined : { opacity: .55 }}>{item.estado}</span>
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
+    <section className="config-section">
+      <div className="config-section-head">
+        <h2>Dispositivos</h2>
+        <span className="section-count">{conectados}</span>
+      </div>
+      <div className="sheet is-small">
+        <table>
+          <thead>
+            <tr>
+              <th>Dispositivo</th>
+              <th>MAC</th>
+              <th>Usuario</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dispositivos.map((item) => {
+              const Icono = iconos[item.tipo] || Cpu;
+              const conectado = item.estado === "Conectado";
+              return (
+                <tr key={item.id} className={conectado ? "" : "is-off"}>
+                  <td>
+                    <span className="estado-fila">
+                      <Icono size={18} />
+                      {item.nombre}
+                    </span>
+                  </td>
+                  <td className="col-correo">{item.mac}</td>
+                  <td>{item.usuario}</td>
+                  <td>
+                    <span className="estado-fila">
+                      {item.estado}
+                      {conectado ? <i className="estado-punto" aria-hidden="true" /> : null}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
