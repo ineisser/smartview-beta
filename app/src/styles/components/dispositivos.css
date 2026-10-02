@@ -93,3 +93,13 @@
   .devices-filter-separator, .devices-refresh { display: none !important; }
   .devices-footer { padding-inline: 16px; }
 }
+
+.dispositivos-nav-wrap { display: inline-flex; align-items: center; gap: 10px; }
+.machine-mac { display: inline-flex; align-items: center; gap: 10px; }
+.machine-mac-copy { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.machine-mac-copy small { color: var(--muted); font-size: .62rem; font-weight: 700; letter-spacing: .08em; }
+.machine-mac-copy strong { color: var(--ink-solid); font-size: .74rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.machine-mac-copy-btn { width: 28px; height: 28px; opacity: 0; pointer-events: none; transition: opacity .15s ease, background .15s ease; }
+.machine-mac-copy:hover .machine-mac-copy-btn, .machine-mac-copy:focus-within .machine-mac-copy-btn { opacity: 1; pointer-events: auto; }
+.devices-nav-separator { width: 1px; height: 28px; background: linear-gradient(to bottom, transparent, var(--line) 22%, var(--line) 78%, transparent); }
+@media (max-width: 640px) { .machine-mac { display: none; } }
