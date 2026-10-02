@@ -3169,3 +3169,44 @@ html.dark .menu.menu-side .menu-list {
     animation: none !important;
   }
 }
+
+
+/* Dispositivos, volumen y tablas largas — patrones reutilizables */
+.dispositivos-page,.setup-page{max-width:1180px}
+.dispositivos-nav{position:relative}
+.dispositivos-badge,.dispositivos-tipos button i{position:absolute;display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#7c3aed;color:#fff;font:700 10px/1 Inter,sans-serif}
+.dispositivos-badge{top:-3px;right:-5px}
+.este-dispositivo{margin-left:8px;padding:2px 6px;border-radius:999px;background:var(--hover);color:var(--ink);font-size:.68rem;font-style:normal}
+.estado-punto.is-connected{background:#10b981}.estado-punto.is-disconnected{background:var(--color-alert-1,var(--danger))}
+.volumen-control{min-width:250px}.volumen-control-titulo{display:block;margin-bottom:10px;font-size:.78rem;color:var(--muted)}
+.volumen-control-fila{display:flex;align-items:center;gap:10px}.volumen-control-fila input{flex:1;accent-color:var(--ink-solid)}
+.volumen-control.is-arrastre input{accent-color:var(--color-alert-1,var(--danger));filter:drop-shadow(0 0 6px var(--color-alert-1,var(--danger)))}
+.volumen-control.is-compacto{min-width:0;width:100%;padding:6px 8px}.volumen-control.is-compacto .volumen-control-fila{width:100%}
+.setup-table-section{display:flex;flex-direction:column;min-height:0;max-height:calc(100dvh - 220px)}
+.setup-table-actions{display:flex;justify-content:flex-end;padding:8px 0}
+.setup-scroll-table{overflow:auto;min-height:0}
+.setup-scroll-table thead th{position:sticky;top:0;z-index:2;background:var(--glass)}
+.setup-footer{flex:none;margin-top:12px;padding:12px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.75rem}
+.drawer{display:flex;flex-direction:column;max-height:100dvh;overflow:auto}
+.drawer-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;background:var(--glass);backdrop-filter:blur(16px)}
+.drawer-head h2{margin:0}.drawer-foot{position:sticky;bottom:0;margin-top:auto;padding-top:16px;background:var(--glass);backdrop-filter:blur(16px)}
+.dispositivos-movil{margin-inline:calc(-1 * (16px + env(safe-area-inset-left,0px)));padding-bottom:var(--tabbar-reserva,104px)}
+.dispositivos-filtros{position:sticky;top:0;z-index:12;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:8px 16px;background:var(--glass);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.dispositivos-filtros>strong{font-size:.78rem;white-space:nowrap}.dispositivos-tipos{display:flex;justify-content:center;gap:4px}
+.dispositivos-tipos button{position:relative;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted)}
+.dispositivos-tipos button.is-on{background:var(--hover);color:var(--ink-solid)}.dispositivos-tipos button i{top:-2px;right:-3px;font-style:normal}
+.dispositivos-lista{padding:8px 16px 40px}.dispositivo-card{display:grid;grid-template-columns:38px 1fr;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.dispositivo-tipo{position:relative;padding-top:4px}.dispositivo-tipo>i,.device-sheet-identidad>span>i{position:absolute;right:5px;bottom:2px;width:8px;height:8px;border-radius:50%}
+.dispositivo-tipo>i.is-on,.device-sheet-identidad>span>i.is-on{background:#10b981}.dispositivo-tipo>i.is-off,.device-sheet-identidad>span>i.is-off{background:var(--color-alert-1,var(--danger))}
+.dispositivo-datos{display:grid;grid-template-columns:1fr auto;gap:5px 8px;align-items:center;min-width:0}.dispositivo-datos strong{font-size:.88rem}.dispositivo-datos strong em{margin-left:6px;color:var(--muted);font-size:.65rem;font-style:normal;font-weight:500}
+.dispositivo-datos>button{border:0;background:transparent;color:var(--ink-solid)}.dispositivo-datos>span,.dispositivo-datos>time{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}.dispositivo-datos>time{text-align:right}
+.device-sheet-layer{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.28)}
+.device-sheet{width:100%;max-width:420px;max-height:90dvh;display:flex;flex-direction:column;border-radius:28px 28px 0 0;background:var(--glass);color:var(--ink-solid);box-shadow:0 -24px 70px rgba(0,0,0,.22);overflow:hidden}
+.device-sheet header{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:18px 16px 12px;border-bottom:1px solid var(--line)}
+.device-sheet-identidad{display:flex;align-items:center;gap:10px}.device-sheet-identidad>span{position:relative}.device-sheet-identidad div,.device-sheet-acceso{display:flex;flex-direction:column;gap:2px}.device-sheet small{font-size:.66rem;color:var(--muted)}.device-sheet strong{font-size:.82rem}.device-sheet-acceso{text-align:right}
+.device-sheet-body{position:relative;overflow:auto;padding:14px 16px max(56px,env(safe-area-inset-bottom,0px))}
+.device-sheet-body:after{content:"";position:sticky;display:block;left:0;right:0;bottom:-1px;height:34px;margin-top:-34px;pointer-events:none;background:linear-gradient(to top,var(--glass),transparent)}
+.device-mac{display:flex;align-items:center;justify-content:space-between;gap:12px}.device-mac>div{display:flex;flex-direction:column;gap:3px}.device-mac button{width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--ink-solid)}.device-mac button.is-copiado{background:var(--hover);transform:scale(.92)}
+.device-history-head,.device-history>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.device-history-head{margin:12px 0 6px}.device-history-head span{font-size:.7rem;color:var(--muted)}
+.device-history>div{min-height:38px;border-bottom:1px solid var(--line);font-size:.76rem}.device-history time{color:var(--muted);font-variant-numeric:tabular-nums}.device-more{display:block;margin:12px 0 0 auto;border:0;background:transparent;color:var(--ink-solid);font-weight:600}
+@media(max-width:640px){.setup-table-section{max-height:calc(100dvh - 190px - var(--tabbar-reserva,104px))}.setup-footer{padding-bottom:var(--tabbar-reserva,104px)}}
