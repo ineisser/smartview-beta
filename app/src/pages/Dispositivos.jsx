@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Copy, Cpu, Ellipsis, Laptop, Monitor, Smartphone, Tablet, X } from "lucide-react";
+import { Check, Copy, Cpu, Ellipsis, Laptop, Monitor, RefreshCw, Smartphone, Tablet, X } from "lucide-react";
 import { contarConectados } from "../data/dispositivos-demo";
 import useMedia, { MOVIL } from "../hooks/useMedia";
 import "../styles/components/dispositivos.css";
@@ -99,19 +99,24 @@ export default function Dispositivos({ dispositivos = [], demostracion = false }
   }, [menu]);
   const detalle = dispositivos.find((item) => item.id === seleccion);
   const visibles = dispositivos.filter((item) => filtro === 'todos' || item.tipo === filtro);
+  const conectados = contarConectados(dispositivos);
+  const actualizar = () => setAhora(Date.now());
   return <section className={`dispositivos-page devices-view${movil ? " is-mobile" : " is-desktop"}`} aria-label="Dispositivos">
     {demostracion && <p className="devices-demo">Datos de demostración · La presencia en tiempo real aún no está disponible.</p>}
     <div className="dispositivos-filtros">
-      <strong>{contarConectados(dispositivos)} conectados</strong>
       <div className="dispositivos-tipos" role="group" aria-label="Filtrar por tipo de dispositivo">
-        <button className={`device-all ${filtro === 'todos' ? 'is-on' : ''}`} aria-pressed={filtro === 'todos'} onClick={() => setFiltro('todos')} type="button">Todos</button>
+        <button className={`device-filter device-all ${filtro === 'todos' ? 'is-on' : ''}`} aria-pressed={filtro === 'todos'} onClick={() => setFiltro('todos')} type="button">
+          <span>Todos</span><i aria-hidden="true">{dispositivos.length}</i>
+        </button>
         {tipos.map(([id, nombre, Icono]) => {
           const cantidad = dispositivos.filter((item) => item.tipo === id).length;
           return <button key={id} type="button" title={`${nombre}: ${cantidad}`} aria-label={`${nombre}: ${cantidad} dispositivos`}
-            aria-pressed={filtro === id} className={filtro === id ? 'is-on' : ''} onClick={() => setFiltro(id)}>
-            <Icono size={18} aria-hidden="true" /><i aria-hidden="true">{cantidad}</i>
+            aria-pressed={filtro === id} className={`device-filter ${filtro === id ? 'is-on' : ''}`} onClick={() => setFiltro(id)}>
+            <Icono size={18} aria-hidden="true" /><span>{nombre}</span><i aria-hidden="true">{cantidad}</i>
           </button>;
         })}
+        <span className="devices-filter-separator" aria-hidden="true" />
+        <button className="icon-btn devices-refresh" type="button" aria-label="Actualizar dispositivos" title="Actualizar" onClick={actualizar}><RefreshCw size={18} /></button>
       </div>
     </div>
     {movil ? <div className="dispositivos-lista">
@@ -145,6 +150,7 @@ export default function Dispositivos({ dispositivos = [], demostracion = false }
       </table>
       {!visibles.length && <p className="devices-empty" role="status">No hay dispositivos para este filtro.</p>}
     </div>}
+    <footer className="devices-footer"><span><strong>{conectados}</strong> dispositivos conectados</span></footer>
     {detalle && <DetalleDispositivo key={detalle.id} dispositivo={detalle} ahora={ahora} volverA={origen.current} onCerrar={() => setSeleccion(null)} />}
   </section>;
 }
