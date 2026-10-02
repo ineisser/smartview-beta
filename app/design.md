@@ -154,3 +154,12 @@ La tarjeta detenida lleva fondo propio más opaco para que el cristal no la tiñ
 ## Comprobar
 
 Cada cambio de interfaz se revisa a 360px, 390px, 768px y más de 1024px, en claro y en oscuro. En móvil, la lista pasa por debajo de la barra y la última tarjeta queda visible al terminar el desplazamiento.
+
+
+## Dispositivos en móvil
+
+- Bajo la cabecera principal hay una barra sticky con total conectado, filtros por tipo con badge morado y actualización.
+- Cada dispositivo es una tarjeta compacta de dos columnas. La izquierda muestra tipo y estado; la derecha, último usuario, menú, identificador y tiempo relativo.
+- El detalle se abre como bottom sheet, máximo 90dvh, con esquinas superiores redondeadas y scroll interno. Lleva padding inferior y degradado para que el último contenido nunca quede oculto.
+- La barra de navegación inferior conserva prioridad visual y el contenido reserva su zona segura.
+- El detalle muestra usuario/estado, último acceso exacto en 24 horas, MAC copiable e historial. Empieza con 5 registros y «Ver más» añade 20 por vez.
