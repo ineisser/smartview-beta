@@ -596,7 +596,7 @@ export default function Shell() {
     uid: user?.uid,
     motivos: motivosSala,
   });
-  const historialOrg = useHistorialOrg(orgActiva);
+  const historialOrg = useHistorialOrg(orgActiva);\n  const dispositivosOrg = useDispositivosOrg(orgActiva, user, profile);
   const logsSala = useMemo(
     () => historialOrg.filter((item) => !item.sala || item.sala === salaCodigo),
     [historialOrg, salaCodigo],
@@ -674,7 +674,7 @@ export default function Shell() {
   });
   const { noLeidos } = useMensajes({ org: orgActiva, uid: user?.uid, nombre: profile?.nombre || user?.displayName || "" });
   const pathnameNormalizado = pathname.length > 1 ? pathname.replace(/\\/+$/, "") : pathname;
-  const vista = pathnameNormalizado.endsWith("/mensajes") ? "mensajes" : pathnameNormalizado.endsWith("/notificaciones") ? "notificaciones" : pathnameNormalizado.endsWith("/laboratorio") ? "laboratorio" : pathnameNormalizado.endsWith("/dispositivos") ? "dispositivos" : pathnameNormalizado.endsWith("/ficha") ? "ficha" : pathnameNormalizado.endsWith("/setup") ? "sala-config" : pathnameNormalizado.endsWith("/configuracion") ? "config" : "sala";
+  const vista = pathnameNormalizado.endsWith("/mensajes") ? "mensajes" : pathnameNormalizado.endsWith("/notificaciones") ? "notificaciones" : pathnameNormalizado.endsWith("/laboratorio") ? "laboratorio" : pathnameNormalizado.endsWith("/dispositivos") ? "dispositivos" : pathnameNormalizado.endsWith("/analisis") ? "analisis" : pathnameNormalizado.endsWith("/ficha") ? "ficha" : pathnameNormalizado.endsWith("/setup") ? "sala-config" : pathnameNormalizado.endsWith("/configuracion") ? "config" : "sala";
   const listaMiembros = useMemo(
     () => Object.entries(profile?.miembros || {}).map(([id, item]) => ({ id, ...item })),
     [profile?.miembros],
@@ -1226,7 +1226,7 @@ export default function Shell() {
           <div className="room-title">
             <h1>
               {!movil && conVolver ? botonVolver : null}
-              {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "dispositivos" ? "Dispositivos" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
+              {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "dispositivos" ? "Dispositivos" : vista === "analisis" ? (sala?.nombre || "Sala") : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
               {vista === "sala-config" ? <span className="room-kicker">Configuración</span> : null}
             </h1>
           </div>
@@ -1235,7 +1235,7 @@ export default function Shell() {
               <AvanceTurno letra={avanceSala.letra} avance={avanceSala.avance} fuera={avanceSala.fuera} umbral={umbralSala} />
             ) : null}
             {vista === "sala" || vista === "dispositivos" ? (
-              <DispositivosNav conectados={contarConectados(dispositivosDemo)} demostracion activo={vista === "dispositivos"} mac={dispositivosDemo.find((item) => item.tipo === "iot")?.mac || ""} onClick={() => vista === "dispositivos" ? undefined : navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })} />
+              <DispositivosNav conectados={contarConectados(dispositivosOrg)} activo={vista === "dispositivos"} mac={dispositivosOrg.find((item) => item.tipo === "iot")?.mac || ""} onClick={() => vista === "dispositivos" ? undefined : navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })} />
             ) : null}
             <button
               ref={campanaRef}
@@ -1436,7 +1436,7 @@ export default function Shell() {
             <footer className="setup-footer">Smart View</footer>
           </div>
         ) : vista === "dispositivos" ? (
-          <Dispositivos dispositivos={dispositivosDemo} demostracion />
+          <Dispositivos dispositivos={dispositivosOrg} />\n        ) : vista === "analisis" ? (\n          <Analisis salas={salas} salaCodigo={salaCodigo} historial={historialOrg} />
         ) : vista === "ficha" ? (
           <Ficha
             profile={profile}
