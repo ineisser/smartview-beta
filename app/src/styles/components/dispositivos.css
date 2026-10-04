@@ -104,3 +104,12 @@
 .machine-mac-copy:hover .machine-mac-copy-btn, .machine-mac-copy:focus-within .machine-mac-copy-btn { opacity: 1; pointer-events: auto; }
 .devices-nav-separator { width: 1px; height: 28px; background: linear-gradient(to bottom, transparent, var(--line) 22%, var(--line) 78%, transparent); }
 @media (max-width: 640px) { .machine-mac { display: none; } }
+
+/* Mobile bottom sheet: alineación amplia + borde de vidrio esmerilado. */
+@media (max-width: 640px) {
+ .device-sheet.device-dialog { border: 1px solid rgba(255,255,255,.16); border-bottom: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 -14px 42px rgba(0,0,0,.28); background: rgba(43,43,43,.965); }
+ .device-sheet.device-dialog::backdrop { background: rgba(7,12,20,.32); backdrop-filter: blur(12px) saturate(1.18); -webkit-backdrop-filter: blur(12px) saturate(1.18); }
+ .device-sheet.device-dialog header, .device-sheet.device-dialog .device-sheet-body { padding-left: 24px; padding-right: 24px; }
+ .device-sheet.device-dialog header { border-top: 1px solid rgba(255,255,255,.12); }
+ .device-sheet.device-dialog header .icon-btn { margin-right: -9px; }
+}
