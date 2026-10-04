@@ -1067,12 +1067,21 @@ export default function Shell() {
   const cerrarCajon = () => { if (vertical) { ocultarMenu(); ocultarVolumen(); setOpen(false); } };
 
   const conVolver = ["notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio", "dispositivos"].includes(vista);
+  const rutaSalaActiva = `/${orgActiva}/${sala?.codigo || salas[0]?.codigo || ""}`;
+  const volverA = (() => {
+    const desde = typeof rutaState?.desde === "string" ? rutaState.desde.replace(/\\/+$/, "") : "";
+    const actual = pathnameNormalizado;
+    if (!desde || desde === actual) return rutaSalaActiva;
+    // Evita quedar atrapado si una navegación previa guardó Dispositivos como origen.
+    if (vista === "dispositivos" && desde.endsWith("/dispositivos")) return rutaSalaActiva;
+    return desde;
+  })();
   const botonVolver = (
     <button
       className={`icon-btn${vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? " volver-btn" : ""}`}
       type="button"
       aria-label="Volver"
-      onClick={() => navigate(rutaState?.desde || `/${orgActiva}/${sala?.codigo || salas[0]?.codigo || ""}`)}
+      onClick={() => navigate(volverA)}
     >
       <ArrowLeft size={18} />
     </button>
