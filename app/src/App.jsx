@@ -43,7 +43,8 @@ export default function App() {
       <Route path="/:orgCodigo/notificaciones" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/mensajes" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/laboratorio" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/:salaCodigo/analisis" element={<Private><Shell /></Private>} />\n      <Route path="/:orgCodigo/:salaCodigo/setup" element={<Private><Shell /></Private>} />
+      <Route path="/:orgCodigo/:salaCodigo/analisis" element={<Private><Shell /></Private>} />
+      <Route path="/:orgCodigo/:salaCodigo/setup" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/:salaCodigo" element={<Private><Shell /></Private>} />
       <Route path="/app" element={<Navigate to="/inicio" replace />} />
       <Route path="/continuar" element={<Continue />} />
