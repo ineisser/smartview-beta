@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRightFromLine, Bell, Cast, Check, ChevronRight, Circle, CircleGauge, CircleUser, Clock, EllipsisVertical, FlaskConical, Grip, History, List, LogOut, Maximize2, MessageCircle, Minimize2, Monitor, Moon, Percent, RefreshCw, Wifi, RotateCcw, Server, Settings, Square, Sun, Volume2, VolumeOff, X } from "lucide-react";
+import { ArrowLeft, ArrowRightFromLine, Bell, Cast, Check, ChevronRight, Circle, CircleGauge, CircleUser, Clock, ChartNoAxesCombined, EllipsisVertical, FlaskConical, Grip, History, List, LogOut, Maximize2, MessageCircle, Minimize2, Monitor, Moon, Percent, RefreshCw, Wifi, RotateCcw, Server, Settings, Square, Sun, Volume2, VolumeOff, X } from "lucide-react";
 import "../styles/components/modal.css";
 import { push, ref, update } from "firebase/database";
 import { rtdb } from "../firebase";
@@ -1066,7 +1066,7 @@ export default function Shell() {
 
   const cerrarCajon = () => { if (vertical) { ocultarMenu(); ocultarVolumen(); setOpen(false); } };
 
-  const conVolver = ["notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio", "dispositivos"].includes(vista);
+  const conVolver = ["notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio", "dispositivos", "analisis"].includes(vista);
   const rutaSalaActiva = `/${orgActiva}/${sala?.codigo || salas[0]?.codigo || ""}`;
   const volverA = (() => {
     const desde = typeof rutaState?.desde === "string" ? rutaState.desde.replace(/\\/+$/, "") : "";
