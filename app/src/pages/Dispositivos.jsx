@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, Cpu, Ellipsis, Laptop, Monitor, RefreshCw, Smartphone, Tablet, X } from "lucide-react";
-import { contarConectados } from "../data/dispositivos-demo";
+import { contarConectados } from "../hooks/useDispositivosOrg";
 import useMedia, { MOVIL } from "../hooks/useMedia";
 import "../styles/components/dispositivos.css";
 
@@ -75,7 +75,7 @@ function DetalleDispositivo({ dispositivo, ahora, volverA, onCerrar }) {
 }
 
 // La página recibe un listado; la fuente de datos se decide fuera de la UI.
-export default function Dispositivos({ dispositivos = [], demostracion = false }) {
+export default function Dispositivos({ dispositivos = [] }) {
   const movil = useMedia(MOVIL);
   const [filtro, setFiltro] = useState('todos');
   const origen = useRef(null);
@@ -134,7 +134,7 @@ export default function Dispositivos({ dispositivos = [], demostracion = false }
       {!visibles.length && <p className="devices-empty" role="status">No hay dispositivos para este filtro.</p>}
     </div> : <div className="sheet is-small">
       <table>
-        <thead><tr><th>Dispositivo</th><th>MAC</th><th>Usuario</th><th>Estado</th></tr></thead>
+        <thead><tr><th>Dispositivo</th><th>MAC / Identificador</th><th>Usuario</th><th>Estado</th></tr></thead>
         <tbody>{visibles.map((item) => {
           const Icono = iconoDe(item.tipo);
           const conectado = item.estado === 'Conectado';
