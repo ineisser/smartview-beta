@@ -15,7 +15,8 @@ import Colaboradores from "./Colaboradores";
 import CentralAvisos from "./CentralAvisos";
 import Laboratorio from "./Laboratorio";
 import Dispositivos from "./Dispositivos";
-import Analisis from "./Analisis";\nimport useDispositivosOrg, { contarConectados } from "../hooks/useDispositivosOrg";
+import Analisis from "./Analisis";
+import useDispositivosOrg, { contarConectados } from "../hooks/useDispositivosOrg";
 import DispositivosNav from "../components/DispositivosNav";
 import VolumenControl from "../components/VolumenControl";
 import { operariaAna, salasTelares } from "../simulador";
@@ -596,7 +597,8 @@ export default function Shell() {
     uid: user?.uid,
     motivos: motivosSala,
   });
-  const historialOrg = useHistorialOrg(orgActiva);\n  const dispositivosOrg = useDispositivosOrg(orgActiva, user, profile);
+  const historialOrg = useHistorialOrg(orgActiva);
+  const dispositivosOrg = useDispositivosOrg(orgActiva, user, profile);
   const logsSala = useMemo(
     () => historialOrg.filter((item) => !item.sala || item.sala === salaCodigo),
     [historialOrg, salaCodigo],
@@ -1039,13 +1041,15 @@ export default function Shell() {
     const entrada = window.prompt("¿Cuántas filas tendrá la plantilla?", "250");
     const cantidad = Math.max(1, Math.min(1000, Number.parseInt(entrada || "250", 10) || 250));
     const filas = ["codigo,nombre,marca,modelo,serie", ...Array.from({ length: cantidad }, (_, i) => `${i + 1},Máquina ${String(i + 1).padStart(2, "0")},Desconocido,Desconocido,${i + 1}`)];
-    const url = URL.createObjectURL(new Blob([filas.join("\n")], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(new Blob([filas.join("
+")], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a"); a.href = url; a.download = `plantilla-maquinas-${cantidad}.csv`; a.click(); URL.revokeObjectURL(url);
   };
 
   const descargarPlantillaMotivos = () => {
     const filas = ["codigo,descripcion_corta,tipo,causa,deteccion,oee", "P01,Paro manual,Manual,,,Sí"];
-    const url = URL.createObjectURL(new Blob([filas.join("\n")], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(new Blob([filas.join("
+")], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a"); a.href = url; a.download = "plantilla-motivos.csv"; a.click(); URL.revokeObjectURL(url);
   };
 
@@ -1436,7 +1440,9 @@ export default function Shell() {
             <footer className="setup-footer">Smart View</footer>
           </div>
         ) : vista === "dispositivos" ? (
-          <Dispositivos dispositivos={dispositivosOrg} />\n        ) : vista === "analisis" ? (\n          <Analisis salas={salas} salaCodigo={salaCodigo} historial={historialOrg} />
+          <Dispositivos dispositivos={dispositivosOrg} />
+        ) : vista === "analisis" ? (
+          <Analisis salas={salas} salaCodigo={salaCodigo} historial={historialOrg} />
         ) : vista === "ficha" ? (
           <Ficha
             profile={profile}
