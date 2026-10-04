@@ -15,7 +15,7 @@ import Colaboradores from "./Colaboradores";
 import CentralAvisos from "./CentralAvisos";
 import Laboratorio from "./Laboratorio";
 import Dispositivos from "./Dispositivos";
-import { dispositivosDemo, contarConectados } from "../data/dispositivos-demo";
+import Analisis from "./Analisis";\nimport useDispositivosOrg, { contarConectados } from "../hooks/useDispositivosOrg";
 import DispositivosNav from "../components/DispositivosNav";
 import VolumenControl from "../components/VolumenControl";
 import { operariaAna, salasTelares } from "../simulador";
