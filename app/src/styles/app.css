@@ -3212,3 +3212,44 @@ html.dark .menu.menu-side .menu-list {
 @media(max-width:640px){.setup-table-section{max-height:calc(100dvh - 190px - var(--tabbar-reserva,104px))}.setup-footer{padding-bottom:var(--tabbar-reserva,104px)}}
 
 .onboarding-actions{display:flex;flex-wrap:wrap;gap:8px;padding:8px 0 16px 40px;list-style:none}.onboarding-actions .btn{width:auto}.onboarding-skip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}.onboarding-skip .btn{width:auto}.onboarding-skip small{color:var(--muted)}
+
+
+/* Tablet portrait: an open drawer must override collapsed sidebar rules. */
+.shell.is-portrait.is-drawer .sidebar-brand,
+.shell.is-portrait.is-drawer .user-copy,
+.shell.is-portrait.is-drawer .sala-copy {
+  display: flex;
+  opacity: 1;
+  width: auto;
+  overflow: visible;
+}
+.shell.is-portrait.is-drawer .sala-mark { display: none; }
+.shell.is-portrait.is-drawer .sidebar-top,
+.shell.is-portrait.is-drawer .sala-link { justify-content: flex-start; }
+.shell.is-portrait.is-drawer .sidebar-tools,
+.shell.is-portrait.is-drawer .sidebar-foot {
+  align-items: stretch;
+  width: 100%;
+}
+.shell.is-portrait.is-drawer .sidebar-foot > .tip-anchor,
+.shell.is-portrait.is-drawer .sidebar-tools > .tip-anchor {
+  width: 100%;
+  margin: 0;
+  justify-content: stretch;
+}
+.shell.is-portrait.is-drawer .pantalla-hit,
+.shell.is-portrait.is-drawer .saiba-atajo,
+.shell.is-portrait.is-drawer .sidebar-foot .icon-btn,
+.shell.is-portrait.is-drawer .sidebar-top .icon-btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+.shell.is-portrait.is-drawer .sidebar-top .icon-btn {
+  width: 44px;
+  justify-content: center;
+}
+.shell.is-portrait.is-drawer .pantalla-hit svg,
+.shell.is-portrait.is-drawer .saiba-ico {
+  margin-left: 9px;
+  margin-right: 0;
+}
