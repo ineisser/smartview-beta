@@ -38,7 +38,11 @@ export default function useHistorialOrg(org) {
   }, [org, listo, remotos]);
 
   return useMemo(() => {
-    if (remotos.length) return fusionarParos(remotos);
-    return leerLogs();
-  }, [remotos]);
+    // Antes de que Firebase responda conservamos el estado optimista local.
+    // Una vez cargado el historial remoto, Firebase es la fuente de verdad
+    // incluso cuando no existen paros. Esto evita que distintos navegadores
+    // reconstruyan estados diferentes desde su propio localStorage.
+    if (!listo) return leerLogs();
+    return fusionarParos(remotos);
+  }, [listo, remotos]);
 }
