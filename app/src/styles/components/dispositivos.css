@@ -48,7 +48,8 @@
 .device-table-status i.is-off { background: #94a3b8; }
 
 @media (max-width: 640px) {
-  .device-sheet.device-dialog { width: 100vw; max-width: 100vw; max-height: 86dvh; border-radius: 18px 18px 0 0; overflow: auto; }
+  .device-sheet.device-dialog { width: 100vw; max-width: 100vw; max-height: 86dvh; border-radius: 18px 18px 0 0; overflow: auto; background: rgba(43, 43, 43, .97); }
+  .device-sheet.device-dialog::backdrop { backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
   .device-sheet.device-dialog[open] { animation: device-sheet-up .22s ease-out; }
   .devices-view.is-mobile .device-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 14px; }
 }
