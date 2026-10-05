@@ -1,0 +1,17 @@
+{
+  "name": "smartview-analysis-functions",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "test": "node --test history-core.test.js analysis-service.test.js sync-analysis.test.js",
+    "benchmark": "node benchmark.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.0.0"
+  }
+}

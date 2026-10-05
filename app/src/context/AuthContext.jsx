@@ -13,6 +13,8 @@ import { auth, rtdb } from "../firebase";
 import { codigoOrganizacion, DIAS_INVITACION, esOwner } from "../access";
 import { avisoAvancePorDefecto } from "../robotAvance";
 
+import { cerrarPresencia } from "../hooks/useDispositivosOrg";
+
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
@@ -49,6 +51,21 @@ const readPath = (node) => Promise.race([
   get(node).then((snap) => (snap.exists() ? snap.val() : null)),
   new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
 ]);
+
+// La cuenta escucha solo configuración; paros y presencia tienen sus propios lectores.
+const ORG_METADATA = ['codigo','nombre','rubro','procesos','otrosRubro','empleados','personasPlanta','maquinas','salasRango','planta','prueba','miembros','avisosAvance'];
+const readOrgMeta = async codigo => {
+  const values = await Promise.all(ORG_METADATA.map(field=>readPath(ref(rtdb,`organizaciones/${codigo}/${field}`))));
+  return values.some(value=>value!=null) ? {...Object.fromEntries(ORG_METADATA.map((field,i)=>[field,values[i]])),codigo} : null;
+};
+const watchOrgMeta = (codigo,onData) => {
+  const meta={codigo}, loaded=new Set();
+  const stops=ORG_METADATA.map(field=>onValue(ref(rtdb,`organizaciones/${codigo}/${field}`),snap=>{
+    meta[field]=snap.val(); loaded.add(field);
+    if(loaded.size===ORG_METADATA.length)onData({...meta,codigo});
+  }));
+  return ()=>stops.forEach(stop=>stop());
+};
 
 const split = (data) => {
   const org = {};
@@ -238,7 +255,7 @@ export function AuthProvider({ children }) {
 
   const cargarOrganizacion = async (codigo) => {
     if (!codigo) return null;
-    const org = await readPath(orgRef(codigo));
+    const org = await readOrgMeta(codigo);
     if (!org) return null;
     const usuario = { ...(profileRef.current || {}) };
     delete usuario.planta;
@@ -329,7 +346,7 @@ export function AuthProvider({ children }) {
         identidad.rolTenant = "owner";
       }
       org = orgDesdeLegacy(codigo, legacy);
-      const ya = await readPath(orgRef(codigo));
+      const ya = await readOrgMeta(codigo);
       if (!ya) await set(orgRef(codigo), org);
       else org = { ...ya, codigo };
       if (esOwner(identidad.rolTenant)) {
@@ -372,7 +389,7 @@ export function AuthProvider({ children }) {
           }
         } else if (usuario.rolPlataforma === "superusuario") {
           const codigo = codigoOrganizacion(current.uid);
-          org = await readPath(orgRef(codigo));
+          org = await readOrgMeta(codigo);
           if (org) org = { ...org, codigo };
         }
         const identidad = { ...usuario, uid: current.uid, email: usuario?.email || current.email };
@@ -381,7 +398,7 @@ export function AuthProvider({ children }) {
           org = porMiembro;
           usuario = await atarAOrganizacion(current.uid, identidad, porMiembro);
         } else if (usuario?.tenantId) {
-          org = await readPath(orgRef(usuario.tenantId));
+          org = await readOrgMeta(usuario.tenantId);
           if (org) org = { ...org, codigo: usuario.tenantId };
         }
         if (usuario?.rolTenant === "superusuario") {
@@ -423,9 +440,8 @@ export function AuthProvider({ children }) {
       if (!codigo || orgCodigo === codigo) return;
       offOrg();
       orgCodigo = codigo;
-      offOrg = onValue(orgRef(codigo), (snap) => {
-        if (!snap.exists() || settling.current || loggingOut.current) return;
-        const org = { ...snap.val(), codigo };
+      offOrg = watchOrgMeta(codigo, (org) => {
+        if (settling.current || loggingOut.current) return;
         const base = { ...(profileRef.current || {}), uid, email: profileRef.current?.email || user.email };
         const aplicado = aplicarRolDeMiembro(base, org);
         const next = remember(aplicado, org);
@@ -535,12 +551,12 @@ export function AuthProvider({ children }) {
           const next = remember(atada, invitada);
           writeLocal(result.user.uid, next);
         } else {
-          const org = existing.tenantId ? await readPath(orgRef(existing.tenantId)) : null;
+          const org = existing.tenantId ? await readOrgMeta(existing.tenantId) : null;
           const next = remember({ ...existing, photoURL: foto || existing.photoURL || "" }, org ? { ...org, codigo: existing.tenantId } : null);
           writeLocal(result.user.uid, next);
         }
       } else {
-        const org = existing.tenantId ? await readPath(orgRef(existing.tenantId)) : null;
+        const org = existing.tenantId ? await readOrgMeta(existing.tenantId) : null;
         const usuario = { ...existing, photoURL: foto || existing.photoURL || "" };
         if (foto) await update(userRef(result.user.uid), { photoURL: foto }).catch(() => {});
         const next = remember(usuario, org ? { ...org, codigo: existing.tenantId } : null);
@@ -717,7 +733,7 @@ export function AuthProvider({ children }) {
     });
     await update(inviteRef(token), { estado: "usada", usadaPor: user.uid });
     await activarMiembro(invite, token, user.uid, { nombre, email: correo || invite.email });
-    const org = await readPath(orgRef(invite.orgCodigo));
+    const org = await readOrgMeta(invite.orgCodigo);
     remember({
       ...actual,
       nombre,
@@ -753,7 +769,7 @@ export function AuthProvider({ children }) {
       });
       await update(inviteRef(token), { estado: "usada", usadaPor: cred.user.uid });
       await activarMiembro(invite, token, cred.user.uid, { nombre: nombreFinal, email: invite.email });
-      const org = await readPath(orgRef(invite.orgCodigo));
+      const org = await readOrgMeta(invite.orgCodigo);
       remember({
         nombre: nombreFinal,
         email: invite.email,
@@ -799,7 +815,8 @@ export function AuthProvider({ children }) {
     return limpio;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await Promise.race([cerrarPresencia(), new Promise(resolve => setTimeout(resolve, 2000))]);
     loggingOut.current = true;
     if (user?.uid) clearLocal(user.uid);
     orgState.current = null;

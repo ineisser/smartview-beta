@@ -1,4 +1,14 @@
 {
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "analysis",
+      "runtime": "nodejs22",
+      "predeploy": [
+        "node functions/prepare.mjs"
+      ]
+    }
+  ],
   "database": [
     {
       "instance": "smart-view",

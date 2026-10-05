@@ -2,6 +2,7 @@ import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import historyApi from './dev-history.js';
 
 const buildId = process.env.VITE_BUILD_ID || `${Date.now().toString(36)}`;
 
@@ -31,5 +32,5 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(buildId),
   },
-  plugins: [react(), versionFile()],
+  plugins: [react(), versionFile(), historyApi()],
 });

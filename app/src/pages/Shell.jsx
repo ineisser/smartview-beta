@@ -547,6 +547,8 @@ export default function Shell() {
   const [open, setOpen] = useState(() => (typeof window !== "undefined" ? window.innerHeight <= window.innerWidth : true));
   const [vertical, setVertical] = useState(() => (typeof window !== "undefined" ? window.innerHeight > window.innerWidth : false));
   const [menu, setMenu] = useState(null);
+  const [analisisVista,setAnalisisVista] = useState('dashboard');
+  const [analisisNav,setAnalisisNav] = useState(null);
   const [menuOn, setMenuOn] = useState(false);
   const menuTimer = useRef(0);
   const restaurarPantalla = useRef(leerPantalla());
@@ -597,8 +599,8 @@ export default function Shell() {
     uid: user?.uid,
     motivos: motivosSala,
   });
-  const historialOrg = useHistorialOrg(orgActiva);
-  const dispositivosOrg = useDispositivosOrg(orgActiva, user, profile);
+  const { historial: historialOrg, cargando: historialCargando, error: historialError } = useHistorialOrg(orgActiva, true, !pathname.replace(/\/+$/, '').endsWith('/analisis'));
+  const { dispositivos: dispositivosOrg, error: dispositivosError } = useDispositivosOrg(orgActiva);
   const logsSala = useMemo(
     () => historialOrg.filter((item) => !item.sala || item.sala === salaCodigo),
     [historialOrg, salaCodigo],
@@ -675,7 +677,7 @@ export default function Shell() {
     paros: parosVozDe(sala?.parosVoz),
   });
   const { noLeidos } = useMensajes({ org: orgActiva, uid: user?.uid, nombre: profile?.nombre || user?.displayName || "" });
-  const pathnameNormalizado = pathname.length > 1 ? pathname.replace(/\\/+$/, "") : pathname;
+  const pathnameNormalizado = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   const vista = pathnameNormalizado.endsWith("/mensajes") ? "mensajes" : pathnameNormalizado.endsWith("/notificaciones") ? "notificaciones" : pathnameNormalizado.endsWith("/laboratorio") ? "laboratorio" : pathnameNormalizado.endsWith("/dispositivos") ? "dispositivos" : pathnameNormalizado.endsWith("/analisis") ? "analisis" : pathnameNormalizado.endsWith("/ficha") ? "ficha" : pathnameNormalizado.endsWith("/setup") ? "sala-config" : pathnameNormalizado.endsWith("/configuracion") ? "config" : "sala";
   const listaMiembros = useMemo(
     () => Object.entries(profile?.miembros || {}).map(([id, item]) => ({ id, ...item })),
@@ -1041,15 +1043,13 @@ export default function Shell() {
     const entrada = window.prompt("¿Cuántas filas tendrá la plantilla?", "250");
     const cantidad = Math.max(1, Math.min(1000, Number.parseInt(entrada || "250", 10) || 250));
     const filas = ["codigo,nombre,marca,modelo,serie", ...Array.from({ length: cantidad }, (_, i) => `${i + 1},Máquina ${String(i + 1).padStart(2, "0")},Desconocido,Desconocido,${i + 1}`)];
-    const url = URL.createObjectURL(new Blob([filas.join("
-")], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(new Blob([filas.join("\n")], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a"); a.href = url; a.download = `plantilla-maquinas-${cantidad}.csv`; a.click(); URL.revokeObjectURL(url);
   };
 
   const descargarPlantillaMotivos = () => {
     const filas = ["codigo,descripcion_corta,tipo,causa,deteccion,oee", "P01,Paro manual,Manual,,,Sí"];
-    const url = URL.createObjectURL(new Blob([filas.join("
-")], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(new Blob([filas.join("\n")], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a"); a.href = url; a.download = "plantilla-motivos.csv"; a.click(); URL.revokeObjectURL(url);
   };
 
@@ -1073,7 +1073,7 @@ export default function Shell() {
   const conVolver = ["notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio", "dispositivos", "analisis"].includes(vista);
   const rutaSalaActiva = `/${orgActiva}/${sala?.codigo || salas[0]?.codigo || ""}`;
   const volverA = (() => {
-    const desde = typeof rutaState?.desde === "string" ? rutaState.desde.replace(/\\/+$/, "") : "";
+    const desde = typeof rutaState?.desde === "string" ? rutaState.desde.replace(/\/+$/, "") : "";
     const actual = pathnameNormalizado;
     if (!desde || desde === actual) return rutaSalaActiva;
     // Evita quedar atrapado si una navegación previa guardó Dispositivos como origen.
@@ -1119,6 +1119,7 @@ export default function Shell() {
           <span className="sidebar-brand">Smart View</span>
         </div>
         <nav className="sidebar-nav">
+          {!movil && <Tooltip label={open ? "" : "Análisis"}><button type="button" className={`sala-link saiba-atajo${vista === "analisis" ? " is-on" : ""}`} aria-label="Análisis" onClick={() => { navigate(`/${orgActiva}/analisis`, { state: { desde: pathname } }); cerrarCajon(); }}><ChartNoAxesCombined className="saiba-ico" size={18} /><span className="sala-copy">Análisis</span></button></Tooltip>}
           {salas.map((item, index) => (
             <Tooltip key={item.nombre} label={open ? "" : capital(item.nombre)}>
               <button
@@ -1230,10 +1231,11 @@ export default function Shell() {
           <div className="room-title">
             <h1>
               {!movil && conVolver ? botonVolver : null}
-              {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "dispositivos" ? "Dispositivos" : vista === "analisis" ? (sala?.nombre || "Sala") : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
+              {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "dispositivos" ? "Dispositivos" : vista === "analisis" ? "Análisis" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
               {vista === "sala-config" ? <span className="room-kicker">Configuración</span> : null}
             </h1>
           </div>
+          {vista === 'analisis' ? <div className="analysis-navbar-tabs" ref={setAnalisisNav} /> : null}
           <div className="room-nav-actions">
             {(vista === "sala" || vista === "sala-config") && avanceSala ? (
               <AvanceTurno letra={avanceSala.letra} avance={avanceSala.avance} fuera={avanceSala.fuera} umbral={umbralSala} />
@@ -1264,7 +1266,7 @@ export default function Shell() {
               }}
               onExpandir={() => { setAvisos(false); setCentro(true); }}
             />
-            {movil ? (
+            {vista === 'analisis' ? <button className="icon-btn" type="button" aria-label="Más opciones de Análisis" disabled><EllipsisVertical size={18} /></button> : movil ? (
               <button
                 className="icon-btn user-hit"
                 type="button"
@@ -1440,9 +1442,9 @@ export default function Shell() {
             <footer className="setup-footer">Smart View</footer>
           </div>
         ) : vista === "dispositivos" ? (
-          <Dispositivos dispositivos={dispositivosOrg} />
+          <Dispositivos dispositivos={dispositivosOrg} error={dispositivosError} />
         ) : vista === "analisis" ? (
-          <Analisis salas={salas} salaCodigo={salaCodigo} historial={historialOrg} />
+          <Analisis salas={salas} planta={profile?.planta} org={orgActiva} vista={analisisVista} onVista={setAnalisisVista} navbar={analisisNav} />
         ) : vista === "ficha" ? (
           <Ficha
             profile={profile}
@@ -1768,37 +1770,7 @@ export default function Shell() {
       {movil ? <AvisoActualizacionMovil visible={hayActualizacion} onActualizar={actualizar} /> : null}
       {volMenu ? createPortal(
         <div className={`volumen-menu glass-pop${volOn ? " is-on" : ""}`} style={{ left: volMenu.left, bottom: volMenu.bottom }}>
-          <div className="volumen-fila">
-            <span>Sonido</span>
-            <Switch
-              aria-label="Sonido de este equipo"
-              value={altavoz}
-              onChange={(valor) => {
-                fijarAltavoz(valor);
-                setAltavoz(valor);
-                if (valor && volumenPorcentaje() === 0) setVolumen(fijarVolumen(100));
-              }}
-            />
-          </div>
-          <label className="volumen-fila">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              aria-label="Volumen"
-              value={volumen}
-              style={{ "--vol": `${volumen}%` }}
-              onChange={(event) => {
-                const pct = fijarVolumen(event.target.value);
-                setVolumen(pct);
-                const activo = pct > 0;
-                if (activo !== altavozActivo()) fijarAltavoz(activo);
-                setAltavoz(activo);
-              }}
-            />
-            <span className="volumen-pct">{volumen}%</span>
-          </label>
+          <VolumenControl compacto mostrarPorcentaje />
         </div>,
         document.body,
       ) : null}

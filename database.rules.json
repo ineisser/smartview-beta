@@ -22,7 +22,32 @@
       ".read": "auth != null",
       "$codigo": {
         ".read": "auth != null && root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo",
-        ".write": "auth != null && (root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte')"
+        ".write": "auth != null && (root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte')",
+        "paros": {
+          ".indexOn": [
+            "inicio"
+          ]
+        },
+        "analisis": {
+          "eventos": {
+            ".indexOn": [
+              "inicio",
+              "fin",
+              "machine"
+            ]
+          },
+          "dias": {
+            "$dia": {
+              "eventos": {
+                ".indexOn": [
+                  "inicio",
+                  "fin",
+                  "machine"
+                ]
+              }
+            }
+          }
+        }
       }
     },
     "invitaciones": {

@@ -81,16 +81,22 @@
 .devices-view .dispositivos-tipos .devices-refresh:hover { background: var(--hover); }
 .devices-footer { width: 100%; margin-top: 14px; padding: 12px 2px; border-top: 1px solid var(--line); color: var(--muted); font-size: .76rem; text-align: left; }
 .devices-footer strong { color: var(--ink-solid); }
-@media (prefers-color-scheme: dark) {
-  .devices-view .dispositivos-tipos .device-filter > i { background: #fff; color: #111827; border-color: #fff; }
-}
+html.dark .devices-view .dispositivos-tipos .device-filter > i { background: var(--ink-solid); color: var(--surface); border-color: var(--line); }
 @media (min-width: 641px) {
   .devices-view.is-desktop { max-width: 1180px; }
   .devices-view.is-desktop > .sheet.is-small { width: 100%; max-width: 100%; }
 }
 @media (max-width: 640px) {
   .devices-view .dispositivos-tipos .device-filter > span:not(:first-child) { display: none; }
-  .devices-view .dispositivos-tipos { gap: 6px; padding-inline: 16px; }
+  .devices-view .dispositivos-tipos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, 1fr);
+    width: 100%; gap: 8px; padding-inline: 0;
+  }
+  .devices-view .dispositivos-tipos .device-filter {
+    width: 100%; min-width: 0; min-height: 44px; height: 100%; justify-content: center;
+  }
   .devices-filter-separator, .devices-refresh { display: none !important; }
   .devices-footer { padding-inline: 16px; }
 }
@@ -105,11 +111,39 @@
 .devices-nav-separator { width: 1px; height: 28px; background: linear-gradient(to bottom, transparent, var(--line) 22%, var(--line) 78%, transparent); }
 @media (max-width: 640px) { .machine-mac { display: none; } }
 
-/* Mobile bottom sheet: alineación amplia + borde de vidrio esmerilado. */
+/* Detalle móvil: misma hoja, cabecera y superficie que Sala. */
 @media (max-width: 640px) {
- .device-sheet.device-dialog { border: 1px solid rgba(255,255,255,.16); border-bottom: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 -14px 42px rgba(0,0,0,.28); background: rgba(43,43,43,.965); }
- .device-sheet.device-dialog::backdrop { background: rgba(7,12,20,.32); backdrop-filter: blur(12px) saturate(1.18); -webkit-backdrop-filter: blur(12px) saturate(1.18); }
- .device-sheet.device-dialog header, .device-sheet.device-dialog .device-sheet-body { padding-left: 24px; padding-right: 24px; }
- .device-sheet.device-dialog header { border-top: 1px solid rgba(255,255,255,.12); }
- .device-sheet.device-dialog header .icon-btn { margin-right: -9px; }
+  .device-sheet.device-dialog.device-mobile-sheet {
+    width: 100vw; max-width: 100vw; margin-inline: 0;
+    height: calc(100dvh - 74px); max-height: calc(100dvh - 74px);
+    padding: 0 16px; border: 1px solid var(--glass-line); border-bottom: 0;
+    border-radius: 32px 32px 0 0; overflow: hidden;
+    background: rgba(255, 255, 255, .94); box-shadow: var(--glass-shadow);
+  }
+  html.dark .device-sheet.device-dialog.device-mobile-sheet {
+    border-color: transparent;
+    background: linear-gradient(rgba(22,22,22,.96), rgba(22,22,22,.96)) padding-box,
+      linear-gradient(135deg, rgba(255,255,255,.6), rgba(255,255,255,.22) 28%, rgba(255,255,255,.12) 62%) border-box;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 -15px 50px rgba(0,0,0,.5);
+  }
+  .device-sheet.device-dialog.device-mobile-sheet::backdrop {
+    background: rgba(231,237,244,.45); backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  html.dark .device-sheet.device-dialog.device-mobile-sheet::backdrop { background: rgba(0,0,0,.45); }
+  .device-sheet.device-dialog.device-mobile-sheet[open] { animation: device-sheet-up var(--move) var(--ease); }
+  .device-sheet.device-dialog .device-mobile-head {
+    display: flex; flex: none; padding: 0 8px 16px; border: 0;
+  }
+  .device-mobile-head .hoja-titulo { font-family: var(--font-display); }
+  .device-sheet.device-dialog.device-mobile-sheet .device-sheet-body {
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding: 8px 8px max(32px, env(safe-area-inset-bottom, 0px));
+    scrollbar-width: thin; scrollbar-color: var(--line) transparent;
+  }
+  .device-mobile-user { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .device-mobile-user strong { font-size: 1rem; }
+  .device-mobile-sheet .device-history > div { min-height: 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .device-sheet.device-dialog.device-mobile-sheet[open], .device-mobile-head .hoja-titulo { animation: none; }
 }

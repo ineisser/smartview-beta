@@ -3180,7 +3180,7 @@ html.dark .menu.menu-side .menu-list {
 .estado-punto.is-connected{background:#10b981}.estado-punto.is-disconnected{background:var(--color-alert-1,var(--danger))}
 .volumen-control{min-width:250px}.volumen-control-titulo{display:block;margin-bottom:10px;font-size:.78rem;color:var(--muted)}
 .volumen-control-fila{display:flex;align-items:center;gap:10px}.volumen-control-fila input{flex:1;accent-color:var(--ink-solid)}
-.volumen-control.is-arrastre input{accent-color:var(--color-alert-1,var(--danger));filter:drop-shadow(0 0 6px var(--color-alert-1,var(--danger)))}
+.volumen-control.is-arrastre input{filter:none;box-shadow:none}
 .volumen-control.is-compacto{min-width:0;width:100%;padding:6px 8px}.volumen-control.is-compacto .volumen-control-fila{width:100%}
 .setup-table-section{display:flex;flex-direction:column;min-height:0;max-height:calc(100dvh - 220px)}
 .setup-table-actions{display:flex;justify-content:flex-end;padding:8px 0}
@@ -3253,3 +3253,31 @@ html.dark .menu.menu-side .menu-list {
   margin-left: 9px;
   margin-right: 0;
 }
+
+/* El control compartido conserva el botón circular también en el sidebar. */
+.volumen-control .menu-volumen-icono {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%;
+  background: transparent; color: var(--ink-solid); cursor: pointer;
+}
+.volumen-control .menu-volumen-icono:hover { background: var(--hover); }
+.volumen-control .volumen-control-fila input { min-width: 0; }
+.volumen-control .volumen-pct { font-variant-numeric: tabular-nums; }
+
+/* Volumen: círculo de interacción tenue, sin sombra en la línea ni el punto. */
+.menu-volumen::before { display:none; }
+.volumen-fila input[type=range] { filter:none; box-shadow:none; }
+.volumen-fila input[type=range]:focus,
+.volumen-fila input[type=range]:active { filter:none; box-shadow:none; }
+.volumen-fila input[type=range]::-webkit-slider-thumb,
+html.dark .volumen-fila input[type=range]::-webkit-slider-thumb { box-shadow:none; }
+.volumen-fila input[type=range]::-moz-range-thumb,
+html.dark .volumen-fila input[type=range]::-moz-range-thumb { box-shadow:none; }
+.volumen-fila input[type=range]:focus::-webkit-slider-thumb,
+.volumen-fila input[type=range]:active::-webkit-slider-thumb,
+.volumen-control.is-arrastre input[type=range]::-webkit-slider-thumb,
+.menu-volumen.is-arrastre input[type=range]::-webkit-slider-thumb { box-shadow:0 0 0 9px color-mix(in srgb,var(--ink-solid) 8%,transparent); }
+.volumen-fila input[type=range]:focus::-moz-range-thumb,
+.volumen-fila input[type=range]:active::-moz-range-thumb,
+.volumen-control.is-arrastre input[type=range]::-moz-range-thumb,
+.menu-volumen.is-arrastre input[type=range]::-moz-range-thumb { box-shadow:0 0 0 9px color-mix(in srgb,var(--ink-solid) 8%,transparent); }

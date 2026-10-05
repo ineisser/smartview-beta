@@ -11,6 +11,7 @@ import Continue from "./pages/Continue";
 import Platform from "./pages/Platform";
 import Invite from "./pages/Invite";
 import Boot from "./pages/Boot";
+import { useRegistrarPresencia } from "./hooks/useDispositivosOrg";
 
 function Guest({ children }) {
   const { user, loading } = useAuth();
@@ -27,7 +28,11 @@ function Private({ children }) {
 }
 
 export default function App() {
+  const { user, profile } = useAuth();
+  const presenciaError = useRegistrarPresencia(profile?.tenantId || profile?.codigo, user, profile);
   return (
+    <>
+    {presenciaError && <p role="alert">{presenciaError}</p>}
     <Routes>
       <Route path="/" element={<Guest><Welcome /></Guest>} />
       <Route path="/login" element={<Guest><Login /></Guest>} />
@@ -37,6 +42,7 @@ export default function App() {
       <Route path="/inicio" element={<Private><Home /></Private>} />
       <Route path="/plataforma" element={<Private><Platform /></Private>} />
       <Route path="/invitar/:token" element={<Invite />} />
+      <Route path="/:orgCodigo/analisis" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/configuracion" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/dispositivos" element={<Private><Shell /></Private>} />
       <Route path="/:orgCodigo/ficha" element={<Private><Shell /></Private>} />
@@ -50,5 +56,6 @@ export default function App() {
       <Route path="/continuar" element={<Continue />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }

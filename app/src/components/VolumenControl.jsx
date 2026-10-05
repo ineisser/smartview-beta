@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeOff } from "lucide-react";
 import { ALTAVOZ, VOLUMEN, altavozActivo, fijarAltavoz, fijarVolumen, volumenPorcentaje } from "../sonido";
 
-export default function VolumenControl({ compacto = false, titulo = "Volumen de notificaciones" }) {
+export default function VolumenControl({ compacto = false, mostrarPorcentaje = !compacto, titulo = "Volumen de notificaciones" }) {
   const [activo, setActivo] = useState(altavozActivo);
   const [volumen, setVolumen] = useState(volumenPorcentaje);
   const [arrastrando, setArrastrando] = useState(false);
@@ -39,18 +39,18 @@ export default function VolumenControl({ compacto = false, titulo = "Volumen de 
   return (
     <div className={`volumen-control${compacto ? " is-compacto" : ""}${arrastrando ? " is-arrastre" : ""}`}>
       {!compacto ? <span className="volumen-control-titulo">{titulo}</span> : null}
-      <div className="volumen-control-fila">
+      <div className="volumen-control-fila volumen-fila">
         <button type="button" className="menu-volumen-icono" aria-label={valor ? "Silenciar" : "Activar sonido"} onClick={alternar}>
           {valor ? <Volume2 size={18} /> : <VolumeOff size={18} />}
         </button>
         <input type="range" min="0" max="100" step="1" aria-label="Volumen" value={valor} style={{ "--vol": `${valor}%` }}
-          onPointerDown={() => setArrastrando(true)}
+          onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); setArrastrando(true); }}
           onPointerUp={() => setArrastrando(false)}
           onPointerCancel={() => setArrastrando(false)}
           onBlur={() => setArrastrando(false)}
           onChange={(event) => cambiar(event.target.value)}
         />
-        {!compacto ? <span className="volumen-pct">{valor}%</span> : null}
+        {mostrarPorcentaje ? <span className="volumen-pct">{valor}%</span> : null}
       </div>
     </div>
   );
