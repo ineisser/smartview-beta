@@ -1104,7 +1104,7 @@ export default function Shell() {
   );
 
   return (
-    <div className={`shell${open ? "" : " is-collapsed"}${vertical ? " is-portrait" : ""}${vertical && open ? " is-drawer" : ""}`}>
+    <div className={`shell${open ? "" : " is-collapsed"}${vertical ? " is-portrait" : ""}${vertical && open ? " is-drawer" : ""}${vista === "sala" && panel === "mapa" && (sala?.maquinas?.length || 0) >= 250 ? " is-large-map" : ""}`}>
       {vertical && open ? (
         <button
           type="button"

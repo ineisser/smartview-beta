@@ -3315,3 +3315,14 @@ html.dark .volumen-fila input[type=range]::-moz-range-thumb { box-shadow:none; }
 .mapa-grupos { display:flex; flex-wrap:wrap; }
 .mapa-grupo { flex:1 0 min(100%,var(--grupo-ancho)); max-width:100%; }
 @media(max-width:640px) { .setup-nav-actions { width:100%; justify-content:flex-end; } }
+
+/* Los mapas grandes se ajustan una vez al alternar el sidebar. */
+.shell.is-large-map:not(.is-portrait) .sidebar { transition: none; }
+.maquinas-grid.is-large-map .card-maquina,
+.mapa-grupos.is-large-map .card-maquina {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: background-color .5s var(--ease), border-color .5s var(--ease), transform .5s var(--ease), box-shadow .5s var(--ease);
+}
+.maquinas-grid.is-large-map .maquina-id,
+.mapa-grupos.is-large-map .maquina-id { transition: color .5s var(--ease), opacity .5s var(--ease); }
