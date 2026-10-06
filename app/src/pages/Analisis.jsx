@@ -11,6 +11,7 @@ import useHistorialPagina from '../hooks/useHistorialPagina';
 import AnalysisDashboard, { duracionAnalisis as duracion, porcentajeAnalisis as porcentaje } from '../components/AnalysisDashboard';
 import { cerrado, inicio, fin, motivo, numero, letraTurno, fechasPeriodo, limitesPeriodo, fechaLocal, ordenarFilas } from '../data/analisis';
 import '../styles/components/analisis.css';
+import { nombresMotivosDeSalas } from '../data/catalogos-paro';
 
 const VISTAS=[{id:'dashboard',label:'Dashboard'},{id:'maquinas',label:'Máquinas'},{id:'motivos',label:'Motivos'},{id:'historial',label:'Historial'}];
 const PERIODOS=[{id:'hoy',label:'Hoy'},{id:'ayer',label:'Ayer'},{id:'semana',label:'Semana'},{id:'semanaAnterior',label:'Semana anterior'},{id:'mes',label:'Mes'},{id:'mesAnterior',label:'Mes anterior'},{id:'personalizado',label:'Personalizado'}];
@@ -48,7 +49,7 @@ export default function Analisis({salas=[],planta,org,vista='dashboard',onVista:
     }
     return [...marcas].sort(([a],[b])=>a.localeCompare(b,'es',{numeric:true})).map(([n,lista])=>({value:n,label:[n,[...lista].join(' / ')].filter(Boolean).join(' ')}));
   },[salas,sala]);
-  const razones=useMemo(()=>[...new Set([...salas.filter(s=>!sala||s.codigo===sala).flatMap(s=>(s.motivos||[]).map(m=>m.nombre).filter(Boolean)),...(datos?.motivos||[]).map(x=>x.key)])].sort((x,y)=>x.localeCompare(y,'es')),[salas,sala,datos]);
+  const razones=useMemo(()=>[...new Set([...nombresMotivosDeSalas(salas,sala),...(datos?.motivos||[]).map(x=>x.key).filter(Boolean)])].sort((x,y)=>x.localeCompare(y,'es')),[salas,sala,datos]);
   const columnas=useMemo(()=>{
     const tiempo={asc:'Menor tiempo',desc:'Mayor tiempo'},cantidad={asc:'Menos frecuente',desc:'Más frecuente'};
     const salaCol={id:'sala',label:'Sala',valor:x=>vista==='maquinas'?x.sala:salas.find(s=>s.codigo===x.sala)?.nombre||x.sala,ancho:160};

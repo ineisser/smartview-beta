@@ -13,6 +13,13 @@ export const COLUMNAS_PARO = [
 
 export const codigoParo = (codigo) => String(codigo || "").replace(/-/g, "");
 
+export const nombresMotivosDeSalas = (salas, codigo = "") => [...new Set(
+  salas.filter(sala => !codigo || sala.codigo === codigo)
+    .flatMap(sala => (sala.motivos || []).map(item =>
+      String(item.corta || item.nombre || "").trim()
+    ).filter(Boolean))
+)];
+
 const motivo = (codigo, tipo, corta, causa, deteccion, oee) => ({
   codigo, tipo, corta, causa, deteccion, oee,
 });
