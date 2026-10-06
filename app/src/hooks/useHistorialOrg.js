@@ -1,51 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { onValue, ref } from "firebase/database";
 import { rtdb } from "../firebase";
-import { fusionarParos, subirLocales } from "../historial";
-
-const leerLogs = () => {
-  try { return JSON.parse(localStorage.getItem("machine_stop_logs") || "[]"); } catch { return []; }
-};
+import { fusionarParos } from "../historial";
 
 export default function useHistorialOrg(org, conEstado = false, activo = true) {
-  const [remotos, setRemotos] = useState([]);
-  const [listo, setListo] = useState(false);
-  const sync = useRef(false);
-  const [error, setError] = useState(null);
-
+  const [datos, setDatos] = useState({ org: null, remotos: [], listo: false, error: null });
   useEffect(() => {
-    if (!org || !activo) {
-      setRemotos([]);
-      setListo(true);
-      return undefined;
-    }
-    setListo(false);
-    setRemotos([]); setError(null); sync.current = false;
-    return onValue(ref(rtdb, `organizaciones/${org}/paros`), (snap) => {
-      const data = snap.val() || {};
-      setRemotos(Object.entries(data).map(([id, item]) => ({ id, ...item })));
-      setListo(true); setError(null);
-    }, () => { setError("No se pudo cargar el historial de Firebase."); setListo(true); });
+    setDatos({ org, remotos: [], listo: !org || !activo, error: null });
+    if (!org || !activo) return undefined;
+    let vigente = true;
+    const off = onValue(ref(rtdb, `organizaciones/${org}/paros`), snap => {
+      if (vigente) setDatos({ org, remotos: Object.entries(snap.val() || {}).map(([id, item]) => ({ ...item, id })), listo: true, error: null });
+    }, () => {
+      if (vigente) setDatos({ org, remotos: [], listo: true, error: "No se pudo cargar el historial de Firebase." });
+    });
+    return () => { vigente = false; off(); };
   }, [org, activo]);
-
-  useEffect(() => {
-    if (!org || !activo || !listo || error || sync.current) return;
-    const locales = leerLogs();
-    if (!locales.length) {
-      sync.current = true;
-      return;
-    }
-    sync.current = true;
-    subirLocales(org, locales, remotos).catch(() => { sync.current = false; });
-  }, [org, activo, listo, remotos, error]);
-
-  const historial = useMemo(() => {
-    // Antes de que Firebase responda conservamos el estado optimista local.
-    // Una vez cargado el historial remoto, Firebase es la fuente de verdad
-    // incluso cuando no existen paros. Esto evita que distintos navegadores
-    // reconstruyan estados diferentes desde su propio localStorage.
-    if (!listo) return leerLogs();
-    return fusionarParos(remotos);
-  }, [listo, remotos]);
-  return conEstado ? { historial: listo && !error ? historial : [], cargando: !listo, error } : historial;
+  const historial = useMemo(() => datos.org === org && activo && datos.listo && !datos.error ? fusionarParos(datos.remotos) : [], [datos, org, activo]);
+  return conEstado ? { historial, cargando: Boolean(org && activo && (datos.org !== org || !datos.listo)), error: datos.org === org ? datos.error : null } : historial;
 }

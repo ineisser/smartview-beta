@@ -1,3 +1,7 @@
+import { errorDisposicion, normalizarDisposicion } from '../data/disposicion-maquinas';
+import DisposicionSala from '../components/DisposicionSala';
+import MapaMaquinas from '../components/MapaMaquinas';
+import { leerHistorialLocal as leerLogs, guardarHistorialLocal as guardarLogs } from '../data/historial-local';
 import MotivosMenu from '../components/MotivosMenu';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -95,10 +99,7 @@ const nombreTurno = (turnos, marca) => {
   });
   return encontrado?.nombre || "—";
 };
-const leerLogs = () => {
-  try { return JSON.parse(localStorage.getItem("machine_stop_logs") || "[]"); } catch { return []; }
-};
-const guardarLogs = (logs) => localStorage.setItem("machine_stop_logs", JSON.stringify(logs));
+
 const claveAviso = (sala, numero, inicio) => `${sala || ""}:${numero}:${inicio || ""}`;
 const leerVistos = (uid) => {
   try { return new Set(JSON.parse(localStorage.getItem(`smartview-avisos:${uid || "x"}`) || "[]")); } catch { return new Set(); }
@@ -344,7 +345,7 @@ function HistorialTabla({ org, salaCodigo, paros, turnos, nombres = {}, puedeRei
     window.setTimeout(() => setGirando(false), 500);
   };
   const eliminar = async () => {
-    guardarLogs(leerLogs().filter((item) => item.sala && item.sala !== salaCodigo));
+    guardarLogs(org, leerLogs(org).filter((item) => item.sala && item.sala !== salaCodigo));
     await borrarHistorialSala(org, salaCodigo).catch(() => {});
     setMarca((valor) => valor + 1);
   };
@@ -565,6 +566,7 @@ export default function Shell() {
   const volTimer = useRef(0);
   const [organizacion, setOrganizacion] = useState(profile?.organizacion || "");
   const [simulador, setSimulador] = useState(profile?.planta?.simuladorFallos === true);
+  const [disposicionSala,setDisposicionSala] = useState({modo:"auto"});
   const [alertaSala, setAlertaSala] = useState("");
   const [vozSala, setVozSala] = useState(true);
   const [vecesSala, setVecesSala] = useState(String(REPETICIONES_VOZ));
@@ -784,11 +786,12 @@ export default function Shell() {
     update(ref(rtdb, `organizaciones/${orgActiva}/miembros/${entrada[0]}`), { photoURL: foto }).catch(() => {});
   }, [user?.uid, foto, orgActiva, profile?.miembros]);
   useEffect(() => {
+    setDisposicionSala(sala?.disposicion || {modo:"auto"});
     setAlertaSala(sala?.alertaOee == null || sala?.alertaOee === "" ? "" : String(sala.alertaOee));
     setVozSala(sala?.notificacionesAltavoz !== false);
     setVecesSala(String(sala?.repeticionesVoz ?? profile?.planta?.repeticionesVoz ?? REPETICIONES_VOZ));
     setParosVoz(parosVozDe(sala?.parosVoz));
-  }, [sala?.codigo, sala?.alertaOee, sala?.notificacionesAltavoz, sala?.repeticionesVoz, sala?.parosVoz, profile?.planta?.repeticionesVoz]);
+  }, [sala?.codigo, sala?.disposicion, sala?.alertaOee, sala?.notificacionesAltavoz, sala?.repeticionesVoz, sala?.parosVoz, profile?.planta?.repeticionesVoz]);
   useEffect(() => {
     const id = window.setInterval(() => setAhora(new Date()), 5000);
     return () => window.clearInterval(id);
@@ -974,10 +977,11 @@ export default function Shell() {
     if (!user || !sala) return;
     const umbral = alertaValida(alertaSala);
     const veces = repeticionesValidas(vecesSala);
-    if (umbral === undefined || (vozSala && veces == null)) return;
-    const siguientes = salas.map((item, index) => (
-      index === activa ? {
+    if (umbral === undefined || (vozSala && veces == null) || errorDisposicion(disposicionSala,(sala.maquinas||[]).length)) return;
+    const siguientes = (profile.planta.salas || []).map((item) => (
+      item === sala || (sala.codigo && item.codigo === sala.codigo) ? {
         ...item,
+        disposicion: normalizarDisposicion(disposicionSala,(sala.maquinas||[]).length),
         alertaOee: umbral,
         notificacionesAltavoz: vozSala,
         repeticionesVoz: veces ?? (repeticionesValidas(sala.repeticionesVoz) || REPETICIONES_VOZ),
@@ -1027,7 +1031,7 @@ export default function Shell() {
 
   const guardarSalaParcial = async (cambios) => {
     if (!user || !sala) return;
-    const siguientes = salas.map((item, index) => index === activa ? { ...item, ...cambios } : item);
+    const siguientes = (profile.planta.salas || []).map(item => item === sala || (sala.codigo && item.codigo === sala.codigo) ? { ...item, ...cambios } : item);
     await saveProfile(user.uid, { planta: { ...profile.planta, salas: siguientes } });
   };
 
@@ -1233,7 +1237,7 @@ export default function Shell() {
           </div>
         </div>
       </aside>
-      <main className="shell-main">
+      <main className={`shell-main${vista === "sala-config" ? " is-room-setup" : ""}`}>
         <header className={`room-nav${movil && conVolver ? " has-volver" : ""}`}>
           {movil && conVolver ? botonVolver : null}
           <div className="room-title">
@@ -1295,6 +1299,27 @@ export default function Shell() {
             ) : null}
           </div>
         </header>
+        {vista === "sala-config" && sala ? (<div className="setup-bar">
+              <TabSwitch
+                size="small"
+                value={pestana}
+                onChange={setPestana}
+                items={[
+                  { id: "general", label: "General", icon: Settings },
+                  { id: "turnos", label: "Turnos", icon: Clock },
+                  { id: "maquinas", label: "Máquinas", icon: Server },
+                  { id: "motivos", label: "Motivos", icon: List },
+                ]}
+              />
+              <div className="setup-nav-actions">
+              {pestana === "maquinas" ? <button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ kind: "maquina", nuevo: true, nombre: "", marca: "Desconocido", modelo: "Desconocido", serie: String((sala.maquinas || []).length + 1), anio: "", codigo: String((sala.maquinas || []).length + 1), numero: (sala.maquinas || []).length + 1 })}>Nueva máquina</button> : null}
+              {pestana === "motivos" ? <button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ kind: "motivo", nuevo: true, codigo: "", corta: "", causa: "", deteccion: "", oee: "", tipo: "" })}>Nuevo motivo</button> : null}
+              <button className={`btn btn-ghost setup-tool${actualizando ? " is-spin" : ""}`} type="button" aria-label="Actualizar" onClick={actualizarTabla}>
+                <RefreshCw size={18} />
+              </button>
+              {pestana === "motivos" ? <MotivosMenu key={sala.codigo} sala={sala} procesos={profile?.procesos || []} onGuardar={guardarMotivosSala} /> : null}
+              </div>
+            </div>) : null}
         <div className="shell-pane" key={`${vista}-${sala?.nombre || ""}`}>
         {vista === "mensajes" ? (
           <Mensajes
@@ -1318,22 +1343,6 @@ export default function Shell() {
           />
         ) : vista === "sala-config" && sala ? (
           <div className="setup-page">
-            <div className="setup-bar">
-              <TabSwitch
-                size="small"
-                value={pestana}
-                onChange={setPestana}
-                items={[
-                  { id: "general", label: "General", icon: Settings },
-                  { id: "turnos", label: "Turnos", icon: Clock },
-                  { id: "maquinas", label: "Máquinas", icon: Server },
-                  { id: "motivos", label: "Motivos", icon: List },
-                ]}
-              />
-              <button className={`btn btn-ghost setup-tool${actualizando ? " is-spin" : ""}`} type="button" aria-label="Actualizar" onClick={actualizarTabla}>
-                <RefreshCw size={18} />
-              </button>
-            </div>
             {pestana === "general" ? (
               <>
               <h2 className="setup-general-title">Configuración general de la sala</h2>
@@ -1382,12 +1391,14 @@ export default function Shell() {
                     </div>
                   </div>
                 </div>
+                <DisposicionSala sala={sala} value={disposicionSala} onChange={setDisposicionSala} />
                 <div className="config-row config-row-actions">
-                  <button className="btn btn-primary" type="submit" disabled={alertaValida(alertaSala) === undefined || (vozSala && repeticionesValidas(vecesSala) == null) || (String(sala?.alertaOee ?? "") === alertaSala.trim() && vozSala === (sala?.notificacionesAltavoz !== false) && parosVoz === parosVozDe(sala?.parosVoz) && (!vozSala || Number(vecesSala) === Number(sala?.repeticionesVoz ?? profile?.planta?.repeticionesVoz ?? REPETICIONES_VOZ)))}>
+                  <button className="btn btn-primary" type="submit" disabled={Boolean(errorDisposicion(disposicionSala,(sala.maquinas||[]).length)) || alertaValida(alertaSala) === undefined || (vozSala && repeticionesValidas(vecesSala) == null) || (JSON.stringify(normalizarDisposicion(disposicionSala,(sala.maquinas||[]).length)) === JSON.stringify(normalizarDisposicion(sala.disposicion,(sala.maquinas||[]).length)) && String(sala?.alertaOee ?? "") === alertaSala.trim() && vozSala === (sala?.notificacionesAltavoz !== false) && parosVoz === parosVozDe(sala?.parosVoz) && (!vozSala || Number(vecesSala) === Number(sala?.repeticionesVoz ?? profile?.planta?.repeticionesVoz ?? REPETICIONES_VOZ)))}>
                     Guardar
                   </button>
                 </div>
               </form>
+
               </>
             ) : null}
             {pestana === "turnos" ? (
@@ -1395,7 +1406,7 @@ export default function Shell() {
             ) : null}
             {pestana === "maquinas" ? (
               <div className="setup-table-section">
-                <div className="setup-table-actions"><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ kind: "maquina", nuevo: true, nombre: "", marca: "Desconocido", modelo: "Desconocido", serie: String((sala.maquinas || []).length + 1), anio: "", codigo: String((sala.maquinas || []).length + 1), numero: (sala.maquinas || []).length + 1 })}>Nueva máquina</button></div>
+
               <div className={`sheet setup-scroll-table${actualizando ? " is-loading" : ""}`}>
                 <table>
                   <colgroup>
@@ -1424,7 +1435,7 @@ export default function Shell() {
             ) : null}
             {pestana === "motivos" ? (
               <div className="setup-table-section">
-                <div className="setup-table-actions"><MotivosMenu key={sala.codigo} sala={sala} procesos={profile?.procesos || []} onGuardar={guardarMotivosSala} /><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ kind: "motivo", nuevo: true, codigo: "", corta: "", causa: "", deteccion: "", oee: "", tipo: "" })}>Nuevo motivo</button></div>
+
               <div className={`sheet setup-scroll-table${actualizando ? " is-loading" : ""}`}>
                 <table>
                   <colgroup>
@@ -1452,7 +1463,7 @@ export default function Shell() {
         ) : vista === "dispositivos" ? (
           <Dispositivos dispositivos={dispositivosOrg} error={dispositivosError} />
         ) : vista === "analisis" ? (
-          <Analisis salas={salas} planta={profile?.planta} org={orgActiva} vista={analisisVista} onVista={setAnalisisVista} navbar={analisisNav} />
+          <Analisis key={orgActiva} salas={salas} planta={profile?.planta} org={orgActiva} vista={analisisVista} onVista={setAnalisisVista} navbar={analisisNav} />
         ) : vista === "ficha" ? (
           <Ficha
             profile={profile}
@@ -1579,8 +1590,7 @@ export default function Shell() {
             </div>
             <div className="sala-vista" key={panel}>
             {panel === "mapa" ? (
-              <div className="maquinas-grid" ref={mapaRef}>
-                {sala.maquinas.map((machine, index) => {
+              <MapaMaquinas maquinas={sala.maquinas} disposicion={sala.disposicion} mapaRef={mapaRef} renderMaquina={(machine, index) => {
                   const numero = String(machine.numero || index + 1).padStart(2, "0");
                   return (
                     <div key={numero} className={`card-maquina${paros[numero] ? " is-stopped" : ""}`} role="button" tabIndex={0} onClick={() => { if (acceso.cargarParo || acceso.comentar) setParo(numero); }} onKeyDown={(event) => { if (event.key === "Enter" && (acceso.cargarParo || acceso.comentar)) setParo(numero); }}>
@@ -1588,8 +1598,7 @@ export default function Shell() {
                       <span className="stop-timer">{paros[numero] ? textoDuracion(Number(paros[numero].inicio) || Date.now()) : ""}</span>
                     </div>
                   );
-                })}
-              </div>
+              }} />
             ) : null}
             {panel === "mapa" && !(movil && acceso.estadistica) ? <MotivosSala {...motivosProps} /> : null}
             {panel === "activity" || panel === "priority" ? (
@@ -1621,6 +1630,7 @@ export default function Shell() {
             ) : null}
             {paro ? (
               <ParoModal
+                logs={logsSala}
                 numero={paro}
                 paroActual={paros[paro] || null}
                 puedeCargar={acceso.cargarParo}
@@ -1641,7 +1651,7 @@ export default function Shell() {
                 onConfirm={(datos) => {
                   const inicio = paros[paro]?.inicio || Date.now();
                   detener(paro, { ...datos, inicio });
-                  const logs = leerLogs();
+                  const logs = leerLogs(orgActiva);
                   const abierto = [...logs].reverse().find((item) => mismaMaquina(item.machine, paro) && item.status !== "atendido" && !item.fin && (!item.sala || item.sala === salaCodigo));
                   if (paros[paro] && abierto) {
                     abierto.motivo = datos.motivo;
@@ -1663,13 +1673,13 @@ export default function Shell() {
                       autorNombre: nombre,
                     });
                   }
-                  guardarLogs(logs);
+                  guardarLogs(orgActiva, logs);
                   if (orgActiva) push(ref(rtdb, `organizaciones/${orgActiva}/paros`), { sala: salaCodigo, maquina: paro, motivo: datos.motivo, nombre: datos.nombre, inicio, estado: "detenido", via: VIA.paroManual, autor: user?.uid || "" }).catch(() => {});
                 }}
                 onReiniciar={() => {
                   const actual = paros[paro];
                   reiniciar(paro);
-                  const logs = leerLogs();
+                  const logs = leerLogs(orgActiva);
                   const abierto = [...logs].reverse().find((item) => mismaMaquina(item.machine, paro) && item.status !== "atendido" && !item.fin && (!item.sala || item.sala === salaCodigo));
                   const fin = Date.now();
                   if (abierto) {
@@ -1696,7 +1706,7 @@ export default function Shell() {
                       arranqueNombre: nombre,
                     });
                   }
-                  guardarLogs(logs);
+                  guardarLogs(orgActiva, logs);
                   if (orgActiva && actual) {
                     cerrarParoRemoto(orgActiva, {
                       sala: salaCodigo,

@@ -123,3 +123,13 @@ Una pantalla nueva debe sentirse como una extensión de Smart View, no como una 
 Los menús flotantes y selectores en modo claro usan blanco al 99,5 % (`--options-bg`) para que el contenido detrás no dificulte leer sus opciones. Conservan los tokens y el desenfoque existentes.
 
 En configuración y durante la creación de la planta, el menú de tres puntos de Motivos permite asignar el catálogo compartido de la industria cuando la lista está vacía, o importar una plantilla Excel/CSV. La importación actualiza por código y conserva los motivos que no están en el archivo.
+
+## Configuración del mapa por sala
+
+En General, «Configuración de mapa» permite conservar la distribución automática o configurar grupos por separado: cantidad de máquinas, filas y columnas. Se pueden agregar o quitar grupos. El total de máquinas asignadas debe coincidir con el de la sala y cada cuadrícula debe tener espacio suficiente. Cada bloque del mapa muestra el rango de máquinas y conserva su numeración global y los estados existentes.
+
+La cabecera y las pestañas General, Turnos, Máquinas y Motivos permanecen fuera del área que se desplaza. En esa línea, la acción Nueva máquina/Nuevo motivo va antes de Actualizar y el menú de Motivos va después.
+
+## Aislamiento del historial
+
+Los históricos se leen de la ruta de la organización activa en Firebase. No se importan automáticamente los registros antiguos de `machine_stop_logs`, que carecen de una empresa verificable. La caché del historial identifica la organización y la del control incluye empresa, usuario y sala. Al cambiar de organización, se descartan los resultados anteriores de la vista antes de cargar los nuevos.

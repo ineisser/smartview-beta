@@ -244,10 +244,12 @@ export function AuthProvider({ children }) {
   const hasUser = useRef(false);
   const loggingOut = useRef(false);
   const freshLogin = useRef(false);
+  const cuentaActiva = useRef(null);
 
   const remember = (usuario, org = orgState.current) => {
-    orgState.current = org;
-    const next = vista(usuario, org);
+    const permitida = !org || ["superusuario", "soporte"].includes(usuario?.rolPlataforma) || org.codigo === usuario?.tenantId;
+    orgState.current = permitida ? org : null;
+    const next = vista(usuario, orgState.current);
     profileRef.current = next;
     setProfile(next);
     return next;
@@ -360,6 +362,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     return onAuthStateChanged(auth, async (current) => {
       if (!current && hasUser.current && !loggingOut.current) return;
+      if (cuentaActiva.current !== (current?.uid || null)) {
+        cuentaActiva.current = current?.uid || null;
+        remember(null, null);
+        setLoading(Boolean(current));
+      }
       setUser(current);
       if (!current) {
         hasUser.current = false;
@@ -412,6 +419,7 @@ export function AuthProvider({ children }) {
           org = { ...org, planta: { ...org.planta, confirmada: true, fase: org.planta.fase === "nombre" ? org.planta.fase : "sistema" } };
           if (org.planta.fase === "sistema") await update(orgRef(org.codigo), { planta: org.planta }).catch(() => {});
         }
+        if (auth.currentUser?.uid !== current.uid) return;
         if (!settling.current && usuario) {
           const aplicado = aplicarRolDeMiembro({ ...usuario, uid: current.uid, email: usuario.email || current.email }, org);
           if (aplicado.rolTenant && aplicado.rolTenant !== usuario.rolTenant) {
@@ -423,10 +431,11 @@ export function AuthProvider({ children }) {
           remember(local, orgState.current);
         }
       } catch {
+        if (auth.currentUser?.uid !== current.uid) return;
         if (local) remember(local, orgState.current);
         else setDbError("No se pudo leer la cuenta.");
       } finally {
-        setLoading(false);
+        if (auth.currentUser?.uid === current.uid) setLoading(false);
       }
     });
   }, []);
@@ -441,8 +450,9 @@ export function AuthProvider({ children }) {
       offOrg();
       orgCodigo = codigo;
       offOrg = watchOrgMeta(codigo, (org) => {
-        if (settling.current || loggingOut.current) return;
+        if (settling.current || loggingOut.current || auth.currentUser?.uid !== uid || orgCodigo !== codigo) return;
         const base = { ...(profileRef.current || {}), uid, email: profileRef.current?.email || user.email };
+        if (base.tenantId !== codigo && !["superusuario", "soporte"].includes(base.rolPlataforma)) return;
         const aplicado = aplicarRolDeMiembro(base, org);
         const next = remember(aplicado, org);
         writeLocal(uid, next);
@@ -456,7 +466,7 @@ export function AuthProvider({ children }) {
       });
     };
     const offUser = onValue(userRef(uid), (snap) => {
-      if (!snap.exists() || settling.current || loggingOut.current) return;
+      if (!snap.exists() || settling.current || loggingOut.current || auth.currentUser?.uid !== uid) return;
       const crudo = { ...snap.val(), uid };
       if (crudo.tenantId) escucharOrg(crudo.tenantId);
       const aplicado = aplicarRolDeMiembro(crudo, orgState.current);

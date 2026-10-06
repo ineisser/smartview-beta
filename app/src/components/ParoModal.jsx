@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { ChevronDown, X } from "lucide-react";
 import "../styles/components/modal.css";
 
-export default function ParoModal({ numero, motivos, paroActual, onClose, onConfirm, onReiniciar, puedeCargar = true, onComentar, onEnterado }) {
+export default function ParoModal({ numero, motivos, paroActual, onClose, onConfirm, onReiniciar, puedeCargar = true, onComentar, onEnterado, logs = [] }) {
   const [visible, setVisible] = useState(false);
   const [abierto, setAbierto] = useState(false);
   const [motivo, setMotivo] = useState(paroActual?.motivo || "");
@@ -42,7 +42,7 @@ export default function ParoModal({ numero, motivos, paroActual, onClose, onConf
 
   const conteo = motivos.reduce((mapa, item) => ({ ...mapa, [item.id]: 0 }), {});
   try {
-    JSON.parse(localStorage.getItem("machine_stop_logs") || "[]").forEach((item) => {
+    logs.forEach((item) => {
       if (item.status !== "detenido") return;
       const id = item.motivo || motivos.find((motivoItem) => motivoItem.name === item.reason)?.id;
       if (id && conteo[id] !== undefined) conteo[id] += 1;

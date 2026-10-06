@@ -1,3 +1,4 @@
+import { claveControlLocal } from './data/historial-local.js';
 import { get, onValue, ref, update } from "firebase/database";
 import { rtdb } from "./firebase";
 
@@ -8,19 +9,21 @@ const ctrlRef = (org, sala) => ref(rtdb, ctrlPath(org, sala));
 const pad = (n) => String(n).padStart(2, "0");
 
 /** localStorage → mapa UI { "01": { motivo, nombre, inicio } } */
-export const claveParosLocal = (uid, sala) => `smartview-paros:${uid}:${sala}`;
+export const claveParosLocal = claveControlLocal;
 
-export const leerParosLocal = (uid, sala) => {
+export const leerParosLocal = (org, uid, sala) => {
+  if (!claveParosLocal(org, uid, sala)) return {};
   try {
-    return JSON.parse(localStorage.getItem(claveParosLocal(uid, sala)) || "{}");
+    return JSON.parse(localStorage.getItem(claveParosLocal(org, uid, sala)) || "{}");
   } catch {
     return {};
   }
 };
 
-export const guardarParosLocal = (uid, sala, mapa) => {
+export const guardarParosLocal = (org, uid, sala, mapa) => {
+  if (!claveParosLocal(org, uid, sala)) return;
   try {
-    localStorage.setItem(claveParosLocal(uid, sala), JSON.stringify(mapa));
+    localStorage.setItem(claveParosLocal(org, uid, sala), JSON.stringify(mapa));
   } catch {
     /* cuota / privado */
   }

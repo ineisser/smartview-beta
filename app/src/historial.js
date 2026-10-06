@@ -105,7 +105,7 @@ export const cerrarParoRemoto = async (org, item) => {
 export const subirLocales = async (org, locales = [], remotos = []) => {
   if (!org) return 0;
   let subidos = 0;
-  for (const item of locales) {
+  for (const item of locales.filter(item => item?.org === org)) {
     if (remotos.some((remoto) => mismoParo(remoto, item))) continue;
     remotos = [...remotos, item];
     await push(ref(rtdb, `organizaciones/${org}/paros`), aRemoto(item));

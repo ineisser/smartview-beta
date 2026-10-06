@@ -46,3 +46,30 @@ test('preparación inicial se guarda una sola vez y las consultas siguientes no 
  assert.deepEqual(first.datos.resumen,next.datos.resumen);
  assert.equal(io.calls.filter(x=>x.endsWith('/paros')).length,1);
 });
+
+test('Creditex sin registros queda vacío tras consultar otra empresa con iguales salas y revisión', async () => {
+ clearAnalysisCache();
+ const empresas = {
+   ISAGI: { paros: raw, analisis: crearProyeccion(raw, rooms, now) },
+   CREDITEX: { paros: {}, analisis: crearProyeccion({}, rooms, now) },
+ };
+ // Fuerza la misma revisión para comprobar que la caché incluye la empresa.
+ empresas.CREDITEX.analisis.meta.revision = empresas.ISAGI.analisis.meta.revision;
+ const root = { organizaciones: empresas };
+ const io = { read: async (path, range) => {
+   let value = path.split('/').reduce((o, key) => o?.[key], root);
+   if (range) value = Object.fromEntries(Object.entries(value || {}).filter(([key]) => key >= range.desde && key <= range.hasta));
+   return structuredClone(value) || null;
+ }, write: async () => { throw new Error('No debe reconstruir índices válidos.'); } };
+ const input = { desde: time('2026-10-01T00:00:00'), hasta: time('2026-10-04T00:00:00') };
+ for (const vista of ['historial', 'maquinas', 'motivos', 'dashboard']) {
+   const ajeno = await consultarAnalisis(io, 'ISAGI', rooms, rooms, { ...input, vista }, now);
+   const vacio = await consultarAnalisis(io, 'CREDITEX', rooms, rooms, { ...input, vista }, now);
+   assert.ok((ajeno.total || ajeno.datos?.resumen.paros) > 0);
+   assert.equal(vacio.total || vacio.datos?.resumen.paros || 0, 0);
+   assert.equal(vacio.totales.paros, 0);
+   assert.equal(vacio.totales.tiempoParado, 0);
+   if (vista === 'historial') assert.deepEqual(vacio.filas, []);
+   if (vista === 'motivos') assert.deepEqual(vacio.datos.motivos, []);
+ }
+});

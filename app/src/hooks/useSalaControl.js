@@ -3,7 +3,6 @@ import { VIA } from "../paro";
 import {
   borrarParo,
   escucharCtrl,
-  escribirMapa,
   escribirParo,
   guardarParosLocal,
   leanAParos,
@@ -34,6 +33,8 @@ const firmaDe = (leanOMapa) => {
  */
 export default function useSalaControl({ org, sala, uid, motivos }) {
   const [paros, setParos] = useState({});
+  const contexto = `${org}:${uid}:${sala}`;
+  const [contextoActual, setContextoActual] = useState(null);
   const [listo, setListo] = useState(false);
   const firma = useRef("");
   const remotoPendiente = useRef(null);
@@ -45,14 +46,12 @@ export default function useSalaControl({ org, sala, uid, motivos }) {
     setParos(mapa);
     if (leanFirma !== undefined) firma.current = leanFirma;
     else firma.current = firmaDe(mapa);
-    if (uid && sala) guardarParosLocal(uid, sala, mapa);
-  }, [uid, sala]);
+    if (uid && sala) guardarParosLocal(org, uid, sala, mapa);
+  }, [org, uid, sala]);
 
   const aplicarLean = useCallback((lean) => {
     const next = firmaDe(lean);
     if (next === firma.current) return;
-    const vacio = next === "{}";
-    if (vacio && firma.current && firma.current !== "{}" && !Number(lean?.u)) return;
     const mapa = leanAParos(lean, motivosRef.current);
     setParos((prev) => {
       Object.keys(mapa).forEach((clave) => {
@@ -62,8 +61,8 @@ export default function useSalaControl({ org, sala, uid, motivos }) {
       return mapa;
     });
     firma.current = next;
-    if (uid && sala) guardarParosLocal(uid, sala, mapa);
-  }, [uid, sala]);
+    if (uid && sala) guardarParosLocal(org, uid, sala, mapa);
+  }, [org, uid, sala]);
 
   useEffect(() => {
     if (!org || !sala || !uid) {
@@ -73,28 +72,20 @@ export default function useSalaControl({ org, sala, uid, motivos }) {
     }
 
     let vivo = true;
+    setContextoActual(contexto);
     setListo(false);
     firma.current = "";
     window.clearTimeout(timer.current);
     remotoPendiente.current = null;
 
-    const cache = leerParosLocal(uid, sala);
-    if (Object.keys(cache).length) pintar(cache);
+    const cache = leerParosLocal(org, uid, sala);
+    pintar(cache);
 
     (async () => {
       try {
         const remoto = await leerCtrl(org, sala);
         if (!vivo) return;
-        const vacio = !remoto?.m || !Object.keys(remoto.m).length;
-        if (vacio && Object.keys(cache).length) {
-          await escribirMapa(org, sala, cache);
-          if (!vivo) return;
-          firma.current = firmaDe(parosALean(cache));
-          remotoPendiente.current = null;
-          window.clearTimeout(timer.current);
-        } else if (remoto) {
-          aplicarLean(remoto);
-        }
+        aplicarLean(remoto);
       } catch {
         /* sin red: queda el cache */
       } finally {
@@ -127,7 +118,7 @@ export default function useSalaControl({ org, sala, uid, motivos }) {
       const origen = via ?? prev[clave]?.via ?? VIA.paroManual;
       const siguiente = { ...prev, [clave]: { motivo, nombre, inicio: desde, via: origen } };
       firma.current = firmaDe(siguiente);
-      if (uid && sala) guardarParosLocal(uid, sala, siguiente);
+      if (uid && sala) guardarParosLocal(org, uid, sala, siguiente);
       return siguiente;
     });
     if (!org || !sala) return;
@@ -144,7 +135,7 @@ export default function useSalaControl({ org, sala, uid, motivos }) {
       const siguiente = { ...prev };
       delete siguiente[clave];
       firma.current = firmaDe(siguiente);
-      if (uid && sala) guardarParosLocal(uid, sala, siguiente);
+      if (uid && sala) guardarParosLocal(org, uid, sala, siguiente);
       return siguiente;
     });
     if (!org || !sala) return;
@@ -160,10 +151,10 @@ export default function useSalaControl({ org, sala, uid, motivos }) {
     setParos((prev) => {
       if (!prev[clave]) return prev;
       const siguiente = { ...prev, [clave]: { ...prev[clave], comentario } };
-      if (uid && sala) guardarParosLocal(uid, sala, siguiente);
+      if (uid && sala) guardarParosLocal(org, uid, sala, siguiente);
       return siguiente;
     });
-  }, [uid, sala]);
+  }, [org, uid, sala]);
 
-  return { paros, listo, detener, reiniciar, comentar, leanActual: () => parosALean(paros) };
+  return { paros: contextoActual === contexto ? paros : {}, listo: contextoActual === contexto && listo, detener, reiniciar, comentar, leanActual: () => parosALean(contextoActual === contexto ? paros : {}) };
 }
