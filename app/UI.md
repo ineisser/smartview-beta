@@ -134,4 +134,6 @@ La cabecera y las pestañas General, Turnos, Máquinas y Motivos permanecen fuer
 
 Los históricos se leen de la ruta de la organización activa en Firebase. No se importan automáticamente los registros antiguos de `machine_stop_logs`, que carecen de una empresa verificable. La caché del historial identifica la organización y la del control incluye empresa, usuario y sala. Al cambiar de organización, se descartan los resultados anteriores de la vista antes de cargar los nuevos.
 
-En mapas con 250 máquinas o más, el sidebar de escritorio cambia de ancho sin transición para ajustar la cuadrícula una sola vez. Las tarjetas conservan colores y estados, pero no aplican blur individual ni animan medidas o posiciones. Los grupos mantienen su superficie de vidrio y las salas menores conservan sus efectos actuales.
+En mapas con 250 máquinas o más, el sidebar de escritorio cambia de ancho sin transición para ajustar la cuadrícula una sola vez. Las tarjetas conservan colores y estados, pero no aplican blur individual ni animan medidas o posiciones. Las salas menores conservan sus efectos actuales.
+
+El mapa por grupos usa una cuadrícula de ancho uniforme, con un máximo de tres grupos por fila y dos o uno según el espacio disponible. La última fila conserva el mismo ancho de columnas. Los contenedores de grupo son transparentes, sin borde ni padding; se separan por espacio y alineación, con título y rango de máquinas arriba.

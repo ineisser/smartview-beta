@@ -3286,8 +3286,8 @@ html.dark .volumen-fila input[type=range]::-moz-range-thumb { box-shadow:none; }
 .disposicion-config { margin-top:24px; }
 .disposicion-config .config-rule { margin-bottom:20px; }
 .disposicion-cantidad { font:400 1.75rem var(--font-display); padding:0 20px; }
-.mapa-grupos { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--grupo-ancho)),1fr)); align-items:start; gap:14px; margin-top:20px; min-width:0; }
-.mapa-grupo { min-width:0; padding:10px; border:1px solid var(--glass-line); border-radius:16px; background:var(--glass); }
+.mapa-grupos { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,max(240px,calc((100% - 48px) / 3))),1fr)); align-items:start; gap:28px 24px; margin-top:20px; min-width:0; }
+.mapa-grupo { min-width:0; padding:0; border:0; border-radius:0; background:transparent; }
 .mapa-grupo header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; font-size:.75rem; }
 .mapa-grupo header strong { font-weight:500; }
 .mapa-grupo header span { color:var(--muted); }
@@ -3312,8 +3312,6 @@ html.dark .volumen-fila input[type=range]::-moz-range-thumb { box-shadow:none; }
 .disposicion-acciones { display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:12px 0; }
 .disposicion-acciones span { color:var(--muted); font-size:.8rem; }
 .disposicion-error { color:var(--ink-solid); font-size:.85rem; }
-.mapa-grupos { display:flex; flex-wrap:wrap; }
-.mapa-grupo { flex:1 0 min(100%,var(--grupo-ancho)); max-width:100%; }
 @media(max-width:640px) { .setup-nav-actions { width:100%; justify-content:flex-end; } }
 
 /* Los mapas grandes se ajustan una vez al alternar el sidebar. */
