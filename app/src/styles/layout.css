@@ -359,3 +359,5 @@ footer {
   opacity: 0.6;
   font-weight: 400;
 }
+
+html:not(.dark) #reasons-select-trigger.theme-select-trigger { background:var(--options-bg); color:var(--ink-solid); border-color:var(--options-border); }

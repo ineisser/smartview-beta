@@ -1,3 +1,4 @@
+import MotivosMenu from '../components/MotivosMenu';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -1053,6 +1054,13 @@ export default function Shell() {
     const a = document.createElement("a"); a.href = url; a.download = "plantilla-motivos.csv"; a.click(); URL.revokeObjectURL(url);
   };
 
+  const guardarMotivosSala = async (motivos) => {
+    if (!user || !sala || !acceso.editarPlanta) throw new Error("No tienes permiso para editar los motivos de esta sala.");
+    const siguientes = (profile.planta.salas || []).map(item => item === sala || (sala.codigo && item.codigo === sala.codigo)
+      ? { ...item, motivos, cantidadMotivos: motivos.length, motivosImportados: true } : item);
+    await saveProfile(user.uid, { planta: { ...profile.planta, salas: siguientes } });
+  };
+
   const guardarFicha = async (event) => {
     event.preventDefault();
     if (!user || !sala || !ficha) return;
@@ -1416,7 +1424,7 @@ export default function Shell() {
             ) : null}
             {pestana === "motivos" ? (
               <div className="setup-table-section">
-                <div className="setup-table-actions"><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ kind: "motivo", nuevo: true, codigo: "", corta: "", causa: "", deteccion: "", oee: "", tipo: "" })}>Nuevo motivo</button></div>
+                <div className="setup-table-actions"><MotivosMenu key={sala.codigo} sala={sala} procesos={profile?.procesos || []} onGuardar={guardarMotivosSala} /><button className="btn btn-primary btn-compact" type="button" onClick={() => setFicha({ kind: "motivo", nuevo: true, codigo: "", corta: "", causa: "", deteccion: "", oee: "", tipo: "" })}>Nuevo motivo</button></div>
               <div className={`sheet setup-scroll-table${actualizando ? " is-loading" : ""}`}>
                 <table>
                   <colgroup>
@@ -1714,7 +1722,7 @@ export default function Shell() {
               <Paso hecho={(sala.maquinas || []).length > 0} texto={(sala.maquinas || []).length > 0 ? "Máquinas cargadas" : "Aún no hay máquinas configuradas"} />
               {!((sala.maquinas || []).length) ? <li className="onboarding-actions"><button className="btn btn-primary" type="button" onClick={simularMaquinas}>Crear máquinas</button><button className="btn btn-ghost" type="button" onClick={descargarPlantillaMaquinas}>Descargar plantilla</button></li> : null}
               <Paso hecho={(sala.motivos || []).length > 0} texto={(sala.motivos || []).length > 0 ? "Motivos de paro cargados" : "Aún no hay motivos de paro configurados"} />
-              {!((sala.motivos || []).length) ? <li className="onboarding-actions"><button className="btn btn-ghost" type="button" onClick={descargarPlantillaMotivos}>Descargar plantilla de motivos</button></li> : null}
+              {!((sala.motivos || []).length) ? <li className="onboarding-actions"><button className="btn btn-ghost" type="button" onClick={descargarPlantillaMotivos}>Descargar plantilla de motivos</button><MotivosMenu sala={sala} procesos={profile?.procesos || []} onGuardar={guardarMotivosSala} disabled={!acceso.editarPlanta} /></li> : null}
             </ul>
             <div className="onboarding-skip"><button className="btn btn-primary" type="button" onClick={() => navigate(ruta(sala.codigo || codigoSala(sala.nombre, activa), true), { state: { desde: pathname } })}>Continuar a configuración</button><small>Puedes omitir estos pasos y completarlos después en Máquinas y Motivos.</small></div>
           </>

@@ -109,7 +109,7 @@ body.light #root {
   --modal-text: #0f172a;
   --modal-subtext: #475569;
   --chevron-color: #0f172a;
-  --options-bg: rgba(255, 255, 255, 0.98);
+  --options-bg: rgba(255, 255, 255, 0.995);
   --options-border: rgba(0, 0, 0, 0.1);
 }
 

@@ -267,3 +267,5 @@ html.dark .option-item:hover { background: var(--hover); }
   background: rgba(255, 255, 255, 0.05);
   color: white;
 }
+
+html:not(.dark) #reasons-select-trigger.theme-select-trigger { background:var(--options-bg); color:var(--ink-solid); border-color:var(--options-border); }

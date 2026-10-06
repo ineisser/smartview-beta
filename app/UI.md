@@ -117,3 +117,9 @@ Una pantalla nueva debe sentirse como una extensión de Smart View, no como una 
 - **Cajón de alta/edición:** crear y editar máquinas o motivos usa el mismo drawer lateral. Título y cierre permanecen arriba; acciones permanecen abajo.
 - **Dispositivos:** el acceso de cabecera es un componente único con badge morado y contador blanco. En móvil la tabla se transforma en tarjetas y el detalle usa una hoja inferior.
 - **Volumen:** icono, slider, mute/restauración y persistencia pertenecen a un único componente reutilizable. Durante el arrastre, progreso y thumb usan Alerta 1 con halo; fuera del arrastre vuelven al estado neutro.
+
+## Menús y motivos de sala
+
+Los menús flotantes y selectores en modo claro usan blanco al 99,5 % (`--options-bg`) para que el contenido detrás no dificulte leer sus opciones. Conservan los tokens y el desenfoque existentes.
+
+En configuración y durante la creación de la planta, el menú de tres puntos de Motivos permite asignar el catálogo compartido de la industria cuando la lista está vacía, o importar una plantilla Excel/CSV. La importación actualiza por código y conserva los motivos que no están en el archivo.

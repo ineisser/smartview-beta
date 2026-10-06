@@ -1,8 +1,10 @@
+import MotivosMenu from '../components/MotivosMenu';
+import { catalogoParaSala, combinarMotivos, leerPlantillaMotivos } from '../data/plantilla-motivos';
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CloudUpload, Download } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { COLUMNAS_PARO, codigoParo, estandarDeSala } from "../data/catalogos-paro";
+import { COLUMNAS_PARO, codigoParo } from "../data/catalogos-paro";
 import TimeField from "../components/TimeField";
 
 const emptyPlant = {
@@ -249,16 +251,20 @@ export default function PlantSetup({ onFase }) {
 
   const sala = plant.salas[plant.salaIndex];
 
-  const persist = async (next) => {
+  const persist = async (next, propagarError = false) => {
     const marcada = next.fase === "sistema" || next.fase === "lista" ? { ...next, confirmada: true } : next;
     setPlant(marcada);
-    if (!user) return;
+    if (!user) {
+      if (propagarError) { setPlant(plant); throw new Error("Inicia sesión para guardar los motivos."); }
+      return;
+    }
     setBusy(true);
     try {
       await saveProfile(user.uid, { planta: marcada });
       setError("");
-    } catch {
+    } catch (error) {
       setError("No se pudo guardar este paso.");
+      if (propagarError) { setPlant(plant); throw error; }
     } finally {
       setBusy(false);
     }
@@ -452,7 +458,7 @@ export default function PlantSetup({ onFase }) {
       bajarPlantillaMotivos(cargados);
       return;
     }
-    const estandar = estandarDeSala(sala?.nombre);
+    const estandar = catalogoParaSala(sala, profile?.procesos || []);
     if (estandar?.motivos?.length) {
       setPreguntarEstandar(true);
       return;
@@ -461,7 +467,7 @@ export default function PlantSetup({ onFase }) {
   };
 
   const confirmarEstandar = (conEjemplos) => {
-    const estandar = estandarDeSala(sala?.nombre);
+    const estandar = catalogoParaSala(sala, profile?.procesos || []);
     setPreguntarEstandar(false);
     if (conEjemplos && estandar) {
       setSugeridos(estandar);
@@ -473,55 +479,19 @@ export default function PlantSetup({ onFase }) {
     bajarPlantillaMotivos([]);
   };
 
+  const guardarMotivos = async (motivos) => {
+    const salas = marcarSala({ motivos: motivos.slice(), cantidadMotivos: motivos.length, motivosImportados: true, motivosHecho: false });
+    await persist({ ...plant, fase: "motivos", salas, importado: true }, true);
+    setSugeridos(null);
+    setPreguntarEstandar(false);
+    setResultado(`Se guardaron ${motivos.length} motivos de paro. Puedes editarlos cuando quieras.`);
+    reveal(motivos.length);
+  };
+
   const uploadMotivos = async (file) => {
-    setError("");
-    setResultado("");
-    try {
-      const name = file.name.toLowerCase();
-      let rows = [];
-      if (name.endsWith(".csv")) {
-        const lines = (await file.text()).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-        const headers = lines[0].split(",").map((cell) => cell.replace(/"/g, "").trim().toLowerCase());
-        rows = lines.slice(1).map((line) => {
-          const cells = line.split(",").map((cell) => cell.replace(/^"|"$/g, "").trim());
-          const row = {};
-          headers.forEach((header, index) => { row[header] = cells[index] || ""; });
-          return row;
-        });
-      } else if (name.endsWith(".xls") || name.endsWith(".xlsx")) {
-        const XLSX = await import("xlsx");
-        const book = XLSX.read(await file.arrayBuffer(), { type: "array" });
-        rows = XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]], { defval: "" });
-      } else {
-        throw new Error("formato");
-      }
-      const motivos = rows.map((row, index) => {
-        const pick = (...keys) => {
-          const found = Object.keys(row).find((key) => keys.includes(String(key).toLowerCase()));
-          return found ? String(row[found]).trim() : "";
-        };
-        const leido = {};
-        COLUMNAS_PARO.forEach((columna) => {
-          leido[columna.key] = pick(columna.titulo.toLowerCase(), columna.key);
-        });
-        if (!leido.corta) leido.corta = pick("nombre", "motivo", "descripcion corta", "descripción corta");
-        leido.codigo = codigoParo(leido.codigo) || `MP${String(index + 1).padStart(3, "0")}`;
-        return leido;
-      }).filter((motivo) => motivo.corta || motivo.causa);
-      if (!motivos.length) throw new Error("vacio");
-      const salas = marcarSala({ motivos: motivos.slice(), cantidadMotivos: motivos.length, motivosImportados: true, motivosHecho: false });
-      setSugeridos(null);
-      setPreguntarEstandar(false);
-      await persist({ ...plant, fase: "motivos", salas, importado: true });
-      setResultado(`Formato válido. Se reconocieron ${motivos.length} motivos de paro.`);
-      reveal(motivos.length);
-    } catch (err) {
-      const message = {
-        formato: "Sube un archivo Excel o CSV.",
-        vacio: "El archivo no trae motivos de paro.",
-      }[err.message] || "No se pudo validar el archivo.";
-      setError(message);
-    }
+    setError(""); setResultado("");
+    try { await guardarMotivos(combinarMotivos(sala?.motivos || [], await leerPlantillaMotivos(file))); }
+    catch (err) { setError(err.message || "No se pudo validar el archivo."); }
   };
 
   const listaMaquinas = (plant.fase === "maquinas" || plant.fase === "excel") && ((sala?.maquinas || []).length > 0 || importando);
@@ -637,7 +607,7 @@ export default function PlantSetup({ onFase }) {
 
       {(plant.fase === "motivos" || plant.fase === "motivosCantidad") && sala && !(plant.importado || sugeridos) && (
         <div className="ask">
-          <h2>Motivos de paro de {sala.nombre}</h2>
+          <div className="motivos-bar"><h2>Motivos de paro de {sala.nombre}</h2><MotivosMenu sala={sala} procesos={profile?.procesos || []} onGuardar={guardarMotivos} disabled={busy} /></div>
           <p className="lede">Es la lista de motivos de paro conocidos de los telares, no el historial de paros. Descarga el formato, cámbialo si hace falta y súbelo. Lo guardamos en motivos.</p>
           <div className="stack">
             {preguntarEstandar ? (
@@ -665,6 +635,7 @@ export default function PlantSetup({ onFase }) {
           <div className="motivos-bar">
             <h2>Motivos de paro</h2>
             <div className="motivos-actions">
+              <MotivosMenu sala={sala} procesos={profile?.procesos || []} onGuardar={guardarMotivos} disabled={busy} />
               <button className="btn btn-ghost btn-inline" type="button" onClick={() => bajarPlantillaMotivos(plant.importado && sala.motivos?.length ? sala.motivos : (sugeridos?.motivos || sala.motivos || []))}>
                 <Download size={18} /> Bajar plantilla
               </button>
