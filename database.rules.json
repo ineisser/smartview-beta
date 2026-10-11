@@ -23,6 +23,7 @@
       "$codigo": {
         ".read": "auth != null && root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo",
         ".write": "auth != null && (root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte')",
+        "mensajes": { ".indexOn": ["en"] },
         "paros": {
           ".indexOn": [
             "inicio"

@@ -26,7 +26,7 @@ export default function historyApi() {
         const permitted=allowedRooms(profile,rooms||[],members||{},uid);
         if(!permitted.length)throw new Error('Sin acceso al análisis de salas.');
         const write=async(path,value)=>{const response=await fetch(`${base}/${path}.json?auth=${encodeURIComponent(token)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(value),signal:AbortSignal.timeout(60000)});if(!response.ok)throw new Error('No se pudo preparar el índice de análisis.');};
-        res.end(JSON.stringify(await consultarAnalisis({read,write,allowRebuild:true},input.org,permitted,rooms||[],input)));
+        res.end(JSON.stringify(await consultarAnalisis({read,write,verifySource:true},input.org,permitted,rooms||[],input)));
       } catch(error) {res.statusCode=400;res.end(JSON.stringify({error:error.message||'No se pudo cargar el historial.'}));}
     });
   }};

@@ -8,6 +8,7 @@ export default function useHistorialPagina({activo,org,desde,hasta,sala,maquina,
   const [version,setVersion]=useState(0),[tick,setTick]=useState(0);
   const cursors=useRef({}),fingerprint=useRef(''),manual=useRef(revision);
   useEffect(()=>{if(!activo||!org)return;return onValue(ref(rtdb,`organizaciones/${org}/analisis/meta/revision`),s=>setVersion(s.val()||0),()=>{});},[activo,org]);
+  useEffect(()=>{if(!import.meta.env.DEV||!activo||!org)return;return onValue(ref(rtdb,`organizaciones/${org}/paros`),()=>setTick(v=>v+1),()=>{});},[activo,org]);
   useEffect(()=>{if(!activo||hasta<Date.now())return;const timer=setInterval(()=>setTick(v=>v+1),60000);return()=>clearInterval(timer);},[activo,hasta]);
   useEffect(()=>{
     if(!activo||!org)return;
@@ -15,7 +16,7 @@ export default function useHistorialPagina({activo,org,desde,hasta,sala,maquina,
     const abort=new AbortController();
     setDatos({org,filas:[],total:0,offset:0,cargando:true,error:null});
     const key=JSON.stringify({org,desde,hasta,sala,maquina,razon,estado,orden,vista,periodo,version,revision,tick});if(fingerprint.current!==key){fingerprint.current=key;cursors.current={};}
-    const reconstruir=import.meta.env.DEV&&manual.current!==revision;manual.current=revision;
+    const reconstruir=manual.current!==revision;manual.current=revision;
     const input={org,desde,hasta,sala,maquina,razon,estado,orden,offset,vista,periodo,cursor:cursors.current[offset]||null,reconstruir};
     (async()=>{
       try {

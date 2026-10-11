@@ -1,4 +1,5 @@
 import { historyPage } from './history-core.js';
+import { createHash } from 'node:crypto';
 import { crearProyeccion, resumenDia, combinarDias, diasEntre, diaInicio } from './projection.js';
 import { inicio, fin, cerrado, evolucion, fechaLocal } from './shared/analysis.js';
 
@@ -18,7 +19,11 @@ export async function consultarAnalisis(io,org,rooms,allRooms,input,now=Date.now
   if(!Number.isFinite(desde)||!Number.isFinite(hasta)||desde>=hasta)throw new Error('Período inválido.');
   const days=diasEntre(desde,hasta);if(days.length>3660)throw new Error('Selecciona un período de hasta diez años.');
   let meta=await io.read(`${root}/meta`);
-  if(!meta?.ready||meta.version!==3||meta.config!==JSON.stringify(allRooms)||(io.allowRebuild&&input.reconstruir)) {
+  // Vite no ejecuta el trigger incremental: verifica la fuente antes de reutilizar el índice.
+  const source = io.verifySource ? await io.read(`organizaciones/${org}/paros`) : undefined;
+  const sourceHash = value => createHash('sha256').update(JSON.stringify(value || {})).digest('hex');
+  const sourceChanged = io.verifySource && meta?.sourceHash !== sourceHash(source);
+  if(!meta?.ready||meta.version!==3||meta.config!==JSON.stringify(allRooms)||sourceChanged||input.reconstruir) {
     // Primera preparación; las siguientes consultas usan exclusivamente la proyección.
     if(!preparaciones.has(org))preparaciones.set(org,(async()=>{
       if(io.acquire&&!await io.acquire()) {
@@ -29,7 +34,9 @@ export async function consultarAnalisis(io,org,rooms,allRooms,input,now=Date.now
         for(let attempt=0;attempt<3;attempt++) {
           const revision=await io.read(`organizaciones/${org}/analisisFuenteRevision`);
           const raw=await io.read(`organizaciones/${org}/paros`);
-          const projection=crearProyeccion(raw,allRooms,Date.now());await io.write(root,{...projection,meta:{...projection.meta,ready:false}});
+          const projection=crearProyeccion(raw,allRooms,Date.now());
+          projection.meta.sourceHash=sourceHash(raw);
+          await io.write(root,{...projection,meta:{...projection.meta,ready:false}});
           const latest=await io.read(`organizaciones/${org}/analisisFuenteRevision`);
           if(latest===revision){await io.write(`${root}/meta`,projection.meta);if(await io.read(`organizaciones/${org}/analisisFuenteRevision`)===revision)return projection.meta;}
         }

@@ -41,9 +41,11 @@ almacenamiento y escrituras para reducir las lecturas frecuentes.
 ## Desarrollo y publicación
 
 Vite sirve el mismo cálculo por `/api/analisis/historial`, verificando el token.
-Sin el trigger desplegado, **Actualizar** reconstruye la proyección en desarrollo
-para recoger escrituras de otros clientes; este fallback sí relee el historial
-completo al actualizar manualmente. Producción utiliza el trigger incremental.
+En desarrollo se escucha el historial y se verifica su huella antes de reutilizar
+la proyección: inserciones, cierres y borrados la reconstruyen aunque no haya trigger.
+Este mecanismo relee el historial completo y se limita al servidor local.
+**Actualizar** permite reconstruir un índice desactualizado tanto en desarrollo
+como en producción. Producción utiliza normalmente el trigger incremental.
 
 `prepare.mjs` copia los cálculos compartidos desde la app al paquete antes de
 publicarlo. No editar las copias de `shared/` manualmente.

@@ -696,11 +696,15 @@ html.dark .saiba-scrim::before { background: rgba(0, 0, 0, 0.35); }
   white-space: nowrap;
 }
 .sala-mark {
-  display: none;
-  width: 36px;
-  height: 36px;
+  display: grid;
   place-items: center;
-  font-size: 0.75rem;
+  flex: none;
+  width: 36px;
+  height: 18px;
+  margin-inline: 0;
+  font-size: 18px;
+  line-height: 18px;
+  font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--ink-solid);
 }
@@ -2050,6 +2054,20 @@ html.dark .nota-modal { background: rgba(0, 0, 0, 0.4); }
 .shell-pane { animation: page-in var(--move) var(--ease); }
 .shell-main:has(.mensajes-page) { display: flex; flex-direction: column; overflow: hidden; }
 .shell-main:has(.mensajes-page) .shell-pane { flex: 1; min-height: 0; display: flex; }
+.shell-main.is-notifications { display: flex; flex-direction: column; overflow: hidden; }
+.is-notifications > .room-nav { flex: none; }
+.is-notifications > .shell-pane { flex: 1; min-height: 0; overflow: auto; }
+.avisos-ver-mas { display: block; width: 100%; padding: 14px; margin-top: 16px; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink-solid); box-shadow: none; }
+.mensajes-buzones li button { transition: background 240ms var(--ease), color 240ms var(--ease); }
+.mensajes-hilo { animation: conversation-in 280ms cubic-bezier(.16,1,.3,1); }
+@keyframes conversation-in { from { opacity: .35; transform: translateX(6px); } to { opacity: 1; transform: none; } }
+.chat-skeleton { flex: 1; padding: 20px 0; display: flex; flex-direction: column; gap: 16px; }
+.chat-skeleton span { color: var(--muted); font-size: .85rem; }
+.chat-skeleton i { width: 65%; height: 64px; border-radius: 14px; background: var(--hover); animation: chat-pulse 1.2s ease-in-out infinite alternate; }
+.chat-skeleton i:nth-child(3) { align-self: flex-end; width: 50%; }
+@keyframes chat-pulse { to { opacity: .45; } }
+.chat-anteriores { align-self: center; margin: 8px auto 16px; background: transparent; border: 0; color: var(--ink-solid); box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .mensajes-hilo, .chat-skeleton i { animation: none; } .mensajes-buzones li button { transition: none; } }
 .mensajes-page {
   display: grid;
   grid-template-columns: minmax(220px, 280px) 1fr;
@@ -3223,7 +3241,7 @@ html.dark .menu.menu-side .menu-list {
   width: auto;
   overflow: visible;
 }
-.shell.is-portrait.is-drawer .sala-mark { display: none; }
+.shell.is-portrait.is-drawer .sala-mark { display: grid; }
 .shell.is-portrait.is-drawer .sidebar-top,
 .shell.is-portrait.is-drawer .sala-link { justify-content: flex-start; }
 .shell.is-portrait.is-drawer .sidebar-tools,

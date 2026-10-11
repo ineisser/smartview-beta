@@ -58,7 +58,7 @@ import "../styles/components/log-item.css";
 
 const lista = (sala) => (sala?.maquinas || []).length > 0 && (sala?.motivos || []).length > 0;
 const siglas = (nombre) => {
-  const limpio = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z]/g, "");
+  const limpio = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
   return (limpio.slice(0, 2) || "SA").toUpperCase();
 };
 const codigoOrganizacion = (uid) => `SV${String(uid || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 16).toUpperCase()}`;
@@ -1136,6 +1136,7 @@ export default function Shell() {
             <Tooltip key={item.nombre} label={open ? "" : capital(item.nombre)}>
               <button
                 type="button"
+                aria-label={item.nombre}
                 className={`sala-link${vista === "sala" || vista === "sala-config" ? (index === activa ? " is-on" : "") : ""}`}
                 onClick={() => { navigate(ruta(item.codigo || codigoSala(item.nombre, index))); cerrarCajon(); }}
               >
@@ -1237,7 +1238,7 @@ export default function Shell() {
           </div>
         </div>
       </aside>
-      <main className={`shell-main${vista === "sala-config" ? " is-room-setup" : ""}`}>
+      <main className={`shell-main${vista === "sala-config" ? " is-room-setup" : ""}${vista === "notificaciones" ? " is-notifications" : ""}`}>
         <header className={`room-nav${movil && conVolver ? " has-volver" : ""}`}>
           {movil && conVolver ? botonVolver : null}
           <div className="room-title">

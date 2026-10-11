@@ -6,6 +6,7 @@ import useMensajes from "../messaging/useMensajes";
 import MensajeLista from "../messaging/MensajeLista";
 import MensajeInput from "../messaging/MensajeInput";
 import Avatar from "../components/Avatar";
+import useConversacion from '../messaging/useConversacion';
 
 const claveDe = (item) => item?.uid || item?.id || "";
 
@@ -41,12 +42,8 @@ export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto 
   }, [buzones, activo]);
 
   const elegido = buzones.find((item) => item.id === activo) || null;
-  const hilo = useMemo(
-    () => mensajes.filter((item) => (
-      (item.de === uid && item.para === activo) || (item.de === activo && item.para === uid)
-    )),
-    [mensajes, uid, activo],
-  );
+  const conversacion = useConversacion(org, uid, activo, mensajes);
+  const hilo = conversacion.mensajes;
   const cuentaDe = (id) => noLeidos.filter((item) => item.de === id).length;
 
   const abrirBuzon = (id) => {
@@ -88,7 +85,7 @@ export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto 
           <p className="nota-vacio">No hay buzones para tu perfil.</p>
         )}
       </aside>
-      <div className="mensajes-hilo">
+      <div className="mensajes-hilo" key={activo} aria-busy={conversacion.cargando}>
         {elegido ? (
           <>
             <header>
@@ -98,7 +95,7 @@ export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto 
                 {elegido.rol ? <small>{etiquetaPerfil(elegido.rol)}</small> : null}
               </div>
             </header>
-            {hilo.length ? <MensajeLista mensajes={hilo} uid={uid} /> : (
+            {conversacion.cargando && !hilo.length ? <div className="chat-skeleton" role="status"><span>Cargando conversación…</span><i /><i /><i /></div> : (hilo.length || conversacion.mas || conversacion.error) ? <MensajeLista mensajes={hilo} uid={uid} mas={conversacion.mas} cargando={conversacion.cargando} error={conversacion.error} onAnteriores={conversacion.cargarMas} /> : (
               <p className="nota-vacio">Escribe el primer mensaje.</p>
             )}
             <MensajeInput

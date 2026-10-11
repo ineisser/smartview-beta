@@ -8,6 +8,26 @@ const time=s=>+new Date(s+'-05:00');
 function memory(projection,raw={}){const calls=[];const root={organizaciones:{TEST:{paros:raw,analisis:projection}}};return {calls,read:async(path,range)=>{calls.push(path);let v=path.split('/').reduce((o,k)=>o?.[k],root);if(range)v=Object.fromEntries(Object.entries(v||{}).filter(([k])=>k>=range.desde&&k<=range.hasta));return structuredClone(v)||null;},write:async(path,v)=>{const keys=path.split('/'),last=keys.pop();const obj=keys.reduce((o,k)=>o[k]??={},root);obj[last]=structuredClone(v);}};}
 const raw={a:{sala:'S1',maquina:'01',inicio:time('2026-10-01T23:00:00'),fin:time('2026-10-03T02:00:00'),nombre:'Trama',estado:'atendido'},b:{sala:'S1',maquina:'01',inicio:time('2026-10-02T01:00:00'),fin:time('2026-10-02T03:00:00'),nombre:'Orillos',estado:'atendido'},c:{sala:'S1',maquina:'02',inicio:time('2026-10-02T10:00:00'),nombre:'Trama',estado:'detenido'},d:{sala:'S2',maquina:'01',inicio:time('2026-10-02T07:00:00'),fin:time('2026-10-02T08:00:00'),nombre:'Orillos',estado:'atendido'}};
 const now=time('2026-10-04T12:00:00'),projection=crearProyeccion(raw,rooms,now);
+test('sin trigger, análisis detecta inserciones, cierres y borrados del historial',async()=>{
+ clearAnalysisCache();
+ const io={...memory(crearProyeccion({},rooms,now)),verifySource:true};
+ const input={desde:time('2026-10-01T00:00:00'),hasta:time('2026-10-04T00:00:00'),vista:'historial'};
+ assert.equal((await consultarAnalisis(io,'TEST',rooms,rooms,input,now)).total,0);
+ await io.write('organizaciones/TEST/paros',{c:raw.c});
+ assert.equal((await consultarAnalisis(io,'TEST',rooms,rooms,input,now)).total,1);
+ await io.write('organizaciones/TEST/paros',{c:{...raw.c,fin:time('2026-10-02T11:00:00'),estado:'atendido'}});
+ const closed=await consultarAnalisis(io,'TEST',rooms,rooms,input,now);
+ assert.equal(closed.total,1);assert.equal(closed.totales.tiempoParado,3600000);
+ const dashboard=await consultarAnalisis(io,'TEST',rooms,rooms,{...input,vista:'dashboard',periodo:'personalizado'},now);
+ assert.equal(dashboard.datos.resumen.paros,1);
+ await io.write('organizaciones/TEST/paros',{});
+ assert.equal((await consultarAnalisis(io,'TEST',rooms,rooms,input,now)).total,0);
+});
+test('actualizar manualmente repara un índice vacío también en producción',async()=>{
+ clearAnalysisCache();const io=memory(crearProyeccion({},rooms,now),raw);
+ const result=await consultarAnalisis(io,'TEST',rooms,rooms,{desde:time('2026-10-01T00:00:00'),hasta:time('2026-10-04T00:00:00'),vista:'historial',reconstruir:true},now);
+ assert.equal(result.total,4);
+});
 test('resúmenes y filtros coinciden con los cálculos originales en cruces y solapamientos',async()=>{
  for(const filters of [{},{razon:'Orillos'},{maquina:'01'},{sala:'S1',razon:'Trama'}]){
   clearAnalysisCache();const io=memory(projection);const input={desde:time('2026-10-01T00:00:00'),hasta:time('2026-10-04T00:00:00'),vista:'motivos',...filters};

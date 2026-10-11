@@ -1,15 +1,29 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChevronsDown } from "lucide-react";
 import MensajeBurbuja from "./MensajeBurbuja";
 import { conDivisores } from "./dias";
 
 const CERCA = 80;
 
-export default function MensajeLista({ mensajes, uid }) {
+export default function MensajeLista({ mensajes, uid, mas, cargando, error, onAnteriores }) {
   const caja = useRef(null);
   const [bajar, setBajar] = useState(false);
   const anclar = useRef(true);
+  const posicion = useRef(null);
   const filas = conDivisores(mensajes);
+  const anteriores = () => {
+    if (cargando || !onAnteriores) return;
+    const nodo = caja.current;
+    posicion.current = { altura: nodo.scrollHeight, top: nodo.scrollTop };
+    anclar.current = false;
+    onAnteriores();
+  };
+  useLayoutEffect(() => {
+    if (!posicion.current || cargando) return;
+    const nodo = caja.current;
+    nodo.scrollTop = posicion.current.top + nodo.scrollHeight - posicion.current.altura;
+    posicion.current = null;
+  }, [mensajes, cargando]);
 
   const cercaDelFondo = () => {
     const nodo = caja.current;
@@ -26,7 +40,7 @@ export default function MensajeLista({ mensajes, uid }) {
   };
 
   useEffect(() => {
-    if (!anclar.current) {
+    if (posicion.current || !anclar.current) {
       setBajar(!cercaDelFondo());
       return;
     }
@@ -47,8 +61,11 @@ export default function MensajeLista({ mensajes, uid }) {
           const cerca = cercaDelFondo();
           anclar.current = cerca;
           setBajar(!cerca);
+          if (caja.current.scrollTop < 40 && mas && !cargando && !error) anteriores();
         }}
       >
+        {(mas || error) && <button className="chat-anteriores" type="button" disabled={cargando} onClick={anteriores}>{cargando ? 'Cargando mensajes anteriores…' : error ? 'Reintentar' : 'Ver mensajes anteriores'}</button>}
+        {error && <p role="alert">{error}</p>}
         {filas.map((fila) => (
           fila.tipo === "dia" ? (
             <div key={fila.id} className="msg-dia" role="separator">

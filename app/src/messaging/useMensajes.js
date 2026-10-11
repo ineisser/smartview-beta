@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { onValue, push, ref, set } from "firebase/database";
+import { onValue, push, ref, set, query, orderByKey, limitToLast, orderByChild, startAfter } from "firebase/database";
 import { rtdb } from "../firebase";
 
 const mensajesRef = (org) => ref(rtdb, `organizaciones/${org}/mensajes`);
@@ -7,14 +7,16 @@ const leidoRef = (org, uid) => ref(rtdb, `organizaciones/${org}/mensajesLeidos/$
 
 export default function useMensajes({ org, uid, nombre }) {
   const [crudos, setCrudos] = useState([]);
-  const [leido, setLeido] = useState(0);
+  const [leido, setLeido] = useState(null);
+  const [pendientes, setPendientes] = useState([]);
 
   useEffect(() => {
     if (!org) {
       setCrudos([]);
       return undefined;
     }
-    const off = onValue(mensajesRef(org), (snap) => {
+    setCrudos([]);
+    const off = onValue(query(mensajesRef(org), orderByKey(), limitToLast(150)), (snap) => {
       const data = snap.val() || {};
       const lista = Object.entries(data)
         .map(([id, item]) => ({ id, ...item }))
@@ -25,6 +27,7 @@ export default function useMensajes({ org, uid, nombre }) {
   }, [org]);
 
   useEffect(() => {
+    setLeido(null);
     if (!org || !uid) {
       setLeido(0);
       return undefined;
@@ -40,10 +43,16 @@ export default function useMensajes({ org, uid, nombre }) {
     [crudos, uid]
   );
 
-  const noLeidos = useMemo(
-    () => mensajes.filter((item) => item.de !== uid && (item.en || 0) > leido),
-    [mensajes, uid, leido]
-  );
+  useEffect(() => {
+    setPendientes([]);
+    if (!org || !uid || leido === null) return;
+    return onValue(query(mensajesRef(org), orderByChild('en'), startAfter(leido)), snap => {
+      const lista = [];
+      snap.forEach(child => { const item = child.val(); if (item.de !== uid && (item.para === uid || item.para === 'todos')) lista.push({ ...item, id: child.key }); });
+      setPendientes(lista);
+    });
+  }, [org, uid, leido]);
+  const noLeidos = pendientes;
 
   const enviar = useCallback(async (texto, para, paraNombre) => {
     const limpio = String(texto || "").trim();

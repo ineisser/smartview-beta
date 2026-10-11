@@ -283,13 +283,14 @@ export function CentroAvisos({ notas, pendientes, onCerrar, onContraer, onAbrirP
 
 export function PaginaAvisos({ notas, onLeer }) {
   const { nota, abrir, cerrar } = useDetalle(onLeer);
+  const [limite, setLimite] = useState(50);
   return (
     <section className="aviso-pagina">
       <div className="aviso-pagina-tools">
         <BotonAltavoz />
       </div>
       <div className="aviso-lista is-pagina">
-        {notas.length ? notas.map((item) => (
+        {notas.length ? notas.slice(0, limite).map((item) => (
           <div key={item.id} className="nota-card">
             <button type="button" className="nota-hit" onClick={() => abrir(item)}>
               <Ficha nota={item} amplia />
@@ -298,6 +299,7 @@ export function PaginaAvisos({ notas, onLeer }) {
           </div>
         )) : <p className="nota-vacio">Sin notificaciones</p>}
       </div>
+      {notas.length > limite && <button type="button" className="avisos-ver-mas" onClick={() => setLimite(n => n + 50)}>Ver más</button>}
       <Detalle nota={nota} onCerrar={cerrar} />
     </section>
   );
