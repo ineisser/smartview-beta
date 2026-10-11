@@ -7,12 +7,17 @@ import MensajeLista from "../messaging/MensajeLista";
 import MensajeInput from "../messaging/MensajeInput";
 import Avatar from "../components/Avatar";
 import useConversacion from '../messaging/useConversacion';
+import InvitationForm from '../components/InvitationForm';
+import { useAuth } from '../context/AuthContext';
+import { permisos } from '../access';
 
 const claveDe = (item) => item?.uid || item?.id || "";
 
 const fotoDe = (item, uid, miFoto) => item?.photoURL || ((item?.uid === uid || item?.id === uid) ? miFoto : "");
 
 export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto }) {
+  const { profile } = useAuth();
+  const solo = !Object.values(miembros || {}).some(m => m.uid && m.uid !== uid && m.estado === 'activo');
   const emisor = useMemo(() => ({ uid, nombre, rol, salas }), [uid, nombre, rol, salas]);
   const { mensajes, noLeidos, enviar, marcarLeido } = useMensajes({ org, uid, nombre });
   const permitidos = useMemo(() => buzonesDe(emisor, miembros), [emisor, miembros]);
@@ -22,7 +27,7 @@ export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto 
     const mapa = new Map(permitidos.map((item) => [claveDe(item), { ...item, id: claveDe(item) }]));
     mensajes.forEach((item) => {
       const otro = item.de === uid ? item.para : item.de;
-      if (!otro || otro === "todos" || otro === uid || mapa.has(otro)) return;
+      if (!otro || otro === "todos" || otro === uid || mapa.has(otro) || !permitidos.some(p => claveDe(p) === otro)) return;
       mapa.set(otro, {
         id: otro,
         uid: otro,
@@ -106,7 +111,8 @@ export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto 
         ) : (
           <div className="mensajes-vacio">
             <MessageCircle size={28} />
-            <p>Elige un buzón para hablar.</p>
+            <p>{solo ? 'Eres el único usuario de esta planta. Invita a tus colaboradores para comunicarte con ellos.' : 'Elige un buzón para hablar.'}</p>
+            {solo && permisos(profile).invitar && <InvitationForm orgCodigo={org} orgNombre={profile?.organizacion} salas={profile?.planta?.salas || []} />}
           </div>
         )}
       </div>

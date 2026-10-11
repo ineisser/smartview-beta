@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { useEffect, useState } from 'react';
 import { useAuth } from "./context/AuthContext";
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
@@ -27,9 +28,24 @@ function Private({ children }) {
   return children;
 }
 
+function PlantShell() {
+  const { orgCodigo } = useParams();
+  const { profile, plantas, cargarOrganizacion, user } = useAuth();
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let live = true; setError('');
+    cargarOrganizacion(orgCodigo).catch(e => { if (live) setError(e.message); });
+    return () => { live = false; };
+  }, [orgCodigo, user?.uid]);
+  if (error) return <main><p role="alert">{error}</p><a href="/inicio">Volver a mis plantas</a></main>;
+  if (profile && !['superusuario', 'soporte'].includes(profile.rolPlataforma) && !plantas.some(p => p.codigo === orgCodigo)) return <main><p role="alert">No tienes acceso activo a esta planta.</p><a href="/inicio">Volver a mis plantas</a></main>;
+  if (profile?.codigo !== orgCodigo || !profile?.activo || !profile?.planta) return <Boot />;
+  return <Shell key={orgCodigo} />;
+}
+
 export default function App() {
   const { user, profile } = useAuth();
-  const presenciaError = useRegistrarPresencia(profile?.tenantId || profile?.codigo, user, profile);
+  const presenciaError = useRegistrarPresencia(profile?.activo ? profile?.codigo : '', user, profile);
   return (
     <>
     {presenciaError && <p role="alert">{presenciaError}</p>}
@@ -42,16 +58,16 @@ export default function App() {
       <Route path="/inicio" element={<Private><Home /></Private>} />
       <Route path="/plataforma" element={<Private><Platform /></Private>} />
       <Route path="/invitar/:token" element={<Invite />} />
-      <Route path="/:orgCodigo/analisis" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/configuracion" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/dispositivos" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/ficha" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/notificaciones" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/mensajes" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/laboratorio" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/:salaCodigo/analisis" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/:salaCodigo/setup" element={<Private><Shell /></Private>} />
-      <Route path="/:orgCodigo/:salaCodigo" element={<Private><Shell /></Private>} />
+      <Route path="/:orgCodigo/analisis" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/configuracion" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/dispositivos" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/ficha" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/notificaciones" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/mensajes" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/laboratorio" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/:salaCodigo/analisis" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/:salaCodigo/setup" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/:salaCodigo" element={<Private><PlantShell /></Private>} />
       <Route path="/app" element={<Navigate to="/inicio" replace />} />
       <Route path="/continuar" element={<Continue />} />
       <Route path="*" element={<Navigate to="/" replace />} />

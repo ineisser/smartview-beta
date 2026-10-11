@@ -2,18 +2,21 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PlantSetup from "./PlantSetup";
+import Boot from './Boot';
+import { permisos } from '../access';
 
 export default function Home() {
-  const { profile } = useAuth();
+  const { profile, plantas } = useAuth();
   const [step, setStep] = useState({ fase: "nombre", sala: "" });
   const fase = profile?.planta?.fase || step.fase;
-  const primera = profile?.planta?.salas?.[0];
+  const primera = permisos(profile).salasDe(profile?.planta?.salas || [])[0];
   const codigoSala = primera?.codigo || `${(String(primera?.nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z]/g, "").slice(0, 2) || "SA").toUpperCase()}01`;
   useEffect(() => {
     if (!profile?.planta?.fase || profile.planta.fase === "sistema" || profile.planta.fase === "lista") return;
     const sala = profile.planta.salas?.[profile.planta.salaIndex]?.nombre || "";
     setStep({ fase: profile.planta.fase, sala });
   }, [profile?.planta?.fase, profile?.planta?.salaIndex]);
+  if (plantas.length && !profile?.planta) return <Boot />;
   if (profile?.codigo && primera && (fase === "sistema" || fase === "lista" || fase === "nombre" || fase === "otra" || profile?.planta?.confirmada)) {
     return <Navigate to={`/${profile.codigo}/${codigoSala}`} replace />;
   }

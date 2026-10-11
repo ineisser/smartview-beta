@@ -126,7 +126,7 @@ function BotonReplay({ nota }) {
   );
 }
 
-function BotonAltavoz() {
+export function BotonAltavoz() {
   const [activo, setActivo] = useState(altavozActivo);
   useEffect(() => {
     const sync = () => setActivo(altavozActivo());
@@ -286,9 +286,6 @@ export function PaginaAvisos({ notas, onLeer }) {
   const [limite, setLimite] = useState(50);
   return (
     <section className="aviso-pagina">
-      <div className="aviso-pagina-tools">
-        <BotonAltavoz />
-      </div>
       <div className="aviso-lista is-pagina">
         {notas.length ? notas.slice(0, limite).map((item) => (
           <div key={item.id} className="nota-card">

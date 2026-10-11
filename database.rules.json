@@ -9,25 +9,45 @@
     "plataforma": {
       "superusuario": {
         ".read": "auth != null",
-        ".write": "auth != null && (!data.exists() || data.val() == auth.uid)"
+        ".write": false
       }
     },
     "usuarios": {
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte')",
-        ".write": "auth != null && (auth.uid == $uid || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || (data.exists() && data.child('tenantId').val() != null && data.child('tenantId').val() == root.child('usuarios').child(auth.uid).child('tenantId').val() && (root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'owner' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'admin' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'superusuario')))"
+        ".write": "auth != null && auth.uid == $uid",
+        "rolPlataforma": {
+          ".validate": "newData.val() == data.val()"
+        },
+        "tenantId": {
+          ".validate": "newData.val() == data.val()"
+        },
+        "rolTenant": {
+          ".validate": "newData.val() == data.val()"
+        },
+        "salasAsignadas": {
+          ".validate": "newData.val() == data.val()"
+        },
+        "activo": {
+          ".validate": "newData.val() == data.val()"
+        }
       }
     },
     "organizaciones": {
-      ".read": "auth != null",
+      ".read": "auth != null && (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte')",
       "$codigo": {
-        ".read": "auth != null && root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo",
-        ".write": "auth != null && (root.child('usuarios').child(auth.uid).child('tenantId').val() == $codigo || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte')",
-        "mensajes": { ".indexOn": ["en"] },
+        ".read": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))",
+        "mensajes": {
+          ".indexOn": [
+            "en"
+          ],
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
         "paros": {
           ".indexOn": [
             "inicio"
-          ]
+          ],
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
         },
         "analisis": {
           "eventos": {
@@ -47,16 +67,112 @@
                 ]
               }
             }
+          },
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "codigo": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "nombre": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "rubro": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "procesos": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "otrosRubro": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "empleados": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "personasPlanta": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "maquinas": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "salasRango": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "planta": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "prueba": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "avisosAvance": {
+          ".write": "auth != null && (((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'owner' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'superusuario' || root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('rol').val() == 'admin')) || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))",
+          "ultimo": {
+            ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
           }
+        },
+        "miembros": {
+          ".write": false,
+          "$uid": {
+            "nombre": {
+              ".write": "auth != null && auth.uid == $uid && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo')"
+            },
+            "telefono": {
+              ".write": "auth != null && auth.uid == $uid && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo')"
+            },
+            "photoURL": {
+              ".write": "auth != null && auth.uid == $uid && (root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo')"
+            }
+          }
+        },
+        "invitaciones": {
+          ".write": false
+        },
+        "avisos": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "notificaciones": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "dispositivos": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "presencia": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "lecturas": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "mensajesLeidos": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "enterados": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "analisisPreparando": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "analisisFuenteRevision": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
+        },
+        "analisisRevision": {
+          ".write": "auth != null && ((root.child('organizaciones').child($codigo).child('miembros').child(auth.uid).child('estado').val() == 'activo') || (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'soporte'))"
         }
       }
     },
     "invitaciones": {
-      ".read": "auth != null && (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'owner' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'admin' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'superusuario')",
       "$token": {
         ".read": true,
-        ".write": "auth != null && (root.child('usuarios').child(auth.uid).child('rolPlataforma').val() == 'superusuario' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'owner' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'admin' || root.child('usuarios').child(auth.uid).child('rolTenant').val() == 'superusuario' || (data.exists() && data.child('email').val() == auth.token.email))"
+        ".write": false
       }
+    },
+    "accesos": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": false
+      }
+    },
+    "accesosLocks": {
+      ".read": false,
+      ".write": false
     }
   }
 }

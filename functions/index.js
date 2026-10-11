@@ -11,17 +11,30 @@ import { consultarAnalisis } from './analysis-service.js';
 import { sincronizarEvento } from './sync-analysis.js';
 
 import { onValueWritten } from 'firebase-functions/v2/database';
+import { manageAccess, active, platform } from './access-service.js';
 
 initializeApp({databaseURL:'https://smart-view.firebaseio.com'});
 
 const database=getDatabase();
+export const gestionarAcceso=onCall({region:'us-central1',maxInstances:4,timeoutSeconds:60},request=>manageAccess(database,request));
+export const crearPlanta=onCall({region:'us-central1',maxInstances:4,timeoutSeconds:60},async request=>{
+  if(!request.auth)throw new HttpsError('unauthenticated','Inicia sesión.');
+  const uid=request.auth.uid, org=`SV${uid.replace(/[^a-zA-Z0-9]/g,'').slice(0,16).toUpperCase()}`;
+  const node=database.ref(`organizaciones/${org}`);
+  const result=await node.transaction(value=>value?undefined:{codigo:org,nombre:String(request.data?.nombre||'').slice(0,200),prueba:true,miembros:{[uid]:{uid,email:String(request.auth.token.email||'').toLowerCase(),nombre:String(request.data?.usuarioNombre||''),rol:'owner',estado:'activo',salas:[],creadoEn:Date.now()}}});
+  const member=result.snapshot.val()?.miembros?.[uid];
+  if(!member||member.estado!=='activo'||member.rol!=='owner')throw new HttpsError('permission-denied','No puedes crear esta planta.');
+  await database.ref(`accesos/${uid}/${org}`).set({nombre:result.snapshot.val().nombre||org,rol:'owner',estado:'activo',salas:[]});
+  return {codigo:org};
+});
 
 export const historialPagina=onCall({region:'us-central1',maxInstances:4,timeoutSeconds:60},async request=>{
   if(!request.auth)throw new HttpsError('unauthenticated','Inicia sesión.');
   const input=request.data||{},uid=request.auth.uid;
   if(!/^[A-Za-z0-9_-]{1,100}$/.test(input.org||''))throw new HttpsError('invalid-argument','Organización inválida.');
   const profile=(await database.ref(`usuarios/${uid}`).get()).val();
-  if(!profile||(profile.tenantId!==input.org&&!['superusuario','soporte'].includes(profile.rolPlataforma)))throw new HttpsError('permission-denied','Sin acceso a esta organización.');
+  const member=(await database.ref(`organizaciones/${input.org}/miembros/${uid}`).get()).val();
+  if(!profile||(!active(member)&&!platform(profile)))throw new HttpsError('permission-denied','Sin acceso a esta organización.');
   const [rooms,members]=await Promise.all([database.ref(`organizaciones/${input.org}/planta/salas`).get(),database.ref(`organizaciones/${input.org}/miembros`).get()]);
   const permitted=allowedRooms(profile,rooms.val()||[],members.val()||{},uid);
   if(!permitted.length)throw new HttpsError('permission-denied','Sin acceso al análisis.');

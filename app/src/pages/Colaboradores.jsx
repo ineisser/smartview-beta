@@ -6,6 +6,7 @@ import { esOwner, etiquetaPerfil } from "../access";
 import Button from "../components/Button";
 import Tooltip from "../components/Tooltip";
 import InviteModal from "../components/InviteModal";
+import InvitationForm from '../components/InvitationForm';
 import "../styles/components/modal.css";
 
 const ordenPerfil = (rol) => {
@@ -52,7 +53,7 @@ function AccionModal({ titulo, lede, accion, busy, onClose, onOk }) {
 }
 
 export default function Colaboradores({ orgCodigo, salas, owner, orgNombre }) {
-  const { profile, crearInvitacion, editarMiembro, desactivarMiembro, activarCuenta, revocarClave } = useAuth();
+  const { profile, crearInvitacion, editarMiembro, desactivarMiembro, activarCuenta, revocarClave, revocarInvitacion } = useAuth();
   const [abierto, setAbierto] = useState(false);
   const [editar, setEditar] = useState(null);
   const [menu, setMenu] = useState(null);
@@ -152,8 +153,8 @@ export default function Colaboradores({ orgCodigo, salas, owner, orgNombre }) {
   const textoAccion = () => {
     if (accion?.tipo === "revocar") {
       return {
-        titulo: "Revocar contraseña",
-        lede: "Este usuario tendrá que crear una nueva para entrar.",
+        titulo: "Revocar acceso a esta planta",
+        lede: "El usuario conservará su cuenta y los accesos a sus otras plantas.",
         accion: "Revocar",
       };
     }
@@ -214,10 +215,10 @@ export default function Colaboradores({ orgCodigo, salas, owner, orgNombre }) {
       </div>
       {menu ? createPortal(
         <div className="user-row-menu glass-pop" style={{ top: menu.top, right: menu.right }}>
-          <button type="button" onClick={() => { setMenu(null); setEditar(menu.item); }}>Editar</button>
-          {esOwner(menu.item.rol) ? null : (
+          {menu.item.uid ? <button type="button" onClick={() => { setMenu(null); setEditar(menu.item); }}>Editar</button> : <button type="button" onClick={async () => { await revocarInvitacion(menu.item.token || menu.item.id); setMenu(null); }}>Revocar invitación</button>}
+          {!menu.item.uid || esOwner(menu.item.rol) ? null : (
             <>
-              <button type="button" onClick={() => pedirAccion("revocar", menu.item)}>Revocar contraseña</button>
+              <button type="button" onClick={() => pedirAccion("revocar", menu.item)}>Revocar acceso</button>
               <button type="button" onClick={() => pedirAccion(menu.item.estado === "inactivo" ? "activar" : "desactivar", menu.item)}>
                 {menu.item.estado === "inactivo" ? "Activar" : "Desactivar"}
               </button>
@@ -226,15 +227,8 @@ export default function Colaboradores({ orgCodigo, salas, owner, orgNombre }) {
         </div>,
         document.body
       ) : null}
-      {abierto ? (
-        <InviteModal
-          salas={salas}
-          orgCodigo={orgCodigo}
-          orgNombre={orgNombre}
-          onClose={() => setAbierto(false)}
-          onCrear={crear}
-        />
-      ) : null}
+      {abierto && <InvitationForm salas={salas} orgCodigo={orgCodigo} orgNombre={orgNombre} />}
+      {Object.keys(profile?.invitaciones || {}).length > 0 && <section className="invitaciones-estados"><h3>Invitaciones</h3><ul>{Object.entries(profile.invitaciones).map(([token, invitation]) => <li key={token}><span>{invitation.nombre || invitation.email} · {invitation.estado === 'usada' ? 'Aceptada' : invitation.estado === 'revocada' ? 'Revocada' : invitation.expira <= Date.now() ? 'Vencida' : 'Pendiente'}</span>{invitation.estado === 'pendiente' && invitation.expira > Date.now() && <Button variant="ghost" onClick={() => revocarInvitacion(token)}>Revocar invitación</Button>}</li>)}</ul></section>}
       {editar ? (
         <InviteModal
           modo="editar"

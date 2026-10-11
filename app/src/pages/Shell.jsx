@@ -47,7 +47,7 @@ import useBarrido from "../hooks/useBarrido";
 import { UMBRAL_OEE, alertaValida, avanceDeTurno, umbralDe } from "../turno";
 import { ALTAVOZ, REPETICIONES_VOZ, altavozActivo, etiquetaMaquina, fijarAltavoz, fijarVolumen, fraseParo, parosVozDe, repeticionesValidas, tocarLlegada, volumenPorcentaje, VOLUMEN } from "../sonido";
 import useAppVersion from "../hooks/useAppVersion";
-import { Campana, CentroAvisos, PaginaAvisos, notasDeSala } from "../components/Notificaciones";
+import { BotonAltavoz, Campana, CentroAvisos, PaginaAvisos, notasDeSala } from "../components/Notificaciones";
 import useSalaControl from "../hooks/useSalaControl";
 import { MOTIVOS_PARO } from "../data/motivos-paro";
 import { VIA, nombreDeVia } from "../paro";
@@ -540,7 +540,7 @@ const MODOS = [
 ];
 
 export default function Shell() {
-  const { profile, user, saveProfile, logout, cargarOrganizacion, guardarAvisoAvance, guardarMisDatos, editarMiembro, activarCuenta } = useAuth();
+  const { profile, plantas, user, saveProfile, logout, cargarOrganizacion, guardarAvisoAvance, guardarMisDatos, editarMiembro, activarCuenta } = useAuth();
   const { hayActualizacion, actualizar } = useAppVersion();
   const acceso = permisos(profile);
   const navigate = useNavigate();
@@ -574,6 +574,7 @@ export default function Shell() {
   const [ahora, setAhora] = useState(() => new Date());
   const [aviso, setAviso] = useState("");
   const [toast, setToast] = useState("");
+  const [settingsScrolled, setSettingsScrolled] = useState(false);
   const [pestana, setPestana] = useState("general");
   const [panel, setPanel] = useState("mapa");
   const movil = useMedia(MOVIL);
@@ -1130,6 +1131,9 @@ export default function Shell() {
           </button>
           <span className="sidebar-brand">Smart View</span>
         </div>
+        <div className="plant-selector">
+          {plantas.length > 1 ? <label><span className="sala-copy">Planta</span><select aria-label="Elegir planta" value={orgActiva} onChange={e => navigate(`/${e.target.value}/mensajes`)}>{plantas.map(p => <option key={p.codigo} value={p.codigo}>{p.nombre || p.codigo}</option>)}</select></label> : <span title={profile?.organizacion}>{profile?.organizacion || 'Planta'}</span>}
+        </div>
         <nav className="sidebar-nav">
           {!movil && <Tooltip label={open ? "" : "Análisis"}><button type="button" className={`sala-link saiba-atajo${vista === "analisis" ? " is-on" : ""}`} aria-label="Análisis" onClick={() => { navigate(`/${orgActiva}/analisis`, { state: { desde: pathname } }); cerrarCajon(); }}><ChartNoAxesCombined className="saiba-ico" size={18} /><span className="sala-copy">Análisis</span></button></Tooltip>}
           {salas.map((item, index) => (
@@ -1238,7 +1242,7 @@ export default function Shell() {
           </div>
         </div>
       </aside>
-      <main className={`shell-main${vista === "sala-config" ? " is-room-setup" : ""}${vista === "notificaciones" ? " is-notifications" : ""}`}>
+      <main onScroll={e => { if (vista === 'config') setSettingsScrolled(e.currentTarget.scrollTop > 8); }} className={`shell-main${vista === "sala-config" ? " is-room-setup" : ""}${vista === "config" ? ` is-settings${settingsScrolled ? ' is-scrolled' : ''}` : ""}${vista === "notificaciones" ? " is-notifications" : ""}`}>
         <header className={`room-nav${movil && conVolver ? " has-volver" : ""}`}>
           {movil && conVolver ? botonVolver : null}
           <div className="room-title">
@@ -1256,6 +1260,7 @@ export default function Shell() {
             {vista === "sala" || vista === "dispositivos" ? (
               <DispositivosNav conectados={contarConectados(dispositivosOrg)} activo={vista === "dispositivos"} mac={dispositivosOrg.find((item) => item.tipo === "iot")?.mac || ""} onClick={() => vista === "dispositivos" ? undefined : navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } })} />
             ) : null}
+            {vista === "notificaciones" && <BotonAltavoz />}
             <button
               ref={campanaRef}
               className="icon-btn aviso-btn"

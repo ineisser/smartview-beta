@@ -715,7 +715,7 @@ html.dark .saiba-scrim::before { background: rgba(0, 0, 0, 0.35); }
 .shell.is-collapsed .sidebar-top,
 .shell.is-collapsed .sala-link { justify-content: center; }
 .sidebar-top { display: flex; align-items: center; gap: 10px; }
-.sidebar-nav { display: flex; flex-direction: column; gap: 4px; margin-top: 28px; flex: 0 1 auto; max-height: 46vh; overflow: auto; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 4px; margin-top: 28px; flex: 0 1 auto; max-height: 46vh; overflow-y: auto; overflow-x: hidden; }
 .sidebar-tools { display: flex; flex-direction: column; gap: 4px; flex: none; padding-top: 4px; }
 .sidebar-tools .linea-moderna { margin: 8px 4px 10px; }
 .saiba-atajo { position: relative; }
@@ -3334,6 +3334,49 @@ html.dark .volumen-fila input[type=range]::-moz-range-thumb { box-shadow:none; }
 
 /* Los mapas grandes se ajustan una vez al alternar el sidebar. */
 .shell.is-large-map:not(.is-portrait) .sidebar { transition: none; }
+
+/* Keep the icon column stationary while the labels collapse. */
+.shell.is-collapsed:not(.is-drawer) .sidebar-nav .sala-link { width: 40px; padding-inline: 0; gap: 0; justify-content: center; }
+.shell.is-collapsed:not(.is-drawer) .sidebar-nav .tip-anchor { justify-content: center; }
+.shell.is-collapsed:not(.is-drawer) .sidebar-top { gap: 0; }
+.shell.is-collapsed:not(.is-drawer) .sidebar-top .icon-btn,
+.shell.is-collapsed:not(.is-drawer) .sidebar-foot > .tip-anchor,
+.shell.is-collapsed:not(.is-drawer) .sidebar-tools > .tip-anchor,
+.shell.is-collapsed:not(.is-drawer) .sidebar-foot .pantalla-hit,
+.shell.is-collapsed:not(.is-drawer) .sidebar-foot .saiba-atajo,
+.shell.is-collapsed:not(.is-drawer) .sidebar-foot .icon-btn,
+.shell.is-collapsed:not(.is-drawer) .sidebar-user,
+.shell.is-collapsed:not(.is-drawer) .user-hit { width: 40px; }
+.shell.is-collapsed:not(.is-drawer) .sidebar-nav .sala-copy { flex: 0 0 0; }
+.shell-main.is-settings { display: block; overflow: auto; }
+.is-settings > .room-nav { position: sticky; top: 0; z-index: 5; padding: 12px 16px; margin-bottom: 16px; border: 1px solid transparent; border-radius: 10px; transition: background 180ms var(--ease), border-color 180ms var(--ease), box-shadow 180ms var(--ease); }
+.is-settings.is-scrolled > .room-nav { border-color: rgba(255,255,255,.85); background: var(--glass); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); box-shadow: 0 12px 24px -18px rgba(15,23,42,.45); }
+html.dark .is-settings.is-scrolled > .room-nav { border-color: rgba(255,255,255,.16); }
+.is-settings.is-scrolled > .room-nav::after { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 16px; background: linear-gradient(var(--page),transparent); pointer-events: none; }
+.config-page .btn:not(.aviso-icono) { min-height: 40px; padding-block: 8px; border-radius: 8px; }
+.sala-historial.sheet th { background: #f1f5f9; z-index: 2; }
+html.dark .sala-historial.sheet th { background: #111; }
+.sala-historial.sheet th:first-child { border-top-left-radius: 8px; }
+.sala-historial.sheet th:last-child { border-top-right-radius: 8px; }
+.invitaciones-form { width: 100%; text-align: left; }
+.plant-selector { margin-top: 12px; min-width: 0; }
+.plant-selector select { width: 100%; min-width: 0; font-size: .85rem; }
+.plant-selector > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+.shell.is-collapsed:not(.is-drawer) .plant-selector > span { visibility: hidden; }
+.shell.is-collapsed:not(.is-drawer) .plant-selector select { padding-inline: 2px; color: transparent; }
+.invitaciones-form fieldset { border: 0; border-bottom: 1px solid var(--line); margin: 0 0 20px; padding: 16px 0; min-width: 0; }
+.invitaciones-form legend { font-weight: 600; }
+.invitaciones-campos { display: grid; grid-template-columns: 1fr 1fr 160px; gap: 12px; }
+.invitaciones-campos label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.invitaciones-campos input, .invitaciones-campos select { width: 100%; min-width: 0; }
+.invitaciones-campos select, .plant-selector select { height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink-solid); font: inherit; }
+.invitaciones-salas, .invitaciones-acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.invitaciones-salas label { display: flex; align-items: center; gap: 6px; }
+.invitaciones-salas input { appearance: auto; width: 16px; height: 16px; padding: 0; accent-color: var(--accent); }
+.invitaciones-acciones .btn { width: auto; }
+.invitaciones-form a { overflow-wrap: anywhere; }
+.mensajes-vacio:has(.invitaciones-form) { overflow-y: auto; justify-content: flex-start; padding: 24px; }
+@media(max-width: 760px) { .invitaciones-campos { grid-template-columns: 1fr; } }
 .maquinas-grid.is-large-map .card-maquina,
 .mapa-grupos.is-large-map .card-maquina {
   backdrop-filter: none;

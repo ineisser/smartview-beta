@@ -21,7 +21,6 @@ export default function historyApi() {
         if(!uid)throw new Error('La sesión expiró. Vuelve a entrar.');
         const read=async(path,range)=>{const query=range?`&orderBy=${encodeURIComponent(JSON.stringify("$key"))}&startAt=${encodeURIComponent(JSON.stringify(range.desde))}&endAt=${encodeURIComponent(JSON.stringify(range.hasta))}`:"";const response=await fetch(`${base}/${path}.json?auth=${encodeURIComponent(token)}${query}`,{signal:AbortSignal.timeout(20000)});if(!response.ok)throw new Error('No se pudo consultar Firebase.');return response.json();};
         const profile=await read(`usuarios/${uid}`);
-        if(profile?.tenantId!==input.org&&!['superusuario','soporte'].includes(profile?.rolPlataforma))throw new Error('Sin acceso a esta organización.');
         const [rooms,members]=await Promise.all([read(`organizaciones/${input.org}/planta/salas`),read(`organizaciones/${input.org}/miembros`)]);
         const permitted=allowedRooms(profile,rooms||[],members||{},uid);
         if(!permitted.length)throw new Error('Sin acceso al análisis de salas.');
