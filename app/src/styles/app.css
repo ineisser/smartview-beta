@@ -3353,7 +3353,7 @@ html.dark .volumen-fila input[type=range]::-moz-range-thumb { box-shadow:none; }
 .is-settings.is-scrolled > .room-nav { border-color: rgba(255,255,255,.85); background: var(--glass); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); box-shadow: 0 12px 24px -18px rgba(15,23,42,.45); }
 html.dark .is-settings.is-scrolled > .room-nav { border-color: rgba(255,255,255,.16); }
 .is-settings.is-scrolled > .room-nav::after { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 16px; background: linear-gradient(var(--page),transparent); pointer-events: none; }
-.config-page .btn:not(.aviso-icono) { min-height: 40px; padding-block: 8px; border-radius: 8px; }
+.config-page .btn:not(.aviso-icono) { height: 40px; min-height: 40px; padding-block: 8px; border-radius: 8px; }
 .sala-historial.sheet th { background: #f1f5f9; z-index: 2; }
 html.dark .sala-historial.sheet th { background: #111; }
 .sala-historial.sheet th:first-child { border-top-left-radius: 8px; }
