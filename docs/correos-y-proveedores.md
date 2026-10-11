@@ -21,6 +21,16 @@ Pasos:
 
 [Documentación de Trigger Email y plantillas](https://firebase.google.com/docs/extensions/official/firestore-send-email).
 
+## Flujo de invitaciones implementado
+
+SmartView utiliza `sendSignInLinkToEmail` de Firebase Authentication: Google envía un correo de acceso con la plantilla estándar de Firebase en español. No se usa Resend ni SMTP propio en este flujo. Al abrir el enlace, el destinatario ve la planta, el invitador y el perfil, confirma su correo dos veces y Firebase autentica el enlace antes de que el backend añada su membresía. Una sesión guardada permite volver a entrar; si cierra sesión, puede solicitar otro enlace desde Entrar.
+
+Configuración del proyecto comprobada: acceso por enlace habilitado y `main.da3cm3kazy3vu.amplifyapp.com` añadido a los dominios autorizados, conservando los dominios previos. Remitente y opciones disponibles de la plantilla se revisan en Firebase Console → Authentication → Templates. La plantilla estándar tiene personalización limitada. Para un diseño HTML propio con remitente de marca, planta e invitador dentro del correo, se necesita generar el enlace en backend y enviarlo mediante Resend u otro proveedor.
+
+La pantalla confirma que Firebase aceptó el envío; eso no confirma entrega en la bandeja de entrada. Si falla, conserva la invitación y permite reintentar sin crear otra. La recepción y aceptación en una bandeja real requieren un correo de prueba autorizado.
+
+Los límites oficiales de envío por enlace son 5 correos diarios en Spark y 25.000 en Blaze; no deben confundirse con la cuota de generación de enlaces. Blaze requiere facturación y puede tener otros cargos por servicios utilizados. [Límites de Firebase Authentication](https://firebase.google.com/docs/auth/limits), [acceso por enlace](https://firebase.google.com/docs/auth/web/email-link-auth), [plantillas y proveedores propios](https://firebase.google.com/docs/auth/admin/email-action-links).
+
 ## Resend
 
 Recomiendo integrar su API desde Firebase Functions para esta aplicación: permite controlar el diseño de la invitación en el código y evita agregar una colección de correo solo para usar SMTP. También ofrece SMTP si se prefiere Trigger Email.

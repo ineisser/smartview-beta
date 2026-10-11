@@ -80,7 +80,7 @@ export async function manageAccess(db, request) {
       const salas = Array.isArray(input.salas) ? [...new Set(input.salas)] : [];
       if (salas.some(code => !Object.values(rooms).some(r => r.codigo === code))) fail('invalid-argument', 'Sala inválida.');
       const token = randomUUID().replaceAll('-', '');
-      const data = { token, email, nombre: String(input.nombre || '').trim(), rol: input.rol, tipo: 'tenant', orgCodigo: org, orgNombre: await read(db, `organizaciones/${org}/nombre`) || org, salas, estado: 'pendiente', creadoPor: uid, creadoEn: Date.now(), expira: Date.now() + 7 * 86400000 };
+      const data = { token, email, nombre: String(input.nombre || '').trim(), rol: input.rol, tipo: 'tenant', orgCodigo: org, orgNombre: await read(db, `organizaciones/${org}/nombre`) || org, salas, estado: 'pendiente', creadoPor: uid, creadoPorNombre: actor?.nombre || profile.nombre || 'El administrador de la planta', creadoEn: Date.now(), expira: Date.now() + 7 * 86400000 };
       updates[`invitaciones/${token}`] = data;
       updates[`organizaciones/${org}/invitaciones/${token}`] = data;
       updates[`organizaciones/${org}/miembros/${token}`] = { ...data, uid: '', estado: 'espera' };

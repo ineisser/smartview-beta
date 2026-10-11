@@ -15,6 +15,7 @@ import { descripcionPerfil, etiquetaPerfil, permisos } from "../access";
 import { esUrgenteParo, tonoCampana } from "../avisos";
 import useMensajes from "../messaging/useMensajes";
 import Mensajes from "./Mensajes";
+import AgregarColaboradores from "./AgregarColaboradores";
 import Avatar from "../components/Avatar";
 import Colaboradores from "./Colaboradores";
 import CentralAvisos from "./CentralAvisos";
@@ -682,7 +683,7 @@ export default function Shell() {
   });
   const { noLeidos } = useMensajes({ org: orgActiva, uid: user?.uid, nombre: profile?.nombre || user?.displayName || "" });
   const pathnameNormalizado = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
-  const vista = pathnameNormalizado.endsWith("/mensajes") ? "mensajes" : pathnameNormalizado.endsWith("/notificaciones") ? "notificaciones" : pathnameNormalizado.endsWith("/laboratorio") ? "laboratorio" : pathnameNormalizado.endsWith("/dispositivos") ? "dispositivos" : pathnameNormalizado.endsWith("/analisis") ? "analisis" : pathnameNormalizado.endsWith("/ficha") ? "ficha" : pathnameNormalizado.endsWith("/setup") ? "sala-config" : pathnameNormalizado.endsWith("/configuracion") ? "config" : "sala";
+  const vista = pathnameNormalizado.endsWith("/colaboradores") ? "colaboradores" : pathnameNormalizado.endsWith("/mensajes") ? "mensajes" : pathnameNormalizado.endsWith("/notificaciones") ? "notificaciones" : pathnameNormalizado.endsWith("/laboratorio") ? "laboratorio" : pathnameNormalizado.endsWith("/dispositivos") ? "dispositivos" : pathnameNormalizado.endsWith("/analisis") ? "analisis" : pathnameNormalizado.endsWith("/ficha") ? "ficha" : pathnameNormalizado.endsWith("/setup") ? "sala-config" : pathnameNormalizado.endsWith("/configuracion") ? "config" : "sala";
   const listaMiembros = useMemo(
     () => Object.entries(profile?.miembros || {}).map(([id, item]) => ({ id, ...item })),
     [profile?.miembros],
@@ -813,7 +814,7 @@ export default function Shell() {
   }, [profile, vista, acceso.editarPlanta, acceso.invitar, salas, orgCodigo, navigate]);
 
   useEffect(() => {
-    if (!profile || vista === "config" || vista === "ficha" || vista === "notificaciones" || vista === "mensajes" || vista === "laboratorio" || !salaCodigo || !salas.length) return;
+    if (!profile || vista === "colaboradores" || vista === "config" || vista === "ficha" || vista === "notificaciones" || vista === "mensajes" || vista === "laboratorio" || !salaCodigo || !salas.length) return;
     if (salas.some((item) => item.codigo === salaCodigo)) return;
     navigate(`/${profile.codigo || orgCodigo}/${salas[0].codigo}`, { replace: true });
   }, [profile, vista, salaCodigo, salas, orgCodigo, navigate]);
@@ -1083,7 +1084,7 @@ export default function Shell() {
 
   const cerrarCajon = () => { if (vertical) { ocultarMenu(); ocultarVolumen(); setOpen(false); } };
 
-  const conVolver = ["notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio", "dispositivos", "analisis"].includes(vista);
+  const conVolver = ["colaboradores", "notificaciones", "mensajes", "config", "ficha", "sala-config", "laboratorio", "dispositivos", "analisis"].includes(vista);
   const rutaSalaActiva = `/${orgActiva}/${sala?.codigo || salas[0]?.codigo || ""}`;
   const volverA = (() => {
     const desde = typeof rutaState?.desde === "string" ? rutaState.desde.replace(/\/+$/, "") : "";
@@ -1095,7 +1096,7 @@ export default function Shell() {
   })();
   const botonVolver = (
     <button
-      className={`icon-btn${vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? " volver-btn" : ""}`}
+      className={`icon-btn${vista === "colaboradores" || vista === "config" || vista === "ficha" || vista === "sala-config" || vista === "laboratorio" ? " volver-btn" : ""}`}
       type="button"
       aria-label="Volver"
       onClick={() => navigate(volverA)}
@@ -1248,7 +1249,7 @@ export default function Shell() {
           <div className="room-title">
             <h1>
               {!movil && conVolver ? botonVolver : null}
-              {vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "dispositivos" ? "Dispositivos" : vista === "analisis" ? "Análisis" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
+              {vista === "colaboradores" ? "Agregar colaboradores" : vista === "config" ? "Configuración" : vista === "laboratorio" ? "Laboratorio" : vista === "notificaciones" ? "Notificaciones" : vista === "mensajes" ? "Mensajes" : vista === "dispositivos" ? "Dispositivos" : vista === "analisis" ? "Análisis" : vista === "ficha" ? "Ficha personal" : (sala?.nombre || "Planta")}
               {vista === "sala-config" ? <span className="room-kicker">Configuración</span> : null}
             </h1>
           </div>
@@ -1327,7 +1328,7 @@ export default function Shell() {
               </div>
             </div>) : null}
         <div className="shell-pane" key={`${vista}-${sala?.nombre || ""}`}>
-        {vista === "mensajes" ? (
+        {vista === "colaboradores" ? <AgregarColaboradores /> : vista === "mensajes" ? (
           <Mensajes
             org={orgActiva}
             uid={user?.uid}

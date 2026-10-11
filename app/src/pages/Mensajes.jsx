@@ -7,7 +7,8 @@ import MensajeLista from "../messaging/MensajeLista";
 import MensajeInput from "../messaging/MensajeInput";
 import Avatar from "../components/Avatar";
 import useConversacion from '../messaging/useConversacion';
-import InvitationForm from '../components/InvitationForm';
+import { useNavigate } from 'react-router-dom';
+import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { permisos } from '../access';
 
@@ -17,6 +18,7 @@ const fotoDe = (item, uid, miFoto) => item?.photoURL || ((item?.uid === uid || i
 
 export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto }) {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const solo = !Object.values(miembros || {}).some(m => m.uid && m.uid !== uid && m.estado === 'activo');
   const emisor = useMemo(() => ({ uid, nombre, rol, salas }), [uid, nombre, rol, salas]);
   const { mensajes, noLeidos, enviar, marcarLeido } = useMensajes({ org, uid, nombre });
@@ -55,6 +57,8 @@ export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto 
     setActivo(id);
     marcarLeido();
   };
+
+  if (solo) return <section className="mensajes-page mensajes-sin-equipo" aria-label="Mensajes"><div className="mensajes-anuncio"><MessageCircle size={36} aria-hidden="true" /><h2>Aún no tienes colaboradores</h2><p>Cuando tu equipo se una a esta planta, podrás conversar con ellos aquí. ¿Quieres agregar a tu primer colaborador?</p><div className="mensajes-anuncio-acciones">{permisos(profile).invitar ? <Button onClick={() => navigate(`/${org}/colaboradores`, { state: { desde: `/${org}/mensajes` } })}>Agregar colaborador</Button> : <p>Pide al administrador de la planta que invite a tu equipo.</p>}<Button variant="ghost" onClick={() => navigate(`/${org}/analisis`)}>Por ahora no</Button></div></div></section>;
 
   return (
     <section className="mensajes-page" aria-label="Mensajes">
@@ -110,8 +114,7 @@ export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto 
           </>
         ) : (
           <div className="mensajes-vacio">
-            {solo && permisos(profile).invitar ? <header className="mensajes-invitacion-intro"><h2>Invita a tus colaboradores</h2><p>Eres el único usuario de esta planta. Agrega a tu equipo para empezar a conversar.</p></header> : <><MessageCircle size={28} /><p>{solo ? 'Aún no hay otros usuarios en esta planta.' : 'Elige un buzón para hablar.'}</p></>}
-            {solo && permisos(profile).invitar && <InvitationForm orgCodigo={org} orgNombre={profile?.organizacion} salas={profile?.planta?.salas || []} />}
+            <MessageCircle size={28} /><p>Elige un buzón para hablar.</p>
           </div>
         )}
       </div>

@@ -12,6 +12,7 @@ import Continue from "./pages/Continue";
 import Platform from "./pages/Platform";
 import Invite from "./pages/Invite";
 import Boot from "./pages/Boot";
+import EmailLinkLogin from './pages/EmailLinkLogin';
 import { useRegistrarPresencia } from "./hooks/useDispositivosOrg";
 
 function Guest({ children }) {
@@ -58,12 +59,14 @@ export default function App() {
       <Route path="/inicio" element={<Private><Home /></Private>} />
       <Route path="/plataforma" element={<Private><Platform /></Private>} />
       <Route path="/invitar/:token" element={<Invite />} />
+      <Route path="/acceso-correo" element={<EmailLinkLogin />} />
       <Route path="/:orgCodigo/analisis" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/configuracion" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/dispositivos" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/ficha" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/notificaciones" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/mensajes" element={<Private><PlantShell /></Private>} />
+      <Route path="/:orgCodigo/colaboradores" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/laboratorio" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/:salaCodigo/analisis" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/:salaCodigo/setup" element={<Private><PlantShell /></Private>} />

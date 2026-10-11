@@ -75,6 +75,7 @@ export default function Login() {
       </form>
       <div className="stack">
         <div className="divider">o</div>
+        <Link className="btn btn-ghost" to="/acceso-correo">Entrar con enlace de correo</Link>
         <button className="btn btn-ghost" type="button" disabled={busy} onClick={onGoogle}>
           <span className="google-mark"><GoogleMark /> Continuar con Google</span>
         </button>

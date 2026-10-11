@@ -18,6 +18,7 @@ export const RTDB_URL = "https://smart-view.firebaseio.com";
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+auth.languageCode = 'es';
 export const db = getFirestore(app, FIRESTORE_ID);
 export const rtdb = getDatabase(app, RTDB_URL);
 

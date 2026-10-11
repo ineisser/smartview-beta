@@ -5,6 +5,8 @@ import { etiquetaPerfil } from "../access";
 import Screen from "../components/Screen";
 import PasswordField from "../components/PasswordField";
 import Boot from "./Boot";
+import { isSignInWithEmailLink } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const irDespues = (invite, navigate) => {
   if (invite.tipo === "plataforma") navigate("/plataforma", { replace: true });
@@ -14,7 +16,7 @@ const irDespues = (invite, navigate) => {
 
 export default function Invite() {
   const { token } = useParams();
-  const { user, profile, loading, leerInvitacion, aceptarInvitacion, registrarInvitacion } = useAuth();
+  const { user, profile, loading, leerInvitacion, aceptarInvitacion, registrarInvitacion, entrarConEnlaceInvitacion } = useAuth();
   const navigate = useNavigate();
   const [invite, setInvite] = useState(null);
   const [carga, setCarga] = useState(true);
@@ -22,6 +24,9 @@ export default function Invite() {
   const [busy, setBusy] = useState(false);
   const [password, setPassword] = useState("");
   const [repetir, setRepetir] = useState("");
+  const [email, setEmail] = useState('');
+  const [emailConfirmado, setEmailConfirmado] = useState('');
+  const enlaceCorreo = isSignInWithEmailLink(auth, window.location.href);
 
   useEffect(() => {
     if (token) sessionStorage.setItem("smartview-invitacion", token);
@@ -91,6 +96,20 @@ export default function Invite() {
     }
   };
 
+  const confirmarCorreo = async event => {
+    event.preventDefault(); setError('');
+    if (email.trim().toLowerCase() !== emailConfirmado.trim().toLowerCase()) { setError('Los correos no coinciden.'); return; }
+    setBusy(true);
+    try {
+      const usada = await entrarConEnlaceInvitacion(token, email, window.location.href);
+      sessionStorage.removeItem('smartview-invitacion');
+      irDespues(usada, navigate);
+    } catch (err) { setError(err.message || 'El enlace venció o no corresponde a este correo. Solicita una nueva invitación.'); }
+    finally { setBusy(false); }
+  };
+
+  if (invite && enlaceCorreo) return <Screen title={`Te han invitado a ${empresa}`} lede={`${invite.creadoPorNombre || 'El administrador de la planta'} te invita a colaborar como ${etiquetaPerfil(invite.rol)}. Confirma el correo que recibió este enlace para entrar.`}><form className="stack" onSubmit={confirmarCorreo}><label className="field"><span>Tu correo</span><input type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} /></label><label className="field"><span>Confirma tu correo</span><input type="email" required autoComplete="off" value={emailConfirmado} onChange={e => setEmailConfirmado(e.target.value)} /></label>{error && <p role="alert" className="error">{error}</p>}<button className="btn btn-primary" disabled={busy}>{busy ? 'Confirmando…' : 'Confirmar y entrar'}</button><p className="caption">Tu sesión se conservará en este dispositivo. Puedes volver a entrar con un enlace de correo o tu método habitual.</p></form></Screen>;
+
   if (invite?.tipo === "plataforma" && !user) {
     return (
       <Screen title="Invitación" lede="Entra con tu cuenta para unirte a la plataforma.">
@@ -143,6 +162,7 @@ export default function Invite() {
           <PasswordField label="Contraseña" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
           <PasswordField label="Confirmar contraseña" autoComplete="new-password" value={repetir} onChange={(event) => setRepetir(event.target.value)} />
           <button className="btn btn-primary" disabled={busy} type="submit">{busy ? "Entrando…" : "Entrar a la organización"}</button>
+          <p className="caption">¿Ya tienes una cuenta? <Link to="/login">Entra con tu método habitual</Link> para aceptar esta invitación.</p>
         </form>
       ) : (
         <div className="stack">

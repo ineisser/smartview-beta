@@ -6,6 +6,7 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailLink,
 } from "firebase/auth";
 import { get, onValue, ref, set, update } from "firebase/database";
 import { getFunctions, httpsCallable } from "firebase/functions";
@@ -244,6 +245,14 @@ export function AuthProvider({ children }) {
     await set(userRef(credential.user.uid), { nombre: nombre || invitation.nombre || '', email: invitation.email, proveedor: 'password', onboardingCompleto: false });
     return aceptarInvitacion(token);
   };
+  const entrarConEnlaceInvitacion = async (token, email, link) => {
+    const invitation = validarInvitacion(await readPath(inviteRef(token)));
+    if (email.trim().toLowerCase() !== invitation.email) throw new Error('Escribe el correo al que llegó la invitación.');
+    const credential = await signInWithEmailLink(auth, email.trim().toLowerCase(), link);
+    const existing = await readPath(userRef(credential.user.uid));
+    if (!existing) await set(userRef(credential.user.uid), { nombre: invitation.nombre || '', email: invitation.email, proveedor: 'emailLink', onboardingCompleto: false });
+    return aceptarInvitacion(token);
+  };
 
   const guardarAvisoAvance = async (codigo, datos) => {
     if (!codigo) return null;
@@ -282,7 +291,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, plantas, loading, dbError, login, register, loginWithGoogle, logout, saveProfile, cargarOrganizacion, crearInvitacion, revocarInvitacion, leerInvitacion, aceptarInvitacion, registrarInvitacion, editarMiembro, desactivarMiembro, activarCuenta, revocarClave, guardarAvisoAvance, guardarMisDatos }}>
+    <AuthContext.Provider value={{ user, profile, plantas, loading, dbError, login, register, loginWithGoogle, logout, saveProfile, cargarOrganizacion, crearInvitacion, revocarInvitacion, leerInvitacion, aceptarInvitacion, registrarInvitacion, entrarConEnlaceInvitacion, editarMiembro, desactivarMiembro, activarCuenta, revocarClave, guardarAvisoAvance, guardarMisDatos }}>
       {children}
     </AuthContext.Provider>
   );
