@@ -3358,7 +3358,7 @@ html.dark .is-settings.is-scrolled > .room-nav { border-color: rgba(255,255,255,
 html.dark .sala-historial.sheet th { background: #111; }
 .sala-historial.sheet th:first-child { border-top-left-radius: 8px; }
 .sala-historial.sheet th:last-child { border-top-right-radius: 8px; }
-.invitaciones-form { width: 100%; text-align: left; }
+.invitaciones-form { width: 100%; max-width: 520px; text-align: left; color: var(--ink-solid); }
 .plant-selector { margin-top: 12px; min-width: 0; }
 .plant-selector select { width: 100%; min-width: 0; font-size: .85rem; }
 .plant-selector > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
@@ -3366,16 +3366,26 @@ html.dark .sala-historial.sheet th { background: #111; }
 .shell.is-collapsed:not(.is-drawer) .plant-selector select { padding-inline: 2px; color: transparent; }
 .invitaciones-form fieldset { border: 0; border-bottom: 1px solid var(--line); margin: 0 0 20px; padding: 16px 0; min-width: 0; }
 .invitaciones-form legend { font-weight: 600; }
-.invitaciones-campos { display: grid; grid-template-columns: 1fr 1fr 160px; gap: 12px; }
+.invitaciones-campos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .invitaciones-campos label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.invitaciones-campos input, .invitaciones-campos select { width: 100%; min-width: 0; }
+.invitaciones-campos input, .invitaciones-campos select { width: 100%; min-width: 0; height: 48px; font-size: 1rem; }
 .invitaciones-campos select, .plant-selector select { height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink-solid); font: inherit; }
 .invitaciones-salas, .invitaciones-acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
-.invitaciones-salas label { display: flex; align-items: center; gap: 6px; }
-.invitaciones-salas input { appearance: auto; width: 16px; height: 16px; padding: 0; accent-color: var(--accent); }
+.invitaciones-salas { flex-direction: column; gap: 8px; margin-top: 24px; }
+.invitaciones-salas-titulo { font-weight: 500; }
+.invitaciones-ayuda { color: var(--muted); font-size: .875rem; }
+.invitaciones-salas label { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; }
+.invitaciones-salas label:has(:checked) { border-color: var(--ink-solid); }
+.invitaciones-salas input { appearance: auto; flex: 0 0 20px; width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var(--accent); }
 .invitaciones-acciones .btn { width: auto; }
 .invitaciones-form a { overflow-wrap: anywhere; }
-.mensajes-vacio:has(.invitaciones-form) { overflow-y: auto; justify-content: flex-start; padding: 24px; }
+.mensajes-vacio:has(.invitaciones-form) { overflow-y: auto; justify-content: flex-start; align-items: flex-start; gap: 24px; padding: 24px; }
+.mensajes-vacio .mensajes-invitacion-intro { display: block; width: 100%; max-width: 520px; text-align: left; }
+.invitaciones-campos select { height: 48px; }
+.mensajes-invitacion-intro h2 { margin: 0 0 10px; font-size: 1.5rem; color: var(--ink-solid); }
+.mensajes-invitacion-intro p { margin: 0; line-height: 1.6; }
+.invitaciones-form .invitaciones-acciones { gap: 8px; }
+.invitaciones-form .invitaciones-acciones .btn { min-height: 44px; height: auto; white-space: normal; }
 @media(max-width: 760px) { .invitaciones-campos { grid-template-columns: 1fr; } }
 @media(max-width: 760px) {
   .mensajes-page:has(.invitaciones-form) { grid-template-columns: minmax(0, 1fr); }

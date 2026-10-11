@@ -110,8 +110,7 @@ export default function Mensajes({ org, uid, nombre, rol, salas, miembros, foto 
           </>
         ) : (
           <div className="mensajes-vacio">
-            <MessageCircle size={28} />
-            <p>{solo ? 'Eres el único usuario de esta planta. Invita a tus colaboradores para comunicarte con ellos.' : 'Elige un buzón para hablar.'}</p>
+            {solo && permisos(profile).invitar ? <header className="mensajes-invitacion-intro"><h2>Invita a tus colaboradores</h2><p>Eres el único usuario de esta planta. Agrega a tu equipo para empezar a conversar.</p></header> : <><MessageCircle size={28} /><p>{solo ? 'Aún no hay otros usuarios en esta planta.' : 'Elige un buzón para hablar.'}</p></>}
             {solo && permisos(profile).invitar && <InvitationForm orgCodigo={org} orgNombre={profile?.organizacion} salas={profile?.planta?.salas || []} />}
           </div>
         )}

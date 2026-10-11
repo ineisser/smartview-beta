@@ -30,7 +30,7 @@ export default function InvitationForm({ orgCodigo, orgNombre, salas = [] }) {
         <label>Correo<input required type="email" value={row.email} onChange={e => patch(row.id, { email: e.target.value })} /></label>
         <label>Perfil<select value={row.rol} onChange={e => patch(row.id, { rol: e.target.value })}>{PERFILES_INVITACION.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label>
       </div>
-      <div className="invitaciones-salas" aria-label="Salas asignadas">{salas.map(sala => <label key={sala.codigo}><input type="checkbox" checked={row.salas.includes(sala.codigo)} onChange={e => patch(row.id, { salas: e.target.checked ? [...row.salas, sala.codigo] : row.salas.filter(s => s !== sala.codigo) })} />{sala.nombre}</label>)}</div>
+      <div className="invitaciones-salas" role="group" aria-label="Salas asignadas"><span className="invitaciones-salas-titulo">Salas asignadas</span><span className="invitaciones-ayuda">Selecciona las salas a las que tendrá acceso.</span>{salas.map(sala => <label key={sala.codigo}><input type="checkbox" checked={row.salas.includes(sala.codigo)} onChange={e => patch(row.id, { salas: e.target.checked ? [...row.salas, sala.codigo] : row.salas.filter(s => s !== sala.codigo) })} /><span>{sala.nombre}</span></label>)}</div>
       {row.error && <p role="alert">{row.error}</p>}
       {row.enlace && <p role="status">Invitación lista: <a href={row.enlace}>{row.enlace}</a></p>}
     </fieldset>)}
