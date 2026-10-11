@@ -49,10 +49,6 @@ const minutosSolapados = (desde, hasta, ventanaInicio, ventanaFin) => {
   return Math.max(0, Math.round((b - a) / 60000));
 };
 
-const leerLogs = () => {
-  try { return JSON.parse(localStorage.getItem("machine_stop_logs") || "[]"); } catch { return []; }
-};
-
 const numeroDe = (machine, index) => String(machine?.numero || index + 1).padStart(2, "0");
 
 /**
@@ -72,7 +68,7 @@ export const avanceDeTurno = ({ turnos, ahora = new Date(), maquinas = [], paros
   abiertos.forEach((numero) => {
     improductivo += minutosSolapados(paros[numero]?.inicio || inicio, fin, inicio, fin);
   });
-  const historial = logs || leerLogs();
+  const historial = logs || [];
   historial.forEach((item) => {
     if (salaCodigo && item.sala && item.sala !== salaCodigo) return;
     const numero = String(item.machine || item.maquina).padStart(2, "0");
