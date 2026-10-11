@@ -3377,6 +3377,12 @@ html.dark .sala-historial.sheet th { background: #111; }
 .invitaciones-form a { overflow-wrap: anywhere; }
 .mensajes-vacio:has(.invitaciones-form) { overflow-y: auto; justify-content: flex-start; padding: 24px; }
 @media(max-width: 760px) { .invitaciones-campos { grid-template-columns: 1fr; } }
+@media(max-width: 760px) {
+  .mensajes-page:has(.invitaciones-form) { grid-template-columns: minmax(0, 1fr); }
+  .mensajes-page:has(.invitaciones-form) .mensajes-buzones { display: none; }
+  .mensajes-page:has(.invitaciones-form) .mensajes-hilo { padding-left: 0; }
+  .mensajes-vacio:has(.invitaciones-form) { align-items: stretch; padding: 12px 0; }
+}
 .maquinas-grid.is-large-map .card-maquina,
 .mapa-grupos.is-large-map .card-maquina {
   backdrop-filter: none;

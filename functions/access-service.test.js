@@ -49,3 +49,11 @@ test('an invitation cannot silently alter an already active membership', async (
   await assert.rejects(call('guest', { action: 'aceptar', token: invitation.token }));
   assert.equal(data.organizaciones.Other.miembros.guest.rol, 'admin');
 });
+test('a new authenticated account receives only the invitation membership', async () => {
+  const { data, call, invite } = fixture(); delete data.usuarios.guest;
+  const invitation = await invite();
+  await call('guest', { action: 'aceptar', token: invitation.token });
+  assert.equal(data.usuarios.guest.onboardingCompleto, true);
+  assert.equal(data.usuarios.guest.rolTenant, undefined);
+  assert.equal(data.accesos.guest.Other.rol, 'jefe');
+});
