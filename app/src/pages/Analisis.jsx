@@ -12,6 +12,8 @@ import AnalysisDashboard, { duracionAnalisis as duracion, porcentajeAnalisis as 
 import { cerrado, inicio, fin, motivo, numero, letraTurno, fechasPeriodo, limitesPeriodo, fechaLocal, ordenarFilas } from '../data/analisis';
 import '../styles/components/analisis.css';
 import { nombresMotivosDeSalas } from '../data/catalogos-paro';
+import { opcionesGrupos, gruposSala, coincideGrupo } from '../data/analysis-groups';
+import { turnosDe, turnoEnCurso, inicioDeTurno } from '../turno';
 
 const VISTAS=[{id:'dashboard',label:'Dashboard'},{id:'maquinas',label:'Máquinas'},{id:'motivos',label:'Motivos'},{id:'historial',label:'Historial'}];
 const PERIODOS=[{id:'hoy',label:'Hoy'},{id:'ayer',label:'Ayer'},{id:'semana',label:'Semana'},{id:'semanaAnterior',label:'Semana anterior'},{id:'mes',label:'Mes'},{id:'mesAnterior',label:'Mes anterior'},{id:'personalizado',label:'Personalizado'}];
@@ -19,7 +21,7 @@ const ORDENES={historial:{columna:'fecha',direccion:'desc'},maquinas:{columna:'p
 const fecha=n=>n?new Date(n).toLocaleDateString('es-PE'):'—';
 const hora=n=>n?new Date(n).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',hour12:false}):'—';
 const fechaPeriodo=(value,larga=false)=>{const d=new Date(`${value}T00:00:00`);if(larga)return d.toLocaleDateString('es-PE',{day:'numeric',month:'long'});const mes=d.toLocaleDateString('es-PE',{month:'short'}).replace('.','').slice(0,3);return `${String(d.getDate()).padStart(2,'0')} ${mes.charAt(0).toUpperCase()+mes.slice(1)}`;};
-function Selector({label,value,onChange,opciones,limpiar}) {const todas={Salas:'Todas las salas',Máquinas:'Todas las máquinas',Motivos:'Todos los motivos'};return <FloatingSelect label={label} value={value} onChange={onChange} opciones={[{value:'',label:todas[label]||label,triggerLabel:label},...opciones]} onClear={limpiar}/>;}
+function Selector({label,value,onChange,opciones,limpiar}) {const todas={Salas:'Todas las salas',Máquinas:'Todas las máquinas',Motivos:'Todos los motivos',Grupos:'Todos los grupos',Turnos:'Todos los turnos'};return <FloatingSelect label={label} value={value} onChange={onChange} opciones={[{value:'',label:todas[label]||label,triggerLabel:label},...opciones]} onClear={limpiar}/>;}
 function DetalleParo({item,salas,ahora,onCerrar}) {
   const dialog=useRef(null);
   useEffect(()=>{const el=dialog.current,previo=document.activeElement;el.showModal();return()=>{el.close();previo?.focus();};},[]);
@@ -29,37 +31,46 @@ function DetalleParo({item,salas,ahora,onCerrar}) {
 export default function Analisis({salas=[],planta,org,vista='dashboard',onVista:setVista,navbar}) {
   const [salaSeleccionada,setSala]=useState(''),[maquina,setMaquina]=useState(''),[razon,setRazon]=useState(''),[estado,setEstado]=useState('');
   const [periodo,setPeriodo]=useState('hoy'),[personalizado,setPersonalizado]=useState(()=>fechasPeriodo('hoy'));
+  const [grupo,setGrupo]=useState(''),[turno,setTurno]=useState('');
   const [ahora,setAhora]=useState(Date.now),[detalle,setDetalle]=useState(null),[ordenes,setOrdenes]=useState(ORDENES);
   const [anchos,setAnchos]=useState({historial:{},maquinas:{},motivos:{}}),[offset,setOffset]=useState(0),[revision,setRevision]=useState(0);
   const sala=salas.length===1?salas[0].codigo:(salas.some(s=>s.codigo===salaSeleccionada)?salaSeleccionada:'');
   const mostrarSala=salas.length>1&&!sala;
+  const salaActual=salas.find(s=>s.codigo===sala);
+  const opcionesGrupo=opcionesGrupos(salas.filter(s=>!sala||s.codigo===sala));
+  const mostrarGrupos=salas.filter(s=>!sala||s.codigo===sala).some(s=>gruposSala(s).length>1);
+  useEffect(()=>{setGrupo('');setTurno('');setMaquina('');},[sala]);
+  useEffect(()=>{if(grupo && !opcionesGrupo.some(g=>g.value===grupo))setGrupo('');if(grupo)setMaquina('');if(grupo)setOrdenes(prev=>({...prev,maquinas:prev.maquinas.columna==='grupo'?ORDENES.maquinas:prev.maquinas}));},[grupo,sala]);
   useEffect(()=>{if(!mostrarSala)setOrdenes(prev=>Object.values(prev).some(o=>o.columna==='sala')?Object.fromEntries(Object.entries(prev).map(([k,o])=>[k,o.columna==='sala'?ORDENES[k]:o])):prev);},[mostrarSala]);
   useEffect(()=>{const timer=setInterval(()=>setAhora(Date.now()),30000);return()=>clearInterval(timer);},[]);
   const fechas=periodo==='personalizado'?personalizado:fechasPeriodo(periodo,ahora);
   const {desde:a,hasta:b,invalido}=limitesPeriodo(fechas.desde,fechas.hasta,ahora);
-  useEffect(()=>setOffset(0),[vista,sala,maquina,razon,estado,fechas.desde,fechas.hasta,ordenes]);
-  const remoto=useHistorialPagina({activo:!invalido,org,desde:a,hasta:+new Date(`${fechas.hasta}T00:00:00`)+86400000,sala,maquina,razon,estado,orden:ordenes[vista]||ORDENES.historial,offset:vista==='historial'?offset:0,vista,periodo,revision});
+  useEffect(()=>setOffset(0),[vista,sala,maquina,razon,estado,grupo,turno,fechas.desde,fechas.hasta,ordenes]);
+  const turnoHoy=periodo==='hoy'&&turno&&salaActual&&turnoEnCurso(turnosDe(salaActual.turnos),new Date(ahora));
+  const inicioConsulta=turnoHoy?.letra===turno?Math.min(a,+inicioDeTurno(turnoHoy,new Date(ahora))):a;
+  const remoto=useHistorialPagina({activo:!invalido,org,desde:inicioConsulta,hasta:+new Date(`${fechas.hasta}T00:00:00`)+86400000,sala,maquina,razon,estado,grupo,turno,orden:ordenes[vista]||ORDENES.historial,offset:vista==='historial'?offset:0,vista,periodo,revision});
   const {datos,grafica,cargando:procesando,error:fallo}=remoto;
   const opcionesMaquinas=useMemo(()=>{
     const marcas=new Map();
     for(const s of salas.filter(s=>!sala||s.codigo===sala))for(const [i,m] of (s.maquinas||[]).entries()){
       const n=numero(m.numero||i+1),marca=String(m.marca||'').trim();
+      if (!coincideGrupo(s,n,grupo)) continue;
       if(!marcas.has(n))marcas.set(n,new Set());
       if(marca)marcas.get(n).add(marca);
     }
     return [...marcas].sort(([a],[b])=>a.localeCompare(b,'es',{numeric:true})).map(([n,lista])=>({value:n,label:[n,[...lista].join(' / ')].filter(Boolean).join(' ')}));
-  },[salas,sala]);
+  },[salas,sala,grupo]);
   const razones=useMemo(()=>[...new Set([...nombresMotivosDeSalas(salas,sala),...(datos?.motivos||[]).map(x=>x.key).filter(Boolean)])].sort((x,y)=>x.localeCompare(y,'es')),[salas,sala,datos]);
   const columnas=useMemo(()=>{
     const tiempo={asc:'Menor tiempo',desc:'Mayor tiempo'},cantidad={asc:'Menos frecuente',desc:'Más frecuente'};
     const salaCol={id:'sala',label:'Sala',valor:x=>vista==='maquinas'?x.sala:salas.find(s=>s.codigo===x.sala)?.nombre||x.sala,ancho:160};
     const machineCol={id:'maquina',label:'Máquina',valor:x=>numero(x.machine||x.maquina),ancho:110,orden:{asc:'Máquina',desc:'Máquina ↓'}};
     let cols;
-    if(vista==='maquinas')cols=[salaCol,machineCol,{id:'paros',label:'Paros',valor:x=>x.paros,ancho:110,orden:cantidad},{id:'duracion',label:'Tiempo parado',valor:x=>x.duracion,render:x=>duracion(x.duracion),ancho:180,orden:tiempo},{id:'disponibilidad',label:'Disponibilidad (%)',valor:x=>x.disponibilidad,render:x=>porcentaje(x.disponibilidad),ancho:190,orden:{asc:'Menor disponibilidad',desc:'Mayor disponibilidad'}}];
+    if(vista==='maquinas')cols=[salaCol,...(mostrarGrupos&&!grupo?[{id:'grupo',label:'Grupo',valor:x=>x.grupo,render:x=>x.grupo?`Grupo ${x.grupo}`:'Sin grupo',ancho:120}]:[]),machineCol,{id:'paros',label:'Paros',valor:x=>x.paros,ancho:110,orden:cantidad},{id:'duracion',label:'Tiempo parado',valor:x=>x.duracion,render:x=>x.duracion?duracion(x.duracion):'—',ancho:180,orden:tiempo},{id:'disponibilidad',label:'Disponibilidad',valor:x=>x.disponibilidad,render:x=><>{porcentaje(x.disponibilidad)}{x.disponibilidad!=null&&<small className="analysis-percent">%</small>}</>,ancho:190,orden:{asc:'Menor disponibilidad',desc:'Mayor disponibilidad'}}];
     else if(vista==='motivos')cols=[{id:'motivo',label:'Motivo',valor:x=>x.key,ancho:270,orden:{asc:'Motivo A–Z',desc:'Motivo Z–A'}},{id:'paros',label:'Paros',valor:x=>x.paros,ancho:120,orden:cantidad},{id:'duracion',label:'Tiempo parado',valor:x=>x.duracion,render:x=>duracion(x.duracion),ancho:180,orden:tiempo},{id:'perdida',label:'Pérdida (pp)',tip:'Pérdida de disponibilidad en puntos porcentuales',valor:x=>x.perdida,render:x=>porcentaje(x.perdida),ancho:160,orden:{asc:'Menor PP',desc:'Mayor PP'}}];
-    else cols=[salaCol,machineCol,{id:'fecha',label:'Fecha',valor:inicio,render:x=>fecha(inicio(x)),ancho:140,orden:{asc:'Más antiguos',desc:'Más recientes'}},{id:'turno',label:'Turno',valor:x=>letraTurno(x,salas),ancho:90},{id:'motivo',label:'Motivo',valor:motivo,render:x=><span className={`analysis-reason${cerrado(x)?'':' is-stopped'}`}>{motivo(x)}</span>,ancho:220},{id:'inicio',label:'Inicio',valor:inicio,render:x=>hora(inicio(x)),ancho:110},{id:'fin',label:'Término',valor:x=>cerrado(x)?fin(x,ahora):null,render:x=>cerrado(x)?hora(fin(x,ahora)):'—',titulo:x=>cerrado(x)?fecha(fin(x,ahora)):undefined,ancho:110},{id:'duracion',label:'Duración',valor:x=>Math.max(0,Math.min(fin(x,ahora),b)-Math.max(inicio(x),a)),render:x=><span className="analysis-duration">{!cerrado(x)&&<Timer size={14} aria-label="Paro en curso"/>}{duracion(Math.min(fin(x,ahora),b)-Math.max(inicio(x),a))}</span>,tip:'Duración del paro dentro del período seleccionado',ancho:160,orden:tiempo},{id:'estado',label:'Estado',valor:x=>cerrado(x)?'Atendido':'Detenido',clase:x=>cerrado(x)?'analysis-attended':'historial-celda-detenido',render:x=><span className="analysis-duration">{cerrado(x)&&<CircleCheck size={14} aria-hidden="true"/>}{cerrado(x)?'Atendido':'Detenido'}</span>,ancho:140}];
+    else cols=[salaCol,machineCol,{id:'fecha',label:'Fecha',valor:inicio,render:x=>fecha(inicio(x)),ancho:140,orden:{asc:'Más antiguos',desc:'Más recientes'}},{id:'turno',label:'Turno',valor:x=>letraTurno(x,salas),ancho:90},{id:'motivo',label:'Motivo',valor:motivo,render:x=><span className={`analysis-reason${cerrado(x)?'':' is-stopped'}`}>{motivo(x)}</span>,ancho:220},{id:'inicio',label:'Inicio',valor:inicio,render:x=>hora(inicio(x)),ancho:110},{id:'fin',label:'Término',valor:x=>cerrado(x)?fin(x,ahora):null,render:x=>cerrado(x)?hora(fin(x,ahora)):'—',titulo:x=>cerrado(x)?fecha(fin(x,ahora)):undefined,ancho:110},{id:'duracion',label:'Duración',valor:x=>(x.duracionFiltro??Math.max(0,Math.min(fin(x,ahora),b)-Math.max(inicio(x),a))),render:x=><span className="analysis-duration">{!cerrado(x)&&<Timer size={14} aria-label="Paro en curso"/>}{duracion(x.duracionFiltro??Math.min(fin(x,ahora),b)-Math.max(inicio(x),a))}</span>,tip:'Duración del paro dentro del período seleccionado',ancho:160,orden:tiempo},{id:'estado',label:'Estado',valor:x=>cerrado(x)?'Atendido':'Detenido',clase:x=>cerrado(x)?'analysis-attended':'historial-celda-detenido',render:x=><span className="analysis-duration">{cerrado(x)&&<CircleCheck size={14} aria-hidden="true"/>}{cerrado(x)?'Atendido':'Detenido'}</span>,ancho:140}];
     return cols.filter(c=>c.id!=='sala'||mostrarSala);
-  },[vista,salas,mostrarSala,ahora,a,b]);
+  },[vista,salas,mostrarSala,mostrarGrupos,grupo,ahora,a,b]);
   const elegirPeriodo=value=>{if(value==='personalizado')setPersonalizado(fechas);setPeriodo(value);};
   const cambiarFecha=(campo,value)=>{setPersonalizado(prev=>{const actual=periodo==='personalizado'?prev:fechas;return {...actual,[campo]:value,...(campo==='desde'&&value>actual.hasta?{hasta:value}:campo==='hasta'&&value<actual.desde?{desde:value}:{})};});setPeriodo('personalizado');};
   const filas=vista==='historial'?remoto.filas:vista==='maquinas'?datos?.maquinas||[]:datos?.motivos||[];
@@ -75,6 +86,8 @@ export default function Analisis({salas=[],planta,org,vista='dashboard',onVista:
     <div className="analysis-controls analysis-fixed-filters"><div className="analysis-filter-left">
       {salas.length===1?<span className="analysis-single-room" aria-label="Sala">{salas[0].nombre}</span>:<Selector label="Salas" value={sala} onChange={setSala} limpiar={()=>setSala('')} opciones={salas.map(s=>({value:s.codigo,label:s.nombre}))}/>}
       <FloatingSelect label="Período" value={periodo} onChange={elegirPeriodo} opciones={opcionesPeriodo} width={periodo==='personalizado'?660:380} panelDirecto={periodo==='personalizado'}>{periodo==='personalizado'&&<DateRangeCalendar desde={fechas.desde} hasta={fechas.hasta} max={fechaLocal(ahora)} onChange={cambiarFecha}/>}</FloatingSelect>
+      {salaActual&&<Selector label="Turnos" value={turno} onChange={setTurno} limpiar={()=>setTurno('')} opciones={turnosDe(salaActual.turnos).map(t=>({value:t.letra,label:`Turno ${t.letra}`}))}/>}
+      {mostrarGrupos&&<Selector label="Grupos" value={grupo} onChange={setGrupo} limpiar={()=>setGrupo('')} opciones={opcionesGrupo}/>}
       <Selector label="Máquinas" value={maquina} onChange={setMaquina} limpiar={()=>setMaquina('')} opciones={[...opcionesMaquinas,...(maquina&&!opcionesMaquinas.some(m=>m.value===maquina)?[{value:maquina,label:maquina}]:[])]}/>
       <Selector label="Motivos" value={razon} onChange={setRazon} limpiar={()=>setRazon('')} opciones={[...new Set([...razones,...(razon?[razon]:[])])].map(n=>({value:n,label:n}))}/>
     </div><div className="analysis-filter-right">{vista!=='dashboard'&&<FloatingSelect label="Orden" icon={ArrowDownUp} value={`${ordenes[vista].columna}:${ordenes[vista].direccion}`} opciones={opcionesOrden} onChange={value=>{const [columna,direccion]=value.split(':');setOrdenes(prev=>({...prev,[vista]:{columna,direccion}}));}}/>}<Tooltip label="Actualizar"><button className="icon-btn analysis-refresh" type="button" aria-label="Actualizar" disabled={procesando} onClick={()=>setRevision(v=>v+1)}><RefreshCw size={16} className={procesando?'analysis-spinning':''}/></button></Tooltip></div></div>
@@ -82,7 +95,7 @@ export default function Analisis({salas=[],planta,org,vista='dashboard',onVista:
       {vista==='historial'&&<Selector label="Estado" value={estado} onChange={setEstado} limpiar={()=>setEstado('')} opciones={[{value:'detenido',label:'Detenido'},{value:'atendido',label:'Atendido'}]}/>}
       <div className="analysis-pagination-right">{vista!=='dashboard'&&<TablePagination total={total} offset={paginaOffset} onOffset={setOffset} cargando={procesando}/>}</div>
     </div>}
-    {invalido?<p role="alert">Elige fechas válidas: el inicio debe ser anterior o igual al término.</p>:vista==='dashboard'?<div className="analysis-dashboard-scroll">{procesando?<div className="analysis-dashboard-placeholder" role="status">Procesando datos…</div>:fallo?<p role="alert">{fallo}</p>:datos&&grafica?<AnalysisDashboard datos={datos} evolucion={grafica} salas={salas} planta={planta} sala={sala} onVista={setVista}/>:null}</div>:<AnalysisTable key={vista} titulo={VISTAS.find(v=>v.id===vista).label} columnas={columnas} filas={bloque} cargando={procesando} error={fallo} orden={ordenes[vista]} onOrden={o=>setOrdenes(prev=>({...prev,[vista]:o}))} anchos={anchos[vista]} onAnchos={update=>setAnchos(prev=>({...prev,[vista]:update(prev[vista])}))} onFila={vista==='historial'?setDetalle:undefined} rowKey={x=>x.key||`${x.sala}:${x.id}:${x.machine||x.maquina}:${inicio(x)}`}/>}
+    {invalido?<p role="alert">Elige fechas válidas: el inicio debe ser anterior o igual al término.</p>:vista==='dashboard'?<div className="analysis-dashboard-scroll">{procesando?<div className="analysis-dashboard-placeholder" role="status">Procesando datos…</div>:fallo?<p role="alert">{fallo}</p>:datos&&grafica?<AnalysisDashboard datos={datos} evolucion={grafica} salas={salas} planta={planta} sala={sala} onVista={setVista} turno={turno} periodo={periodo} mostrarGrupos={mostrarGrupos} onGrupo={setGrupo} ahora={ahora}/>:null}</div>:<AnalysisTable key={vista} titulo={VISTAS.find(v=>v.id===vista).label} columnas={columnas} filas={bloque} cargando={procesando} error={fallo} orden={ordenes[vista]} onOrden={o=>setOrdenes(prev=>({...prev,[vista]:o}))} anchos={anchos[vista]} onAnchos={update=>setAnchos(prev=>({...prev,[vista]:update(prev[vista])}))} onFila={vista==='historial'?setDetalle:undefined} rowKey={x=>x.key||`${x.sala}:${x.id}:${x.machine||x.maquina}:${inicio(x)}`}/>}
     <footer className="analysis-footer" aria-label="Resumen de la vista"><span>{procesando?'Procesando…':fallo?'Datos no disponibles':vista==='dashboard'?`${datos?.resumen.paros||0} registros`:rango}</span>{!procesando&&!fallo&&<><span>Total de paros <strong>{(remoto.totales?.paros||0).toLocaleString('es-PE')}</strong></span><span>Tiempo parado <strong>{duracion(remoto.totales?.tiempoParado||0)}</strong></span></>}</footer>
     {detalle&&<DetalleParo item={remoto.filas.find(x=>x.id===detalle.id&&x.sala===detalle.sala)||detalle} salas={salas} ahora={ahora} onCerrar={()=>setDetalle(null)}/>}
   </section>;

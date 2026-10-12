@@ -14,6 +14,7 @@ import { onValueWritten } from 'firebase-functions/v2/database';
 import { manageAccess, active, platform } from './access-service.js';
 
 initializeApp({databaseURL:'https://smart-view.firebaseio.com'});
+export { consultarInvitacion, enviarInvitacion, solicitarRecuperacion, solicitarAccesoCorreo } from './mail-functions.js';
 
 const database=getDatabase();
 export const gestionarAcceso=onCall({region:'us-central1',maxInstances:4,timeoutSeconds:60},request=>manageAccess(database,request));

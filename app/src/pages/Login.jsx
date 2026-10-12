@@ -66,6 +66,7 @@ export default function Login() {
         </label>
         <PasswordField label="Contraseña" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <button className="btn btn-primary" disabled={busy} type="submit">Entrar</button>
+        <p className="note"><Link to="/recuperar-contrasena">Olvidé mi contraseña</Link> · <Link to="/aceptar-invitacion">Tengo un código de invitación</Link></p>
         {error ? (
           <p className="note">
             Si aún no tienes cuenta,{" "}

@@ -13,6 +13,8 @@ import Platform from "./pages/Platform";
 import Invite from "./pages/Invite";
 import Boot from "./pages/Boot";
 import EmailLinkLogin from './pages/EmailLinkLogin';
+import InvitationCode from './pages/InvitationCode';
+import PasswordRecovery from './pages/PasswordRecovery';
 import { useRegistrarPresencia } from "./hooks/useDispositivosOrg";
 
 function Guest({ children }) {
@@ -60,6 +62,9 @@ export default function App() {
       <Route path="/plataforma" element={<Private><Platform /></Private>} />
       <Route path="/invitar/:token" element={<Invite />} />
       <Route path="/acceso-correo" element={<EmailLinkLogin />} />
+      <Route path="/aceptar-invitacion" element={<InvitationCode />} />
+      <Route path="/recuperar-contrasena" element={<PasswordRecovery />} />
+      <Route path="/restablecer-contrasena" element={<PasswordRecovery />} />
       <Route path="/:orgCodigo/analisis" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/configuracion" element={<Private><PlantShell /></Private>} />
       <Route path="/:orgCodigo/dispositivos" element={<Private><PlantShell /></Private>} />

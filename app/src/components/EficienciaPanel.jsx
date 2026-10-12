@@ -95,7 +95,7 @@ function usePulso(valor, pasoMs) {
   return visto;
 }
 
-export function RelojTurno({ turnos, buena = true, className = "" }) {
+export function RelojTurno({ turnos, buena = true, className = "", titulo, descripcion }) {
   const [ahora, setAhora] = useState(() => new Date());
   useEffect(() => {
     const id = window.setInterval(() => setAhora(new Date()), 1000);
@@ -110,6 +110,7 @@ export function RelojTurno({ turnos, buena = true, className = "" }) {
   const giro = ((turno.inicio / 60) % 12) * 30;
   return (
     <article className={`eficiencia-card eficiencia-reloj${className ? ` ${className}` : ""}`}>
+      {titulo&&<header><h2>{titulo}</h2></header>}
       <div className="clock-svg-wrapper">
         <svg className="clock-svg" viewBox="0 0 100 100" aria-hidden="true">
           <g>
@@ -138,6 +139,7 @@ export function RelojTurno({ turnos, buena = true, className = "" }) {
           <div className={`remaining-val ${buena ? "is-good" : "is-bad"}`}>{formatoReloj(totalMin - elapsed)}</div>
         </div>
       </div>
+      {descripcion&&<p className="analysis-note">{descripcion}</p>}
     </article>
   );
 }

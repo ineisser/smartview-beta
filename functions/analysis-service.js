@@ -2,6 +2,8 @@ import { historyPage } from './history-core.js';
 import { createHash } from 'node:crypto';
 import { crearProyeccion, resumenDia, combinarDias, diasEntre, diaInicio } from './projection.js';
 import { inicio, fin, cerrado, evolucion, fechaLocal } from './shared/analysis.js';
+import { grupoMaquina, opcionesGrupos } from './shared/analysis-groups.js';
+import { turnosDe } from './shared/turno.js';
 
 // Caché acotada a la instancia, nunca compartida entre organizaciones o permisos.
 const cache=new Map(),preparaciones=new Map();let cacheBytes=0;
@@ -15,6 +17,8 @@ const memo=async(key,read)=>{
 };
 export function clearAnalysisCache(){cache.clear();cacheBytes=0;}
 export async function consultarAnalisis(io,org,rooms,allRooms,input,now=Date.now()) {
+  if(input.grupo && !opcionesGrupos(rooms.filter(s=>!input.sala||s.codigo===input.sala)).some(g=>g.value===input.grupo))throw new Error('Grupo inválido.');
+  if(input.turno && (!input.sala || !rooms.some(s=>s.codigo===input.sala&&turnosDe(s.turnos).some(t=>t.letra===input.turno))))throw new Error('Selecciona un turno de una sala autorizada.');
   const root=`organizaciones/${org}/analisis`,desde=Number(input.desde),hasta=Math.min(Number(input.hasta),now);
   if(!Number.isFinite(desde)||!Number.isFinite(hasta)||desde>=hasta)throw new Error('Período inválido.');
   const days=diasEntre(desde,hasta);if(days.length>3660)throw new Error('Selecciona un período de hasta diez años.');
@@ -23,11 +27,11 @@ export async function consultarAnalisis(io,org,rooms,allRooms,input,now=Date.now
   const source = io.verifySource ? await io.read(`organizaciones/${org}/paros`) : undefined;
   const sourceHash = value => createHash('sha256').update(JSON.stringify(value || {})).digest('hex');
   const sourceChanged = io.verifySource && meta?.sourceHash !== sourceHash(source);
-  if(!meta?.ready||meta.version!==3||meta.config!==JSON.stringify(allRooms)||sourceChanged||input.reconstruir) {
+  if(!meta?.ready||meta.version!==4||meta.config!==JSON.stringify(allRooms)||sourceChanged||input.reconstruir) {
     // Primera preparación; las siguientes consultas usan exclusivamente la proyección.
     if(!preparaciones.has(org))preparaciones.set(org,(async()=>{
       if(io.acquire&&!await io.acquire()) {
-        for(let i=0;i<60;i++){await new Promise(resolve=>setTimeout(resolve,250));const ready=await io.read(`${root}/meta`);if(ready?.ready&&ready.version===3)return ready;}
+        for(let i=0;i<60;i++){await new Promise(resolve=>setTimeout(resolve,250));const ready=await io.read(`${root}/meta`);if(ready?.ready&&ready.version===4)return ready;}
         throw new Error('Se está preparando el índice. Inténtalo de nuevo en unos segundos.');
       }
       try {
@@ -58,6 +62,8 @@ export async function consultarAnalisis(io,org,rooms,allRooms,input,now=Date.now
   };
   const daily=await Promise.all(days.map(async d=>({d,block:await getBlock(d,Math.max(desde,diaInicio(d)),Math.min(hasta,diaInicio(d)+86400000))})));
   const datos=combinarDias(daily.map(x=>x.block),rooms,input);
+  datos.maquinas=datos.maquinas.map(m=>({...m,grupo:grupoMaquina(rooms.find(s=>s.codigo===m.salaCodigo),m.maquina)}));
+  datos.grupos=opcionesGrupos(rooms.filter(s=>!input.sala||s.codigo===input.sala)).filter(g=>!input.grupo||g.value===input.grupo).map(g=>({...g,key:g.value,...combinarDias(daily.map(x=>x.block),rooms,{...input,grupo:g.value}).resumen})).sort((a,b)=>b.paros-a.paros||a.numero-b.numero);
   const tiempoParado=datos.maquinas.reduce((n,m)=>n+m.duracion,0);
   const totales={paros:datos.resumen.paros,tiempoParado};
   if(input.vista==='historial') {
@@ -71,9 +77,10 @@ export async function consultarAnalisis(io,org,rooms,allRooms,input,now=Date.now
   let grafica=null;
   if(input.vista==='dashboard') {
     grafica=evolucion({periodo:input.periodo,desdeFecha:fechaLocal(desde),hastaFecha:fechaLocal(hasta-1),salas:rooms,historial:[],...input,desde,hasta,ahora:now});
+    if(input.turno&&grafica.tipo==='turnos')grafica.grupos=grafica.grupos.filter(g=>g.label===input.turno);
     for(const g of grafica.grupos) {
       const slices=daily.filter(({d})=>diaInicio(d)<Math.min(g.hasta,hasta)&&diaInicio(d)+86400000>g.desde).map(({block})=>grafica.tipo==='turnos'?block.turnos[g.label]:block);
-      Object.assign(g,combinarDias(slices,rooms,input).resumen);
+      Object.assign(g,combinarDias(slices,rooms,{...input,turno:grafica.tipo==='turnos'?'':input.turno}).resumen);
       if(!slices.length)g.disponibilidad=null;
     }
   }

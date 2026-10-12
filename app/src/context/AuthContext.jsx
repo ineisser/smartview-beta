@@ -229,8 +229,7 @@ export function AuthProvider({ children }) {
   const revocarInvitacion = token => operation({ action: 'revocar', token });
 
   const leerInvitacion = async (token) => {
-    const invite = await readPath(inviteRef(token));
-    return invite ? { token, ...invite } : null;
+    return (await httpsCallable(getFunctions(auth.app,'us-central1'),'consultarInvitacion')({token})).data;
   };
 
   const aceptarInvitacion = async token => {

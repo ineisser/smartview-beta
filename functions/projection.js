@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 
 import { normalizeEvents } from './history-core.js';
+import { turnosDe } from './shared/turno.js';
+import { coincideGrupo } from './shared/analysis-groups.js';
 
 import { calcular, inicio, fin, cerrado, motivo, numero, fechaLocal } from './shared/analysis.js';
 
@@ -47,7 +49,7 @@ export function resumenDia(eventos,salas,dia,from=diaInicio(dia),to=from+8640000
 
   }
 
-  return {maquinas,version:3,...(!turno?{turnos:Object.fromEntries(['A','B','C'].map(t=>[t,resumenDia(eventos,salas,dia,from,to,t)]))}:{})};
+  return {maquinas,version:4,...(!turno?{turnos:Object.fromEntries([...new Set(salas.flatMap(s=>turnosDe(s.turnos).map(t=>t.letra)))].map(t=>[t,resumenDia(eventos,salas,dia,from,to,t)]))}:{})};
 
 }
 
@@ -69,7 +71,7 @@ export function crearProyeccion(raw,salas,now=Date.now()) {
 
   const resumenes=Object.fromEntries(Object.entries(dias).map(([d,rows])=>[d,resumenDia(rows,salas,d)]));
 
-  return {eventos,dias:Object.fromEntries(Object.entries(dias).map(([d,eventos])=>[d,{eventos,seq:1}])),abiertos,resumenes,meta:{version:3,ready:true,revision:now,config:JSON.stringify(salas)}};
+  return {eventos,dias:Object.fromEntries(Object.entries(dias).map(([d,eventos])=>[d,{eventos,seq:1}])),abiertos,resumenes,meta:{version:4,ready:true,revision:now,config:JSON.stringify(salas)}};
 
 }
 
@@ -82,8 +84,9 @@ function acumularCuenta(target,part) {
 }
 export function combinarDias(bloques,salas,input) {
   const machines=new Map(),reasons=new Map();let programado=0,perdido=0;
-  for(const bloque of bloques)for(const m of Object.values(bloque?.maquinas||{})) {
+  for(const bloque of bloques)for(const m of Object.values((input.turno ? bloque?.turnos?.[input.turno] : bloque)?.maquinas||{})) {
     if(!salas.some(s=>s.codigo===m.salaCodigo)||input.sala&&input.sala!==m.salaCodigo||input.maquina&&input.maquina!==m.maquina)continue;
+    if (!coincideGrupo(salas.find(s=>s.codigo===m.salaCodigo), m.maquina, input.grupo)) continue;
     const selected=(m.motivos||[]).filter(r=>!input.razon||input.razon===r.key);
     const part=input.razon?{paros:selected.reduce((n,r)=>n+r.paros,0),entrantes:selected.flatMap(r=>r.entrantes||[]),salientes:selected.flatMap(r=>r.salientes||[])}:m;
     const loss=input.razon?selected.reduce((n,r)=>n+r.perdido,0):m.perdido;

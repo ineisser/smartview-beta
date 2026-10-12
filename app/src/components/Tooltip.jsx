@@ -6,7 +6,7 @@ const MARGEN = 8;
 const VIDA = 4000;
 const SALIDA = 800;
 
-export default function Tooltip({ label, tone = "dark", wrap = false, children }) {
+export default function Tooltip({ label, tone = "dark", wrap = false, placement = 'bottom', children }) {
   const anchor = useRef(null);
   const tip = useRef(null);
   const vidaTimer = useRef(0);
@@ -48,15 +48,19 @@ export default function Tooltip({ label, tone = "dark", wrap = false, children }
 
   useLayoutEffect(() => {
     if ((!visible && !saliendo) || !anchor.current || !tip.current) return undefined;
-    const rect = anchor.current.getBoundingClientRect();
+    const place = () => {
+    const rect = (anchor.current.querySelector('button') || anchor.current).getBoundingClientRect();
     const caja = tip.current.getBoundingClientRect();
     const cabeAbajo = rect.bottom + GAP + caja.height <= window.innerHeight - MARGEN;
-    const top = cabeAbajo ? rect.bottom + GAP : Math.max(MARGEN, rect.top - caja.height - GAP);
+    const top = placement==='right' ? Math.max(MARGEN,Math.min(rect.top+(rect.height-caja.height)/2,window.innerHeight-caja.height-MARGEN)) : cabeAbajo ? rect.bottom + GAP : Math.max(MARGEN, rect.top - caja.height - GAP);
     const centrado = rect.left + rect.width / 2 - caja.width / 2;
-    const left = Math.min(Math.max(MARGEN, centrado), window.innerWidth - caja.width - MARGEN);
-    setPuesto({ top, left, origin: cabeAbajo ? "center top" : "center bottom" });
-    return undefined;
-  }, [visible, saliendo, label]);
+    const left = Math.max(MARGEN,Math.min(placement==='right'?rect.right+6:Math.max(MARGEN, centrado), window.innerWidth - caja.width - MARGEN));
+    setPuesto({ top, left, origin: placement==='right'?'left center':cabeAbajo ? "center top" : "center bottom" });
+    };
+    place();window.addEventListener('resize',place);window.addEventListener('scroll',place,true);
+    const observer=new ResizeObserver(place);observer.observe(anchor.current);
+    return()=>{window.removeEventListener('resize',place);window.removeEventListener('scroll',place,true);observer.disconnect();};
+  }, [visible, saliendo, label, placement]);
 
   if (!label) return children;
 
@@ -74,7 +78,7 @@ export default function Tooltip({ label, tone = "dark", wrap = false, children }
       {children}
       {montado ? createPortal(
         <span
-          className={`tooltip${tone === "light" ? " is-light" : ""}${wrap ? " is-wrap" : ""}${saliendo ? " is-out" : ""}`}
+          className={`tooltip${placement==='right'?' is-right':''}${tone === "light" ? " is-light" : ""}${wrap ? " is-wrap" : ""}${saliendo ? " is-out" : ""}`}
           ref={tip}
           role="tooltip"
           style={puesto ? { top: puesto.top, left: puesto.left, transformOrigin: puesto.origin } : { top: -9999, left: -9999 }}

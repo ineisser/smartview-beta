@@ -3,7 +3,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import app, {auth,rtdb} from '../firebase';
 import { onValue, ref } from 'firebase/database';
 const consultar=httpsCallable(getFunctions(app,'us-central1'),'historialPagina');
-export default function useHistorialPagina({activo,org,desde,hasta,sala,maquina,razon,estado,orden,offset,revision=0,vista='historial',periodo='hoy'}) {
+export default function useHistorialPagina({activo,org,desde,hasta,sala,maquina,razon,estado,grupo='',turno='',orden,offset,revision=0,vista='historial',periodo='hoy'}) {
   const [datos,setDatos]=useState({org:null,filas:[],total:0,offset:0,cargando:false,error:null});
   const [version,setVersion]=useState(0),[tick,setTick]=useState(0);
   const cursors=useRef({}),fingerprint=useRef(''),manual=useRef(revision);
@@ -15,9 +15,9 @@ export default function useHistorialPagina({activo,org,desde,hasta,sala,maquina,
     let vigente=true;
     const abort=new AbortController();
     setDatos({org,filas:[],total:0,offset:0,cargando:true,error:null});
-    const key=JSON.stringify({org,desde,hasta,sala,maquina,razon,estado,orden,vista,periodo,version,revision,tick});if(fingerprint.current!==key){fingerprint.current=key;cursors.current={};}
+    const key=JSON.stringify({org,desde,hasta,sala,maquina,razon,estado,grupo,turno,orden,vista,periodo,version,revision,tick});if(fingerprint.current!==key){fingerprint.current=key;cursors.current={};}
     const reconstruir=manual.current!==revision;manual.current=revision;
-    const input={org,desde,hasta,sala,maquina,razon,estado,orden,offset,vista,periodo,cursor:cursors.current[offset]||null,reconstruir};
+    const input={org,desde,hasta,sala,maquina,razon,estado,grupo,turno,orden,offset,vista,periodo,cursor:cursors.current[offset]||null,reconstruir};
     (async()=>{
       try {
         let result;
@@ -30,6 +30,6 @@ export default function useHistorialPagina({activo,org,desde,hasta,sala,maquina,
       }catch(error){if(vigente)setDatos({org,filas:[],total:0,offset:0,cargando:false,error:import.meta.env.DEV?error.message:'No se pudo cargar este bloque. Comprueba que la función historialPagina esté desplegada.'});}
     })();
     return()=>{vigente=false;abort.abort();};
-  },[activo,org,desde,hasta,sala,maquina,razon,estado,orden.columna,orden.direccion,offset,revision,vista,periodo,version,tick]);
+  },[activo,org,desde,hasta,sala,maquina,razon,estado,grupo,turno,orden.columna,orden.direccion,offset,revision,vista,periodo,version,tick]);
   return activo && org && datos.org === org ? datos : {filas:[],total:0,offset:0,cargando:Boolean(activo && org),error:null};
 }

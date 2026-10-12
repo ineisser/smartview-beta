@@ -1136,9 +1136,9 @@ export default function Shell() {
           {plantas.length > 1 ? <label><span className="sala-copy">Planta</span><select aria-label="Elegir planta" value={orgActiva} onChange={e => navigate(`/${e.target.value}/mensajes`)}>{plantas.map(p => <option key={p.codigo} value={p.codigo}>{p.nombre || p.codigo}</option>)}</select></label> : <span title={profile?.organizacion}>{profile?.organizacion || 'Planta'}</span>}
         </div>
         <nav className="sidebar-nav">
-          {!movil && <Tooltip label={open ? "" : "Análisis"}><button type="button" className={`sala-link saiba-atajo${vista === "analisis" ? " is-on" : ""}`} aria-label="Análisis" onClick={() => { navigate(`/${orgActiva}/analisis`, { state: { desde: pathname } }); cerrarCajon(); }}><ChartNoAxesCombined className="saiba-ico" size={18} /><span className="sala-copy">Análisis</span></button></Tooltip>}
+          {!movil && <Tooltip placement="right" label={open ? "" : "Análisis"}><button type="button" className={`sala-link saiba-atajo${vista === "analisis" ? " is-on" : ""}`} aria-label="Análisis" onClick={() => { navigate(`/${orgActiva}/analisis`, { state: { desde: pathname } }); cerrarCajon(); }}><ChartNoAxesCombined className="saiba-ico" size={18} /><span className="sala-copy">Análisis</span></button></Tooltip>}
           {salas.map((item, index) => (
-            <Tooltip key={item.nombre} label={open ? "" : capital(item.nombre)}>
+            <Tooltip placement="right" key={item.nombre} label={open ? "" : capital(item.nombre)}>
               <button
                 type="button"
                 aria-label={item.nombre}
@@ -1156,7 +1156,7 @@ export default function Shell() {
         </nav>
         <div className="sidebar-tools">
           <hr className="linea-moderna" />
-          <Tooltip label={open ? "" : "Notificaciones"}>
+          <Tooltip placement="right" label={open ? "" : "Notificaciones"}>
             <button
               type="button"
               className={`sala-link saiba-atajo${vista === "notificaciones" ? " is-on" : ""}`}
@@ -1167,7 +1167,7 @@ export default function Shell() {
               {puntoAviso ? <i className={`aviso-punto is-${puntoAviso}`} aria-hidden="true" /> : null}
             </button>
           </Tooltip>
-          <Tooltip label={open ? "" : "Mensajes"}>
+          <Tooltip placement="right" label={open ? "" : "Mensajes"}>
             <button
               type="button"
               className={`sala-link saiba-atajo${vista === "mensajes" ? " is-on" : ""}`}
@@ -1180,12 +1180,12 @@ export default function Shell() {
           </Tooltip>
         </div>
         <div className="sidebar-foot">
-          <Tooltip label={open ? "" : "Dispositivos"}>
+          <Tooltip placement="right" label={open ? "" : "Dispositivos"}>
             <button className="pantalla-hit" type="button" aria-label="Dispositivos" onClick={() => { navigate(`/${orgActiva}/dispositivos`, { state: { desde: pathname } }); cerrarCajon(); }}>
               <Wifi size={18} /><span className="sala-copy">Dispositivos</span>
             </button>
           </Tooltip>
-          <Tooltip label={open ? "" : (altavoz && volumen > 0 ? "Volumen" : "Sonido apagado")}>
+          <Tooltip placement="right" label={open ? "" : (altavoz && volumen > 0 ? "Volumen" : "Sonido apagado")}>
             <button
               className="pantalla-hit volumen-hit"
               type="button"
@@ -1200,7 +1200,7 @@ export default function Shell() {
               <span className="sala-copy">Volumen</span>
             </button>
           </Tooltip>
-          <Tooltip label={open ? "" : (completa ? "Reducir pantalla" : "Pantalla completa")}>
+          <Tooltip placement="right" label={open ? "" : (completa ? "Reducir pantalla" : "Pantalla completa")}>
             <button
               className="pantalla-hit"
               type="button"
@@ -1213,7 +1213,7 @@ export default function Shell() {
             </button>
           </Tooltip>
           {acceso.editarPlanta || acceso.invitar ? (
-            <Tooltip label={open ? "" : "Configuración"}>
+            <Tooltip placement="right" label={open ? "" : "Configuración"}>
               <button
                 className="pantalla-hit saiba-config-hit"
                 type="button"

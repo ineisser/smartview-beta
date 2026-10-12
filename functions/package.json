@@ -7,7 +7,7 @@
     "node": "22"
   },
   "scripts": {
-    "test": "node --test history-core.test.js analysis-service.test.js sync-analysis.test.js access-service.test.js",
+    "test": "node --test history-core.test.js analysis-service.test.js sync-analysis.test.js access-service.test.js invitations-and-groups.test.js",
     "benchmark": "node benchmark.mjs"
   },
   "dependencies": {

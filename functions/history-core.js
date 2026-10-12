@@ -1,4 +1,6 @@
 const number = value => String(value ?? '').padStart(2, '0');
+import { coincideGrupo } from './shared/analysis-groups.js';
+import { horario, interseccion, tiempo } from './shared/analysis.js';
 const start = x => Number(x.inicio || x.id) || 0;
 const closed = x => Boolean(x.fin) || x.estado === 'atendido' || x.status === 'atendido';
 const end = (x, now) => closed(x) ? Number(x.fin) || start(x)+(Number(x.duration)||0)*60000 : now;
@@ -33,7 +35,7 @@ export function normalizeEvents(raw, rooms, input={}) {
   for (const [id,item] of Object.entries(raw||{})) {
     if (!roomMap.has(item.sala)) continue;
     const a=start({...item,id}), machine=number(item.maquina||item.machine);
-    if (!Number.isFinite(a) || a<=0 || (input.maquina&&machine!==input.maquina)) continue;
+    if (!Number.isFinite(a) || a<=0 || (input.maquina&&machine!==input.maquina) || !coincideGrupo(roomMap.get(item.sala),machine,input.grupo)) continue;
     const prefix=`${item.sala}:${machine}:`;
     const key=[0,-1,1,-2,2].map(delta=>prefix+(a+delta)).find(k=>events.has(k))||prefix+a;
     const previous=events.get(key)||{};
@@ -51,7 +53,10 @@ export function historyPage(raw, rooms, input, now = Date.now()) {
   const roomMap=new Map(rooms.filter(s=>!input.sala||s.codigo===input.sala).map(s=>[s.codigo,s]));
   const events=normalizeEvents(raw,rooms,input);
   let rows=[...events.values()].filter(x=>start(x)<to&&(end(x,now)>from||(start(x)>=from&&end(x,now)===start(x)))&&(!input.razon||x.reason===input.razon)&&(!input.estado||x.status===input.estado));
-  const values={sala:x=>roomMap.get(x.sala)?.nombre||x.sala,maquina:x=>x.machine,fecha:start,inicio:start,motivo:x=>x.reason,fin:x=>closed(x)?end(x,now):null,duracion:x=>Math.max(0,Math.min(end(x,now),to)-Math.max(start(x),from)),estado:x=>x.status,turno:x=>shift(x,roomMap.get(x.sala))};
+  const windows = new Map([...roomMap].map(([code, room]) => [code, horario(room, from, to, input.turno || '')]));
+  if (input.turno) rows=rows.filter(x=>interseccion(start(x),end(x,now),windows.get(x.sala)).length>0);
+  const clipped=x=>input.turno?tiempo(interseccion(start(x),end(x,now),windows.get(x.sala))):Math.max(0,Math.min(end(x,now),to)-Math.max(start(x),from));
+  const values={sala:x=>roomMap.get(x.sala)?.nombre||x.sala,maquina:x=>x.machine,fecha:start,inicio:start,motivo:x=>x.reason,fin:x=>closed(x)?end(x,now):null,duracion:clipped,estado:x=>x.status,turno:x=>shift(x,roomMap.get(x.sala))};
   const order=input.orden||{columna:'fecha',direccion:'desc'};
   const value=values[order.columna];
   if (!value||!['asc','desc'].includes(order.direccion)) throw new Error('Orden inválido.');
@@ -63,10 +68,10 @@ export function historyPage(raw, rooms, input, now = Date.now()) {
   });
   const total=rows.length;
   const groups=new Map();
-  for(const x of rows){const k=`${x.sala}:${x.machine}`;if(!groups.has(k))groups.set(k,[]);groups.get(k).push([Math.max(start(x),from),Math.min(end(x,now),to)]);}
+  for(const x of rows){const k=`${x.sala}:${x.machine}`;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(...(input.turno?interseccion(start(x),end(x,now),windows.get(x.sala)):[[Math.max(start(x),from),Math.min(end(x,now),to)]]));}
   let tiempoParado=0;
   for(const intervals of groups.values()){let last=null;for(const [a,b] of intervals.sort((x,y)=>x[0]-y[0])){if(b<=a)continue;if(last&&a<=last[1]){tiempoParado+=Math.max(0,b-last[1]);last[1]=Math.max(last[1],b);}else{tiempoParado+=b-a;last=[a,b];}}}
   const cursorIndex=input.cursor?.id?rows.findIndex(x=>x.id===input.cursor.id)+1:0;
   const safeOffset=cursorIndex>0?cursorIndex:total?Math.min(offset,Math.floor((total-1)/100)*100):0;
-  return {filas:rows.slice(safeOffset,safeOffset+100),total,offset:safeOffset,tamano:100,totales:{paros:total,tiempoParado}};
+  return {filas:rows.slice(safeOffset,safeOffset+100).map(x=>({...x,duracionFiltro:clipped(x)})),total,offset:safeOffset,tamano:100,totales:{paros:total,tiempoParado}};
 }

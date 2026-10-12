@@ -1,36 +1,18 @@
 # Correos de invitación y proveedores de modelos
 
-## Invitaciones actuales
+## Invitaciones y correos de SmartView
 
-SmartView genera enlaces para compartir, con vigencia de siete días. No se ha activado envío automático de correo. Configuración y el estado vacío de Mensajes usan el mismo formulario.
+Los correos de invitación, recuperación de contraseña y acceso por enlace se envían desde funciones de Firebase mediante Resend. Firebase Authentication conserva las cuentas y genera los enlaces seguros; Resend entrega el HTML y el texto personalizados. La clave RESEND_API_KEY se guarda en Firebase Secret Manager y solo la utilizan las funciones de correo.
 
-## Enviar correos con Firebase
+Remitente: SmartView <invitaciones@isagi.cloud>. Respuestas: isagionline@gmail.com. El dominio isagi.cloud está verificado en Resend. La plantilla corporativa clara está en functions/email-service.js; se pueden cambiar texto, colores, marca y detalles allí. Las variables de usuarios y plantas se escapan antes de insertarlas en HTML.
 
-Firebase no sustituye al proveedor de entrega. Su extensión Trigger Email conecta una colección de Firestore con un servidor SMTP. Requiere SMTP, remitente y un proyecto con facturación habilitada para las extensiones. El consumo de Functions, Firestore y otros recursos puede generar cargos, además del proveedor de correo.
+Al invitar se elige Enviar correo personalizado o Generar código para copiar. Ambas opciones utilizan la misma invitación, con un destinatario, rol, salas y caducidad de siete días. El código se pega en /aceptar-invitacion. Una cuenta existente inicia sesión y conserva sus credenciales y membresías. Una cuenta nueva crea y confirma su contraseña usando el correo de la invitación. El backend vuelve a validar identidad, vigencia y permisos del invitador al aceptar.
 
-Las invitaciones personalizadas pueden tener asunto, HTML, texto y variables editables. Trigger Email admite plantillas Handlebars almacenadas en Firestore. Son distintas de las plantillas de autenticación para recuperar contraseña o verificar correo.
+La confirmación de envío significa que Resend aceptó el correo; no garantiza recepción en la bandeja. Los envíos de una invitación usan una clave de idempotencia para que un reintento no duplique el correo. Recuperación y acceso por enlace tienen límites de frecuencia y no revelan si un correo existe.
 
-Pasos:
+La recuperación se solicita en /recuperar-contrasena y se completa en /restablecer-contrasena usando el código firmado por Firebase. Cambia la contraseña de la cuenta en todas sus plantas. El flujo mantiene una confirmación de contraseña y valida el enlace antes de aceptar el cambio.
 
-1. Verificar un dominio y configurar los registros DNS indicados por el proveedor de correo.
-2. Elegir remitente, por ejemplo `invitaciones@tu-dominio.com`.
-3. Guardar las credenciales SMTP como secretos del backend.
-4. Instalar Trigger Email y configurar su colección y servidor SMTP, o llamar directamente a la API del proveedor desde una función de Firebase.
-5. Preparar una plantilla con nombre, planta, perfil, enlace y vencimiento.
-6. Permitir que solo el backend autorizado genere los envíos, con límites y registro de entrega. Probar primero con un destinatario controlado.
-
-[Documentación de Trigger Email y plantillas](https://firebase.google.com/docs/extensions/official/firestore-send-email).
-
-## Flujo de invitaciones implementado
-
-SmartView utiliza `sendSignInLinkToEmail` de Firebase Authentication: Google envía un correo de acceso con la plantilla estándar de Firebase en español. No se usa Resend ni SMTP propio en este flujo. Al abrir el enlace, el destinatario ve la planta, el invitador y el perfil, confirma su correo dos veces y Firebase autentica el enlace antes de que el backend añada su membresía. Una sesión guardada permite volver a entrar; si cierra sesión, puede solicitar otro enlace desde Entrar.
-
-Configuración del proyecto comprobada: acceso por enlace habilitado y `main.da3cm3kazy3vu.amplifyapp.com` añadido a los dominios autorizados, conservando los dominios previos. Remitente y opciones disponibles de la plantilla se revisan en Firebase Console → Authentication → Templates. La plantilla estándar tiene personalización limitada. Para un diseño HTML propio con remitente de marca, planta e invitador dentro del correo, se necesita generar el enlace en backend y enviarlo mediante Resend u otro proveedor.
-
-La pantalla confirma que Firebase aceptó el envío; eso no confirma entrega en la bandeja de entrada. Si falla, conserva la invitación y permite reintentar sin crear otra. La recepción y aceptación en una bandeja real requieren un correo de prueba autorizado.
-
-Los límites oficiales de envío por enlace son 5 correos diarios en Spark y 25.000 en Blaze; no deben confundirse con la cuota de generación de enlaces. Blaze requiere facturación y puede tener otros cargos por servicios utilizados. [Límites de Firebase Authentication](https://firebase.google.com/docs/auth/limits), [acceso por enlace](https://firebase.google.com/docs/auth/web/email-link-auth), [plantillas y proveedores propios](https://firebase.google.com/docs/auth/admin/email-action-links).
-
+[Enlaces de Firebase y correo personalizado](https://firebase.google.com/docs/auth/admin/email-action-links), [envíos de Resend](https://resend.com/docs/api-reference/emails/send-email).
 ## Resend
 
 Recomiendo integrar su API desde Firebase Functions para esta aplicación: permite controlar el diseño de la invitación en el código y evita agregar una colección de correo solo para usar SMTP. También ofrece SMTP si se prefiere Trigger Email.

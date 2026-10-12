@@ -46,7 +46,7 @@ export const interseccion = (a,b,ventanas) => ventanas.map(([x,y]) => [Math.max(
 export function calcular({ salas, historial, sala = '', maquina = '', razon = '', desde, hasta, ahora, turno = '' }) {
   const permitidas = salas.filter(s => !sala || s.codigo === sala);
   const mapa = new Map(permitidas.map(s => [s.codigo,s]));
-  const todos = historial.filter(x => mapa.has(x.sala) && (!maquina || numero(x.machine || x.maquina) === maquina) && inicio(x) > 0 && inicio(x) < hasta && (fin(x,ahora)>desde||(inicio(x)>=desde&&fin(x,ahora)===inicio(x)))).sort((a,b)=>inicio(b)-inicio(a));
+  const todos = historial.filter(x => mapa.has(x.sala) && (!maquina || numero(x.machine || x.maquina) === maquina) && inicio(x) > 0 && inicio(x) < hasta && (fin(x,ahora)>desde||(inicio(x)>=desde&&fin(x,ahora)===inicio(x))) && (!turno || interseccion(inicio(x),fin(x,ahora),horario(mapa.get(x.sala),desde,hasta,turno)).length>0)).sort((a,b)=>inicio(b)-inicio(a));
   const registros = todos.filter(x => !razon || motivo(x) === razon);
   const maquinas = [];
   const motivos = new Map();
@@ -60,7 +60,7 @@ export function calcular({ salas, historial, sala = '', maquina = '', razon = ''
       const logs = todos.filter(x=>x.sala===s.codigo && numero(x.machine || x.maquina)===n);
       const elegidos = logs.filter(x => !razon || motivo(x) === razon);
       const base = catalogo.has(n) ? tiempo(ventanas) : 0;
-      const clips = elegidos.map(x=>[Math.max(inicio(x),desde),Math.min(fin(x,ahora),hasta)]);
+      const clips = elegidos.flatMap(x=>turno?interseccion(inicio(x),fin(x,ahora),ventanas):[[Math.max(inicio(x),desde),Math.min(fin(x,ahora),hasta)]]);
       let perdido = 0;
       programado += base;
       // Asignar solapamientos una sola vez, al primer paro registrado.
@@ -73,7 +73,7 @@ export function calcular({ salas, historial, sala = '', maquina = '', razon = ''
         if (!razon || key === razon) {
           if (!motivos.has(key)) motivos.set(key,{key,paros:0,duracion:0,perdido:0});
           const grupo=motivos.get(key); grupo.paros++;
-          grupo.duracion+=Math.max(0,Math.min(fin(x,ahora),hasta)-Math.max(inicio(x),desde));
+          grupo.duracion+=turno?tiempo(interseccion(inicio(x),fin(x,ahora),ventanas)):Math.max(0,Math.min(fin(x,ahora),hasta)-Math.max(inicio(x),desde));
           grupo.perdido+=aporte;
           perdido+=aporte;
         }
@@ -131,7 +131,7 @@ export function evolucion({periodo,desdeFecha,hastaFecha,...opciones}) {
     grupos.push({label,desde:a,hasta:b,...resumen,disponibilidad:resumen?.disponibilidad??null});
   };
   if (porTurno) {
-    for (const letra of ['A','B','C']) agregar(letra,+desde,+final,letra);
+    for (const letra of [...new Set(opciones.salas.filter(s=>!opciones.sala||s.codigo===opciones.sala).flatMap(s=>turnosDe(s.turnos).map(t=>t.letra)))]) agregar(letra,+desde,+final,letra);
   } else {
     for (const d=new Date(desde);+d<+final;) {
       const siguiente = new Date(d);

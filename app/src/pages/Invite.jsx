@@ -5,8 +5,6 @@ import { etiquetaPerfil } from "../access";
 import Screen from "../components/Screen";
 import PasswordField from "../components/PasswordField";
 import Boot from "./Boot";
-import { isSignInWithEmailLink } from 'firebase/auth';
-import { auth } from '../firebase';
 
 const irDespues = (invite, navigate) => {
   if (invite.tipo === "plataforma") navigate("/plataforma", { replace: true });
@@ -16,7 +14,7 @@ const irDespues = (invite, navigate) => {
 
 export default function Invite() {
   const { token } = useParams();
-  const { user, profile, loading, leerInvitacion, aceptarInvitacion, registrarInvitacion, entrarConEnlaceInvitacion } = useAuth();
+  const { user, profile, loading, logout, leerInvitacion, aceptarInvitacion, registrarInvitacion } = useAuth();
   const navigate = useNavigate();
   const [invite, setInvite] = useState(null);
   const [carga, setCarga] = useState(true);
@@ -24,9 +22,6 @@ export default function Invite() {
   const [busy, setBusy] = useState(false);
   const [password, setPassword] = useState("");
   const [repetir, setRepetir] = useState("");
-  const [email, setEmail] = useState('');
-  const [emailConfirmado, setEmailConfirmado] = useState('');
-  const enlaceCorreo = isSignInWithEmailLink(auth, window.location.href);
 
   useEffect(() => {
     if (token) sessionStorage.setItem("smartview-invitacion", token);
@@ -41,8 +36,8 @@ export default function Invite() {
         setInvite(data);
         if (!data) setError("Esta invitación no existe.");
       })
-      .catch(() => {
-        if (vivo) setError("No se pudo leer la invitación.");
+      .catch((err) => {
+        if (vivo) setError(err.message || "No se pudo leer la invitación.");
       })
       .finally(() => {
         if (vivo) setCarga(false);
@@ -96,19 +91,6 @@ export default function Invite() {
     }
   };
 
-  const confirmarCorreo = async event => {
-    event.preventDefault(); setError('');
-    if (email.trim().toLowerCase() !== emailConfirmado.trim().toLowerCase()) { setError('Los correos no coinciden.'); return; }
-    setBusy(true);
-    try {
-      const usada = await entrarConEnlaceInvitacion(token, email, window.location.href);
-      sessionStorage.removeItem('smartview-invitacion');
-      irDespues(usada, navigate);
-    } catch (err) { setError(err.message || 'El enlace venció o no corresponde a este correo. Solicita una nueva invitación.'); }
-    finally { setBusy(false); }
-  };
-
-  if (invite && enlaceCorreo) return <Screen title={`Te han invitado a ${empresa}`} lede={`${invite.creadoPorNombre || 'El administrador de la planta'} te invita a colaborar como ${etiquetaPerfil(invite.rol)}. Confirma el correo que recibió este enlace para entrar.`}><form className="stack" onSubmit={confirmarCorreo}><label className="field"><span>Tu correo</span><input type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} /></label><label className="field"><span>Confirma tu correo</span><input type="email" required autoComplete="off" value={emailConfirmado} onChange={e => setEmailConfirmado(e.target.value)} /></label>{error && <p role="alert" className="error">{error}</p>}<button className="btn btn-primary" disabled={busy}>{busy ? 'Confirmando…' : 'Confirmar y entrar'}</button><p className="caption">Tu sesión se conservará en este dispositivo. Puedes volver a entrar con un enlace de correo o tu método habitual.</p></form></Screen>;
 
   if (invite?.tipo === "plataforma" && !user) {
     return (
@@ -124,6 +106,7 @@ export default function Invite() {
     return (
       <Screen title={`Has sido invitado a ${empresa}.`} lede="Esta invitación es para otro correo. Cierra sesión y entra con el que te invitaron.">
         <div className="stack">
+          <button className="btn btn-primary" type="button" disabled={busy} onClick={async()=>{setBusy(true);try{await logout();navigate('/login');}catch{setError('No se pudo cambiar de cuenta. Intenta de nuevo.');}finally{setBusy(false);}}}>Cambiar de cuenta</button>
           {error ? <p className="error">{error}</p> : null}
         </div>
         {pie ? <p className="caption invite-foot">{pie}</p> : null}
@@ -133,7 +116,7 @@ export default function Invite() {
 
   if (user && invite) {
     return (
-      <Screen title={`Has sido invitado a ${empresa}.`} lede="Tu cuenta ya está lista. Únete y entra a trabajar.">
+      <Screen title={`Has sido invitado a ${empresa}.`} lede={`${invite.creadoPorNombre || 'El administrador'} te invita a esta planta. Tus credenciales siguen siendo las mismas.`}>
         <div className="stack">
           {error ? <p className="error">{error}</p> : null}
           <button className="btn btn-primary" type="button" disabled={busy} onClick={aceptar}>
@@ -145,6 +128,7 @@ export default function Invite() {
     );
   }
 
+  if (invite?.cuentaExistente) return <Screen title={`Te han invitado a ${empresa}`} lede={`${invite.creadoPorNombre || "El administrador"} te invita a esta planta. Tus credenciales siguen siendo las mismas.`}><div className="stack"><p>Inicia sesión con tu cuenta de SmartView para aceptar. Conservarás tus accesos a otras plantas.</p><Link className="btn btn-primary" to="/login">Iniciar sesión</Link></div></Screen>;
   return (
     <Screen title={invite ? `Has sido invitado a ${empresa}.` : "Invitación"} lede={invite ? "Elige una contraseña para entrar." : "No encontramos esta invitación."}>
       {invite ? (
